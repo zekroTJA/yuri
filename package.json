@@ -1,0 +1,31 @@
+{
+  "name": "soundboard2",
+  "version": "2.0.0",
+  "description": "best sound bot in whole north korea",
+  "keywords": [
+    ""
+  ],
+  "license": "MIT",
+  "main": "src/main.js",
+  "author": "zekro Development",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "scripts": {
+    "start": "node src/main.js",
+    "test": "node src/main.js -d"
+  },
+  "bugs": {
+    "url": ""
+  },
+  "engines": {
+    "node": ">=6.0.0"
+  },
+  "dependencies": {
+    "discord.js": "^11.2.1",
+    "colors": "^1.1.2",
+    "node-opus": "^0.2.7"
+  },
+  "devDependencies": {}
+}

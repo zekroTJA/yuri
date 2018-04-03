@@ -1,0 +1,8 @@
+{
+    "token": "",
+    "prefix": ":",
+    "files": ["mp3", "mp4", "wav", "ogg"],
+    "fileloc": "../soundboard/sounds",
+    "owner": "221905671296253953",
+    "writestats": true
+}
