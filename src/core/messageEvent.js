@@ -1,6 +1,6 @@
 const { client, config, switchState } = require('../main')
 const Logger = require('../util/logger')
-const { players, Player, guildLog } = require('./player')
+const { players, Player, guildLog, soundStats } = require('./player')
 const { info, error } = require('../util/msgs')
 const { listMsgs, SoundsList } = require('../util/soundsList')
 const BindingHandler = require('./bindingsHandler')
@@ -79,7 +79,6 @@ client.on('message', (msg) => {
             - lockchan
             - reload
             - rename
-            - stats
         */
 
         // HELP COMMAND
@@ -96,7 +95,8 @@ client.on('message', (msg) => {
                 'random': ['r, rand', 'Play a random sound'],
                 '<sound>': ['', 'Play a sound'],
                 'help': ['', 'Display this help message'],
-                'info': ['', 'Display some info about this bot']
+                'info': ['', 'Display some info about this bot'],
+                'stats': ['top', 'Display top 30 sounds by played times']
             }
             info(chan,
                 Object.keys(help_cmds)
@@ -104,6 +104,15 @@ client.on('message', (msg) => {
                     .map(k => `:white_small_square:  \`${config.prefix}${k}\` ${help_cmds[k][0].length > 0 ? `- [\`${help_cmds[k][0]}\`]` : ''} - ${help_cmds[k][1]}`)
                     .join('\n'),
                 ':notebook_with_decorative_cover:  COMMANDS'
+            )
+            // Getting output as markdown table for documentation
+            Logger.debug(
+                '**Command** | **Aliases** | **Description**\n' +
+                '|----|----|----|\n' +
+                Object.keys(help_cmds)
+                    .sort()
+                    .map(k => `| ${k} | ${help_cmds[k][0].length > 0 ? help_cmds[k][0] : '-/-'} | ${help_cmds[k][1]} |`)
+                    .join('\n')
             )
             break
 
@@ -121,6 +130,26 @@ client.on('message', (msg) => {
                                                      '- [node-opus](https://github.com/Rantanen/node-opus)\n' +
                                                      '- [colors](https://github.com/Marak/colors.js)')
             )
+            break
+
+        // STATS COMMAND
+        case 'stats':
+        case 'top':
+            if (!config.writestats)
+                error(chan, 'Sound stats are disabled by config.')
+            else if (soundStats == {})
+                info(chan, '*Stats are currently empty*', 'TOP 20 SOUNDS')
+            else {
+                info(
+                    chan, 
+                    Object.keys(soundStats)
+                        .sort((a, b) => soundStats[b] - soundStats[a])
+                        .slice(0, 20)
+                        .map((k, i) => `**${i}** - **\`[${soundStats[k]}]\`** - ${k}`)
+                        .join('\n'),
+                    'TOP 20 SOUNDS'
+                )
+            }
             break
 
         // LOGS COMMAND

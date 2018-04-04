@@ -3,9 +3,14 @@ const Logger = require('../util/logger')
 const fs = require('fs')
 const { getTime } = require('../util/timeFormat')
 
-
 var players = {}
 var guildLog = {}
+var soundStats = (() => {
+    if (fs.existsSync('SOUNDSTATS.json'))
+        return require('../../SOUNDSTATS.json')
+    else
+        return {}
+})()
 
 class Player {
 
@@ -66,6 +71,12 @@ class Player {
                     guildLog[this.guild.id].unshift(logline)
                     guildLog[this.guild.id] = guildLog[this.guild.id].slice(0, 20)
                 }
+
+                if (config.writestats) {
+                    let stat = soundStats[soundfile]
+                    soundStats[soundfile] = stat ? stat += 1 : 1
+                }
+
                 resolve(this)
             }
             else {
@@ -100,5 +111,6 @@ class Player {
 module.exports = {
     players,
     guildLog,
+    soundStats,
     Player
 }

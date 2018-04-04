@@ -45,3 +45,25 @@ Logger.debug('Debug mode enabled')
 // Logging into this shit
 client.login(config.token)
     .catch(err => Logger.error('Failed logging in:\n' + err))
+
+
+// EXIT HANDLER
+function exitHandler(exit, err) {
+    Logger.debug('Shutting down...')
+
+    if (err)
+        Logger.error(err.stack)
+
+    const { soundStats } = require('./core/player')
+    console.log(soundStats)
+
+    if (config.writestats)
+        fs.writeFileSync('SOUNDSTATS.json', JSON.stringify(soundStats, 0, 2))
+
+    if (exit)
+        process.exit()
+}
+
+process.on('exit', exitHandler)
+process.on('SIGINT', exitHandler.bind(null, true))
+process.on('uncaughtException', exitHandler.bind(null, true))
