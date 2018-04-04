@@ -1,4 +1,4 @@
-const { client, config, switchState } = require('../main')
+const { client, config, reloadConfig } = require('../main')
 const Logger = require('../util/logger')
 const { players, Player, guildLog, soundStats } = require('./player')
 const { info, error } = require('../util/msgs')
@@ -130,6 +130,13 @@ client.on('message', (msg) => {
                                                      '- [node-opus](https://github.com/Rantanen/node-opus)\n' +
                                                      '- [colors](https://github.com/Marak/colors.js)')
             )
+            break
+
+        case 'reload':
+            if (reloadConfig)
+                info(chan, 'Config reloaded.')
+            else
+                error(chan, 'Failed reloading config.')
             break
 
         // STATS COMMAND

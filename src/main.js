@@ -7,6 +7,15 @@ const Logger = require('./util/logger')
 // Creating discord client instance
 var client = new Discord.Client()
 
+function reloadConfig() {
+    if (fs.existsSync('config.json')) {
+        var config = require('../config.json')
+        Logger.info('Config reloaded')
+        return true
+    }
+    return false
+}
+
 // Load or generate config
 if (fs.existsSync('config.json')) {
     var config = require('../config.json')
@@ -30,7 +39,8 @@ else {
 // Exporting client and config for other modules
 module.exports = {
     client,
-    config
+    config,
+    reloadConfig
 }
 
 // Registering events
