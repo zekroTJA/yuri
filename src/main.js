@@ -3,6 +3,7 @@ const colors = require('colors')
 const fs = require('fs')
 const Logger = require('./util/logger')
 
+
 // Creating discord client instance
 var client = new Discord.Client()
 
@@ -18,7 +19,8 @@ else {
         files: ["mp3", "mp4", "wav", "ogg"],
         fileloc: "./sounds",
         owner: "",
-        writestats: true
+        writestats: true,
+        gamerota: ["zekro.de"]
     }
     fs.writeFileSync('config.json', JSON.stringify(def_conf, 0, 2))
     Logger.error('Config file created. Please enter your information into this file and restart the bot after.')
@@ -34,6 +36,8 @@ module.exports = {
 // Registering events
 require('./core/readyEvent')
 require('./core/messageEvent')
+require('./core/reactionEvent')
+require('./util/gameRotator')
 
 
 Logger.debug('Debug mode enabled')
