@@ -37,6 +37,7 @@ module.exports = {
 require('./core/readyEvent')
 require('./core/messageEvent')
 require('./core/reactionEvent')
+require('./core/voiceEvent')
 require('./util/gameRotator')
 
 

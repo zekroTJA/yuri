@@ -214,8 +214,12 @@ client.on('message', (msg) => {
         // QUIT COMMAND
         case 'quit':
             if (player) {
-                player.vc.leave()
-                players[guild.id] = null
+                if (players[guild.id]) {
+                    players[guild.id].destroy()
+                }
+                else {
+                    player.vc.leave()
+                }
             }
             break
 

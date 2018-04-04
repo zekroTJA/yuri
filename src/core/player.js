@@ -105,6 +105,12 @@ class Player {
         return this.disabled
     }
 
+    destroy() {
+        this.vc.leave()
+        players[this.guild.id] = null
+        delete this
+    }
+
 }
 
 
