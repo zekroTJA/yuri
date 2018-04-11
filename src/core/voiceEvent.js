@@ -9,7 +9,7 @@ client.on('voiceStateUpdate', (mold, mnew) => {
 
     // Automatically quit voice channel if its empty
     if (mold.voiceChannel == me.voiceChannel) {
-        if (me.voiceChannel.members.array().length == 1 && players[guild.id]) {
+        if (me.voiceChannel && me.voiceChannel.members.array().length == 1 && players[guild.id]) {
             setTimeout(() => {
                 if (me.voiceChannel.members.array().length == 1 && players[guild.id]) {
                     players[guild.id].destroy()

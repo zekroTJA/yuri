@@ -66,7 +66,6 @@ function exitHandler(exit, err) {
         Logger.error(err.stack)
 
     const { soundStats } = require('./core/player')
-    console.log(soundStats)
 
     if (config.writestats)
         fs.writeFileSync('SOUNDSTATS.json', JSON.stringify(soundStats, 0, 2))
