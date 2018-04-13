@@ -1,4 +1,4 @@
-const { config, client } = require('../main')
+const { config, client, settings } = require('../main')
 const Logger = require('../util/logger')
 const fs = require('fs')
 const { getTime } = require('../util/timeFormat')
@@ -19,7 +19,7 @@ class Player {
 
             this.guild = vc.guild
             this.vc = vc
-            this.volume = 1
+            this.volume = settings.guild(this.guild).volume ? settings.guild(this.guild).volume : 1
             this.disabled = false
             vc.join()
                 .then(con => {

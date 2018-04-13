@@ -2,6 +2,8 @@ const Discord = require('discord.js')
 const colors = require('colors')
 const fs = require('fs')
 const Logger = require('./util/logger')
+const { CrashCollector } = require('./util/crashCollector')
+const { Settings } = require('./core/settings')
 
 
 // Creating discord client instance
@@ -36,11 +38,14 @@ else {
     process.exit()
 }
 
+var settings = new Settings()
+
 // Exporting client and config for other modules
 module.exports = {
     client,
     config,
-    reloadConfig
+    reloadConfig,
+    settings
 }
 
 // Registering events
@@ -62,10 +67,8 @@ client.login(config.token)
 function exitHandler(exit, err) {
     Logger.debug('Shutting down...')
 
-    if (err)
-        Logger.error(err.stack)
-
     const { soundStats } = require('./core/player')
+    settings.save()
 
     if (config.writestats)
         fs.writeFileSync('SOUNDSTATS.json', JSON.stringify(soundStats, 0, 2))
@@ -74,6 +77,7 @@ function exitHandler(exit, err) {
         process.exit()
 }
 
+new CrashCollector('./crash_logs')
+
 process.on('exit', exitHandler)
 process.on('SIGINT', exitHandler.bind(null, true))
-process.on('uncaughtException', exitHandler.bind(null, true))

@@ -1,4 +1,4 @@
-const { client, config } = require('../main')
+const { client, config, settings } = require('../main')
 const Logger = require('../util/logger')
 const { players, Player } = require('../core/player')
 const { info, error } = require('../util/msgs')
@@ -48,7 +48,8 @@ client.on('voiceStateUpdate', (mold, mnew) => {
         setTimeout(() => {
             if (!mnew.guild.members.find(m => m.id == mnew.id).selfMute) {
                 
-                let binding = bindings[memb.id]
+                // let binding = bindings[memb.id]
+                let binding = settings.user(memb.id).binding
                 if (binding) {
                     if (binding == 'r') {
                         _getPlayer()
@@ -77,13 +78,15 @@ client.on('voiceStateUpdate', (mold, mnew) => {
 
 function setBinding(chan, member, binding) {
     if (binding.toLowerCase() == 'reset') {
-        bindings[member.id] = null
+        // bindings[member.id] = null
+        settings.set_user(member.id, { binding: null })
         info(chan, 'Unbound fast key.')
             .then(m => m.delete(3500))
         return
     }
     if (binding.toLowerCase() == 'r') {
-        bindings[member.id] = 'r'
+        // bindings[member.id] = 'r'
+        settings.set_user(member.id, { binding: 'r' })
         info(chan, 'Random sounds are now bound to fast key.')
             .then(m => m.delete(3500))
         return
@@ -94,7 +97,8 @@ function setBinding(chan, member, binding) {
         error(chan, `Can not fetch any sound to the binding \`${binding}\`.`)
             .then(m => m.delete(3500))
     else {
-        bindings[member.id] = file
+        // bindings[member.id] = file
+        settings.set_user(member.id, { binding: file })
         info(chan, `\`${file.split('.')[0]}\` is now bound to fast key.`)
             .then(m => m.delete(3500))
     }

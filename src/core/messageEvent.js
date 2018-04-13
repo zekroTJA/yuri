@@ -1,9 +1,10 @@
-const { client, config, reloadConfig } = require('../main')
 const Logger = require('../util/logger')
+const BindingHandler = require('./bindingsHandler')
+const fs = require('fs')
+const { client, config, reloadConfig, settings } = require('../main')
 const { players, Player, guildLog, soundStats } = require('./player')
 const { info, error } = require('../util/msgs')
 const { listMsgs, SoundsList } = require('../util/soundsList')
-const BindingHandler = require('./bindingsHandler')
 const { RichEmbed } = require('discord.js')
 
 
@@ -132,6 +133,31 @@ client.on('message', (msg) => {
             )
             break
 
+        // VOLUME COMMAND
+        case 'volume':
+        case 'vol':
+            if (!args[0]) {
+                error(chan, 'Set the volume of the player on this guild (in %, between `1` and `200`).')
+                return
+            }
+            let _vol = parseInt(args[0])
+            if (isNaN(_vol) || _vol < 1 || _vol > 200) {
+                error(chan, 'Please enter a valid volume number between `1` and `200` (in %).')
+                return
+            }
+            settings.set_guild(guild.id, { volume: (_vol / 100) })
+            info(chan, `Set guilds player volume to \`${_vol} %\`.`)
+            break
+
+        // RESTART COMMAND
+        case 'restart':
+            info(chan, 'Restarting :wave:', null, 0xf9dd07).then(m => {
+                fs.writeFileSync('RESTARTING', `${guild.id}:${chan.id}:${m.id}`)
+                process.exit()
+            })
+            break
+
+        // RELOAD COMMAND
         case 'reload':
             if (reloadConfig)
                 info(chan, 'Config reloaded.')

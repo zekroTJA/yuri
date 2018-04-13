@@ -2,10 +2,10 @@ const { RichEmbed } = require('discord.js')
 
 module.exports = {
 
-    info(chan, cont, title) {
+    info(chan, cont, title, color) {
         let emb = new RichEmbed()
             .setDescription(cont)
-            .setColor(0x03A9F4)
+            .setColor(color ? color : 0x03A9F4)
         if (title)
             emb.setTitle(title)
         return chan.send('', emb)
