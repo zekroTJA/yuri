@@ -133,6 +133,13 @@ client.on('message', (msg) => {
             )
             break
 
+        // CLOC COMMAND
+        case 'cloc':
+            require('../util/cloc').cloc(out => {
+                info(chan, '```yaml\n' + out + '\n```')
+            })
+            break
+
         // VOLUME COMMAND
         case 'volume':
         case 'vol':
