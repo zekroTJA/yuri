@@ -5,6 +5,7 @@
     "fileloc": "../soundboard/sounds",
     "owner": "221905671296253953",
     "writestats": true,
+    "enableticketsystem": false,
     "gamerota": [
         "fixing and repairing the game", 
         "Freibier!", 

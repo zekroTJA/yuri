@@ -2,7 +2,7 @@ const fs = require('fs')
 
 const DEFAULT_FILE_NAME = 'TOKEN_REGISTER.json'
 const TOKEN_INITIALIZER = 'guildtoken_'
-const TOKEN_CHARSET_REGEXP = /\w|\d/g
+const TOKEN_CHARSET_REGEXP = /[^\W_]/g
 const DEFAULT_ERR_MSG = 'This bot is only available on registered guilds.\n' + 
                         'Please provide a **registration token** from the host.'
 
@@ -27,7 +27,7 @@ class TokenSystem {
             var guild = msg.member.guild.id
             if (this.tokens.hashes.find(hash => hashed_cont == hash)) {
                 this.tokens.hashes.splice(this.tokens.hashes.indexOf(hashed_cont), 1)
-                if (this.tokens.acceptedGuilds.find(_g => g == guild))
+                if (!this.tokens.acceptedGuilds.find(_g => _g == guild))
                     this.tokens.acceptedGuilds.push(guild)
                 this.saveTokens()
                 msg.channel.send('Guild accepted.')

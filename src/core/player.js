@@ -56,7 +56,14 @@ class Player {
     }
 
     play(soundfile) {
+        // DEBUG
+        var STARTTIME = Date.now()
+        function getDelay() { return Date.now() - STARTTIME }
+        
         return new Promise((resolve, reject) => {
+            // DEBUG
+            Logger.debug(`[PLAYER] [${getDelay()}] Created Promise`)
+
             if (this.disabled) {
                 reject('Soundboard currently disabled by owner.')
                 return
@@ -64,10 +71,14 @@ class Player {
             let file = soundfile.split('.')[1] ? 
                        soundfile : 
                        Player.getFilelist().find(f => f.startsWith(soundfile.toLowerCase()))
+            // DEBUG
+            Logger.debug(`[PLAYER] [${getDelay()}] Found file, starting playing file`)
+
             if (file) {
                 this.con.playFile(`${config.fileloc}/${file}`).setVolume(this._volume())
-                Logger.debug('VOL: ' + this._volume())
-                console.log(this._volume())
+                // DEBUG
+                Logger.debug(`[PLAYER] [${getDelay()}] File played`)
+                
                 Logger.debug(`[PLAYED] '${file}' on guild ${this.guild.name}`)
 
                 let logline = `\`${getTime()}\` - **${file.split('.')[0]}** - *(${this.vc.name})*`
@@ -79,6 +90,8 @@ class Player {
                 }
 
                 if (config.writestats) {
+                    if (soundfile.indexOf('.') > -1)
+                        soundfile = soundfile.substring(0, soundfile.indexOf('.'))
                     let stat = soundStats[soundfile]
                     soundStats[soundfile] = stat ? stat += 1 : 1
                 }

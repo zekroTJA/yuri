@@ -24,7 +24,7 @@ client.on('message', (msg) => {
     var invoke = cont.split(' ')[0].replace(config.prefix, '')
     var args = cont.split(' ').slice(1)
 
-    if (!tokenHandler.check(guild) && memb.id != '221905671296253953') {
+    if (settings.enableticketsystem && !tokenHandler.check(guild) && memb.id != config.owner) {
         error(chan, 'This bot needs to be accepted for your guild. Please request a token from the host:\n```zekro#9131\ndiscord.zekro.de```')
         return
     }
@@ -85,7 +85,6 @@ client.on('message', (msg) => {
             - vol
             - blacklist
             - lockchan
-            - reload
             - rename
         */
 
@@ -146,9 +145,10 @@ client.on('message', (msg) => {
                 info(chan, '```yaml\n' + out + '\n```')
             })
             break
-            
+
+        // TOKEN GENERATION COMMAND
         case 'tokens':
-            if (memb.id != '221905671296253953') return
+            if (!config.owner && memb.id != config.owner) return
             let amm = parseInt(args[0])
             if (isNaN(amm) || amm < 1) return
             tokenHandler.generateRandomTokens(memb, amm)
