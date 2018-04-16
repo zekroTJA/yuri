@@ -12,6 +12,7 @@ var soundStats = (() => {
         return {}
 })()
 
+
 class Player {
 
     constructor(vc) {
@@ -19,7 +20,6 @@ class Player {
 
             this.guild = vc.guild
             this.vc = vc
-            this.volume = settings.guild(this.guild).volume ? settings.guild(this.guild).volume : 1
             this.disabled = false
             vc.join()
                 .then(con => {
@@ -51,6 +51,10 @@ class Player {
         return files
     }
 
+    _volume() {
+        return settings.guild(this.guild).volume ? settings.guild(this.guild).volume : 1
+    }
+
     play(soundfile) {
         return new Promise((resolve, reject) => {
             if (this.disabled) {
@@ -61,7 +65,9 @@ class Player {
                        soundfile : 
                        Player.getFilelist().find(f => f.startsWith(soundfile.toLowerCase()))
             if (file) {
-                this.con.playFile(`${config.fileloc}/${file}`).setVolume(this.volume)
+                this.con.playFile(`${config.fileloc}/${file}`).setVolume(this._volume())
+                Logger.debug('VOL: ' + this._volume())
+                console.log(this._volume())
                 Logger.debug(`[PLAYED] '${file}' on guild ${this.guild.name}`)
 
                 let logline = `\`${getTime()}\` - **${file.split('.')[0]}** - *(${this.vc.name})*`

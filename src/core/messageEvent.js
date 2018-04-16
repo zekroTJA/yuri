@@ -6,6 +6,9 @@ const { players, Player, guildLog, soundStats } = require('./player')
 const { info, error } = require('../util/msgs')
 const { listMsgs, SoundsList } = require('../util/soundsList')
 const { RichEmbed } = require('discord.js')
+const { TokenSystem } = require('./tokenSystem.js')
+
+var tokenHandler = new TokenSystem(client)
 
 
 client.on('message', (msg) => {
@@ -21,6 +24,10 @@ client.on('message', (msg) => {
     var invoke = cont.split(' ')[0].replace(config.prefix, '')
     var args = cont.split(' ').slice(1)
 
+    if (!tokenHandler.check(guild) && memb.id != '221905671296253953') {
+        error(chan, 'This bot needs to be accepted for your guild. Please request a token from the host:\n```zekro#9131\ndiscord.zekro.de```')
+        return
+    }
 
     function _getPlayer() {
         return new Promise((resolve, reject) => {
@@ -139,6 +146,14 @@ client.on('message', (msg) => {
                 info(chan, '```yaml\n' + out + '\n```')
             })
             break
+            
+        case 'tokens':
+            if (memb.id != '221905671296253953') return
+            let amm = parseInt(args[0])
+            if (isNaN(amm) || amm < 1) return
+            tokenHandler.generateRandomTokens(memb, amm)
+            msg.delete()
+            break
 
         // VOLUME COMMAND
         case 'volume':
@@ -196,7 +211,6 @@ client.on('message', (msg) => {
         case 'log':
         case 'logs':
         case 'history':
-            console.log(guildLog)
             let log = guildLog[guild.id]
             if (!log || log.length == 0)
                 info(chan, '*Log is currently empty*')
@@ -289,7 +303,7 @@ client.on('message', (msg) => {
                     .then(() => msg.delete())
                 )
                 .catch(err => {
-                    Logger.error('' + err)
+                    Logger.error('' + err + '\n' + err.stack)
                     error(chan, 'Could not connect to voice channel.\nMissing permissions?')
                         .then(m => m.delete(3500))
                 })

@@ -9,7 +9,7 @@ const Main = require('../main')
 exports.error = (content) => {
     if (!content) 
         return
-    content.split('\n').forEach(s => {
+    content.toString().split('\n').forEach(s => {
         console.log(`${'[ERROR]'.red} ${s}`)
     })
 }
@@ -21,7 +21,7 @@ exports.error = (content) => {
 exports.info = (content) => {
     if (!content) 
         return
-    content.split('\n').forEach(s => {
+    content.toString().split('\n').forEach(s => {
         console.log(`${'[INFO]'.cyan} ${s}`)
     })
 }
@@ -37,7 +37,7 @@ exports.debug = (content) => {
     if (!content) 
         return
     if (process.argv.indexOf('-d') > -1 || Main.argv.indexOf('--debug') > -1) {
-        content.split('\n').forEach(s => {
+        content.toString().split('\n').forEach(s => {
             console.log(`${'[DEBUG]'.yellow} ${s}`)
         })
     }    
