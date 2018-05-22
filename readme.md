@@ -11,16 +11,16 @@
 
 **Command** | **Aliases** | **Description**                                                      
 |----|----|----|                                                                                 
-| <sound> | -/- | Play a sound |                                                                 
-| bind <sound>/r/reset | -/- | bind a sound or random sounds to the fast key, "reset" to reset | 
+| `<sound>` | -/- | Play a sound |                                                                 
+| bind `<sound>`/r/reset | -/- | bind a sound or random sounds to the fast key, "reset" to reset | 
 | disable | enable | disable or enable the soundboatd [OWNER ONLY] |                             
 | help | -/- | Display this help message |                                                       
 | info | -/- | Display some info about this bot |                                                
-| list [s] | ls | List all sounds (add argument "s" for time-sorted list) |                      
+| list `[s]` | ls | List all sounds (add argument "s" for time-sorted list) |                      
 | log | logs, history | display guilds sound history |                                           
 | quit | -/- | Quit current voice channel |                                                      
 | random | r, rand | Play a random sound |                                                       
-| search <query/regexp> | s | search for sounds by query or regexp |                             
+| search `<query/regexp>` | s | search for sounds by query or regexp |                             
 | stop | -/- | Stop currently playing sound (does not quit channel) |                            
 | summon | -/- | Summons the bot in the voice channel without playing a sound |
 
