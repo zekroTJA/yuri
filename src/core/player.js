@@ -105,7 +105,7 @@ class Player {
     }
 
     stop() {
-        this.dispatcher.end()
+        this.con.dispatcher.end()
     }
 
     random() {

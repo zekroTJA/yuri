@@ -174,6 +174,14 @@ client.on('message', (msg) => {
         // RESTART COMMAND
         case 'restart':
             info(chan, 'Restarting :wave:', null, 0xf9dd07).then(m => {
+                if (player) {
+                    if (players[guild.id]) {
+                        players[guild.id].destroy()
+                    }
+                    else {
+                        player.vc.leave()
+                    }
+                }
                 fs.writeFileSync('RESTARTING', `${guild.id}:${chan.id}:${m.id}`)
                 process.exit()
             })
