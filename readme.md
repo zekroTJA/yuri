@@ -3,6 +3,7 @@
      <strong>If you believe or not, the best discord soundboard in whole north korea!</strong><br><br>
      <a href="" ><img src="https://img.shields.io/github/commit-activity/y/zekroTJA/yuri.svg" /></a>&nbsp;
      <a href="" ><img src="https://img.shields.io/github/languages/top/zekroTJA/yuri.svg" /></a>&nbsp;
+     <a href="https://travis-ci.org/zekroTJA/yuri" ><img src="https://travis-ci.org/zekroTJA/yuri.svg?branch=master" /></a>&nbsp;
 </div>
 
 ---
