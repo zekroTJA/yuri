@@ -1,4 +1,4 @@
-const { client, config } = require('../main')
+const { client, config, DEBUG_MODE } = require('../main')
 const { RichEmbed } = require('discord.js')
 const Logger = require('../util/logger')
 const fs = require('fs')
@@ -22,5 +22,9 @@ client.on('ready', () => {
                         .setDescription('Restart completed :ok_hand:'))
                     fs.unlink('RESTARTING')
                     })
+    }
+    if (DEBUG_MODE) {
+        Logger.info("Testing complete. Shutting down...")
+        process.exit(0)
     }
 })

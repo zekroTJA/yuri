@@ -6,9 +6,6 @@ const { players, Player, guildLog, soundStats } = require('./player')
 const { info, error } = require('../util/msgs')
 const { listMsgs, SoundsList } = require('../util/soundsList')
 const { RichEmbed } = require('discord.js')
-const { TokenSystem } = require('./tokenSystem.js')
-
-var tokenHandler = new TokenSystem(client)
 
 
 client.on('message', (msg) => {
@@ -24,7 +21,7 @@ client.on('message', (msg) => {
     var invoke = cont.split(' ')[0].replace(config.prefix, '')
     var args = cont.split(' ').slice(1)
 
-    if (settings.enableticketsystem && !tokenHandler.check(guild) && memb.id != config.owner) {
+    if (settings.enableticketsystem && memb.id != config.owner) {
         error(chan, 'This bot needs to be accepted for your guild. Please request a token from the host:\n```zekro#9131\ndiscord.zekro.de```')
         return
     }

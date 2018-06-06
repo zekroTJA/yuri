@@ -36,7 +36,7 @@ exports.info = (content) => {
 exports.debug = (content) => {
     if (!content) 
         return
-    if (process.argv.indexOf('-d') > -1 || Main.argv.indexOf('--debug') > -1) {
+    if (process.argv.indexOf('-d') > -1 || process.argv.indexOf('--debug') > - 1 || process.argv.indexOf('--test')) {
         content.toString().split('\n').forEach(s => {
             console.log(`${'[DEBUG]'.yellow} ${s}`)
         })
