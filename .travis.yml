@@ -1,8 +1,5 @@
 language: node_js
 
-node_js:
-  - lts/*
-
 env:
   global:
     secure: "omcpn+IMph1CCnkeBFR+jD5x/9i60h9B5Pb6vgZYIIly1XI6hyojyDhjp3U1MZ5fP3+mjhlTTnJKEdE6PfvUwIADzK5g1hxd66HWlD19PDEdcx4A3qppR1+G/UH5WqYzt2I+bWkWyYJuvddNhA6jTzJFUuRLFBBjxjwMEoObbs2hRTP/NPwfpD20jewCWQbL6XzEzivPwIZg+bl8gZ9F2effb95jraF0BaqYDf4BE+F2AMLyjbRiV7MvS2rlxUvelzfSYPb+ubCRYHLlQVlnEgm8a3w2hYazKRDKmfy+qN9P2jLBJLnjOgqWTcHXf6oSRi3awpGGe37lNpa2v+GUGCB2+V8h5MLVToROs/PgPjbXN67abKQ4lY35rx55S+lCnUX4b+H9tKKOyfC+7QOJbuyg2oMRgdq9978BytQrQAVjvpxNYNXsxMHau8fj6dMYFYB0eYMztjI9GxeCtqotWaSKtOWUU+AcxRAExYYIKZ/NmcUte8sx3VNrJOiRpv9McflGx+ljxmfl1NN+k5tw5oDfR0DRrGyEgkU+3oL7ko4l736hQmqxbozTh9RUhlNGaPY3o76AnVRR0wkgaKa70WVXLVgc8rTiDEWfaR8hOA8z40jGOwgS4y6QZ9Nmx+8qRL2FC1/o3IpBXNy+bhStEMwWq4GlYo8FTsxC6VBD+jM="
@@ -10,5 +7,13 @@ env:
 before_script:
   - npm install
 
-script:
-  - npm test
+matrix:
+  include:
+    - node_js: node
+      script:
+        - echo "THIS IS LATEST TEST"
+        - npm test
+    - node_js: lts/*
+      script:
+        - echo "THIS IS LTS TEST"
+        - npm test
