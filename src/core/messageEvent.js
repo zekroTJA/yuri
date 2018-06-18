@@ -85,6 +85,32 @@ client.on('message', (msg) => {
             - rename
         */
 
+        // case "test":
+        //     var color = 0;
+        //     var yuriRole = guild.roles.find(r => r.name == "Yuri")
+        //     if (!yuriRole) {
+        //         guild.createRole({
+        //             name: "Yuri",
+        //             hoist: true
+        //         }).then(r => {
+        //             yuriRole = r
+        //             guild.me.addRole(r)
+        //             info(chan, `Created role <@&${r.id}>. Please position this role over the bots current role to be displayed seperately. ` + 
+        //                        `Without this, the bots rainbow color effect will not appear! :wink:`)
+        //         })
+        //     }
+        //     var rainbowTimer = setInterval(() => {
+        //         color += 1000
+        //         if (color > 16777215)
+        //             color = 0
+        //         yuriRole.setColor(color)
+        //             .catch(e => {
+        //                 clearInterval(rainbowTimer)
+        //                 console.log(e)
+        //             })
+        //     }, 1000)
+        //     break;
+
         // HELP COMMAND
         case 'help':
             let help_cmds = {
