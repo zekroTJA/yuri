@@ -1,4 +1,5 @@
 <div align="center">
+     <img src="http://zekro.de/ss/yurilogo.png" width="200"/>
      <h1>~ Yuri ~</h1>
      <strong>If you believe or not, the best discord soundboard in whole north korea!</strong><br><br>
      <a href="" ><img src="https://img.shields.io/github/commit-activity/y/zekroTJA/yuri.svg" /></a>&nbsp;
