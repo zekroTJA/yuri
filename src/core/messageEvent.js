@@ -118,7 +118,7 @@ client.on('message', (msg) => {
                     .map(k => `| ${k} | ${help_cmds[k][0].length > 0 ? help_cmds[k][0] : '-/-'} | ${help_cmds[k][1]} |`)
                     .join('\n')
             )
-            break
+            break;
 
         // INFO COMMAND
         case 'info':
@@ -134,14 +134,14 @@ client.on('message', (msg) => {
                                                      '- [node-opus](https://github.com/Rantanen/node-opus)\n' +
                                                      '- [colors](https://github.com/Marak/colors.js)')
             )
-            break
+            break;
 
         // CLOC COMMAND
         case 'cloc':
             require('../util/cloc').cloc(out => {
                 info(chan, '```yaml\n' + out + '\n```')
             })
-            break
+            break;
 
         // TOKEN GENERATION COMMAND
         case 'tokens':
@@ -150,7 +150,7 @@ client.on('message', (msg) => {
             if (isNaN(amm) || amm < 1) return
             tokenHandler.generateRandomTokens(memb, amm)
             msg.delete()
-            break
+            break;
 
         // VOLUME COMMAND
         case 'volume':
@@ -166,7 +166,7 @@ client.on('message', (msg) => {
             }
             settings.set_guild(guild.id, { volume: (_vol / 100) })
             info(chan, `Set guilds player volume to \`${_vol} %\`.`)
-            break
+            break;
 
         // RESTART COMMAND
         case 'restart':
@@ -182,7 +182,7 @@ client.on('message', (msg) => {
                 fs.writeFileSync('RESTARTING', `${guild.id}:${chan.id}:${m.id}`)
                 process.exit()
             })
-            break
+            break;
 
         // RELOAD COMMAND
         case 'reload':
@@ -190,7 +190,7 @@ client.on('message', (msg) => {
                 info(chan, 'Config reloaded.')
             else
                 error(chan, 'Failed reloading config.')
-            break
+            break;
 
         // STATS COMMAND
         case 'stats':
@@ -202,15 +202,20 @@ client.on('message', (msg) => {
             else {
                 info(
                     chan, 
+                    `**Total: \`${(() => {
+                        let total = 0
+                        Object.keys(soundStats).forEach(k => total += soundStats[k])
+                        return total
+                    })()}\`**\n\n` + 
                     Object.keys(soundStats)
                         .sort((a, b) => soundStats[b] - soundStats[a])
                         .slice(0, 20)
-                        .map((k, i) => `**${i}** - **\`[${soundStats[k]}]\`** - ${k}`)
+                        .map((k, i) => `**${i + 1}** - **\`[${soundStats[k]}]\`** - ${k}`)
                         .join('\n'),
                     'TOP 20 SOUNDS'
                 )
             }
-            break
+            break;
 
         // LOGS COMMAND
         case 'log':
@@ -221,7 +226,7 @@ client.on('message', (msg) => {
                 info(chan, '*Log is currently empty*')
             else
                 info(chan, log.reverse().join('\n'), 'Guild Sounds Log')
-            break
+            break;
 
         // SEARCH COMMAND
         case 's':
@@ -252,7 +257,7 @@ client.on('message', (msg) => {
                     .then(m => m.delete(3500))
             else
                 info(chan, filtered.join('\n'), `Results for '${query}'`)
-            break
+            break;
 
         // BIND COMMAND
         case 'bind':
@@ -260,7 +265,7 @@ client.on('message', (msg) => {
                 BindingHandler.setBinding(chan, memb, args[0])
             else
                 error(chan, 'Please enter a valid sound name to bind, `r` to bind random sounds or use `reset` to reset the binding.')
-            break
+            break;
 
         // LIST COMMAND
         case 'ls':
@@ -268,7 +273,7 @@ client.on('message', (msg) => {
             let files = Player.getFilelist(['s', 'sorted', 'sort', 'time'].indexOf(args[0]) > -1)
             new SoundsList(files, msg)
                 .then(() => msg.delete())
-            break
+            break;
 
         // QUIT COMMAND
         case 'quit':
@@ -280,14 +285,14 @@ client.on('message', (msg) => {
                     player.vc.leave()
                 }
             }
-            break
+            break;
 
         // STOP COMMAND
         case 'stop':
             if (player) {
                 player.stop()
             }
-            break
+            break;
 
         // SUMMON COMMAND
         case 'summon':
@@ -297,7 +302,7 @@ client.on('message', (msg) => {
                 return
             }
             _getPlayer()
-            break
+            break;
 
         // RANDOM COMMAND
         case 'r':
@@ -312,7 +317,7 @@ client.on('message', (msg) => {
                     error(chan, 'Could not connect to voice channel.\nMissing permissions?')
                         .then(m => m.delete(3500))
                 })
-            break
+            break;
 
         // PLAY SOUND COMMAND
         default:

@@ -70,7 +70,7 @@ class Player {
             }
             let file = soundfile.split('.')[1] ? 
                        soundfile : 
-                       Player.getFilelist().find(f => f.startsWith(soundfile.toLowerCase()))
+                       Player.getFilelist().find(f => f.split('.')[0] == soundfile.toLowerCase())                    
             // DEBUG
             Logger.debug(`[PLAYER] [${getDelay()}] Found file, starting playing file`)
 
