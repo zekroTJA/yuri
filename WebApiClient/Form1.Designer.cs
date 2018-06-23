@@ -206,7 +206,7 @@
             this.Controls.Add(this.tbToken);
             this.Controls.Add(this.btLogin);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "Yuri WebAPIClient v.0.1.0";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.panKey.ResumeLayout(false);
