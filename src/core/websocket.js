@@ -32,12 +32,12 @@ class Websocket {
 
         // PLAY SOUND METHOD
         this.app.get('/', (req, res) => {
-
+            res.set('Content-Type', 'application/json')
+            
             var token = req.query.token
             var guildID = req.query.guild
             var soundFile = req.query.file
 
-            res.set('Content-Type', 'application/json')
 
             if (!this._checkToken(token)) {
                 this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_TOKEN)
@@ -62,10 +62,9 @@ class Websocket {
             })
         })
 
-        // PLAY SOUND FILE
+        // GET SOUND FILES
         this.app.get('/sounds', (req, res) => {
             res.set('Content-Type', 'application/json')
-
             var token = req.query.token
 
             if (!this._checkToken(token)) {
@@ -86,10 +85,32 @@ class Websocket {
             }, 0, 2))
         })
 
+        // SET GUILDS AND IDS
+        this.app.get('/guilds', (req, res) => {
+            res.set('Content-Type', 'application/json')
+            var token = req.query.token
+
+            if (!this._checkToken(token)) {
+                this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_TOKEN)
+                return
+            }
+
+            var servers = Main.client.guilds
+                .map(g => [g.name, g.id])
+            
+            res.send(JSON.stringify({
+                status: STATUS.OK, 
+                code: 0,
+                desc: {
+                    n: servers.length,
+                    servers: servers
+                }
+            }, 0, 2))
+        })
+
         // CHECK TOKEN
         this.app.get('/token', (req, res) => {
             res.set('Content-Type', 'application/json')
-
             var token = req.query.token
 
             if (!this._checkToken(token))
