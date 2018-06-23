@@ -23,10 +23,13 @@ namespace YuriClient
     }
     
 
-    public partial class Form1 : Form
+    public partial class FMain : Form
     {
+        private const string VERSION = "0.2.0";
         private Requests requests;
         private Dictionary<int, string> keysets = new Dictionary<int, string>();
+        private Dictionary<string, string> guilds = new Dictionary<string, string>();
+
 
         class KeyConfig
         {
@@ -104,19 +107,21 @@ namespace YuriClient
             }
         }
 
-        public Form1()
+
+        public FMain()
         {
             InitializeComponent();
+            this.Text = "Yuri WebAPIClient v." + VERSION;
             //Settings.Default.RegisteredKeys = "";
             //Settings.Default.Save();
         }
+
 
         private void Form1_Load(object sender, EventArgs e)
         {
             LoadKeyList();
 
             tbToken.Text = Settings.Default.Token?.ToString();
-            tbGuildID.Text = Settings.Default.GuildID?.ToString();
 
            // RegisterHotKey(this.Handle, 0, (int)KeyModifier.Control, Keys.NumPad0.GetHashCode());
            // RegisterHotKey(this.Handle, 1, (int)KeyModifier.Control | (int)KeyModifier.Alt, Keys.NumPad1.GetHashCode());
@@ -133,7 +138,7 @@ namespace YuriClient
                 KEYMODIFIERS modifier = (KEYMODIFIERS)((int)m.LParam & 0xFFFF);       // The modifier of the hotkey that was pressed.
                 int id = m.WParam.ToInt32();                                        // The id of the hotkey that was pressed.
 
-                if (tbGuildID.Text == "")
+                if (cbGuild.Text == "")
                 {
                     MessageBox.Show("Please enter a valid guild ID!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
@@ -144,10 +149,11 @@ namespace YuriClient
                     if (KeyConfig.GetOnlyKey(keyset) == (int)key)
                         file = keysets[keyset];
                 }
-                requests.PlayRequest(file, tbGuildID.Text);
+                requests.PlayRequest(file, guilds[cbGuild.Text]);
             }
         }
         
+
         void LoadSoundList()
         {
             List<string> sounds = requests.GetSoundFiles();
@@ -158,6 +164,19 @@ namespace YuriClient
             });
         }
 
+
+        void LoadGuilds() {
+
+            List<List<string>> response = requests.GetGuilds();
+            response.ForEach(r =>
+            {
+                guilds.Add(r[0], r[1]);
+                cbGuild.Items.Add(r[0]);
+            });
+
+        }
+
+
         void LoadKeyList()
         {
             foreach (Keys key in Enum.GetValues(typeof(Keys)))
@@ -166,6 +185,7 @@ namespace YuriClient
                     cbKey.Items.Add(Enum.GetName(typeof(Keys), key));
             }
         }
+
 
         void LoadRegisteredKeys()
         {
@@ -185,6 +205,7 @@ namespace YuriClient
             }
         }
 
+
         void SaveRegisteredKeys()
         {
             if (keysets.Count == 0)
@@ -199,6 +220,8 @@ namespace YuriClient
             Settings.Default.Save();
         }
 
+        #region UI FUNCTIONS
+
         private void btLogin_Click(object sender, EventArgs e)
         {
             requests = new Requests(tbToken.Text);
@@ -208,6 +231,7 @@ namespace YuriClient
                 btLogin.Enabled = false;
                 btLogin.Text = "Logged in";
                 btLogin.BackColor = Color.Green;
+                cbGuild.Enabled = true;
 
                 panKey.Enabled = true;
 
@@ -215,7 +239,17 @@ namespace YuriClient
                 Settings.Default.Save();
 
                 LoadSoundList();
+                LoadGuilds();
                 LoadRegisteredKeys();
+
+                if (Settings.Default.GuildID != null && Settings.Default.GuildID != "" && guilds.ContainsValue(Settings.Default.GuildID))
+                {
+                    foreach (string key in guilds.Keys)
+                    {
+                        if (guilds[key] == Settings.Default.GuildID)
+                            cbGuild.Text = key;
+                    }
+                }
             }
             else
             {
@@ -223,6 +257,7 @@ namespace YuriClient
             }
 
         }
+
 
         private void btAddkey_Click(object sender, EventArgs e)
         {
@@ -260,11 +295,7 @@ namespace YuriClient
         {
             btAddkey.Enabled = cbKey.Text != "" && cbSound.Text != "";
         }
-
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
-        private static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vk);
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
-        private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+        
 
         private void btRemove_Click(object sender, EventArgs e)
         {
@@ -275,15 +306,30 @@ namespace YuriClient
             SaveRegisteredKeys();
         }
 
+
         private void lbKeys_SelectedIndexChanged(object sender, EventArgs e)
         {
             btRemove.Enabled = true;
         }
 
+
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Settings.Default.GuildID = tbGuildID.Text;
-            Settings.Default.Save();
+            if (cbGuild.Text != null && cbGuild.Text != "" && guilds.ContainsKey(cbGuild.Text))
+            {
+                Settings.Default.GuildID = guilds[cbGuild.Text];
+                Settings.Default.Save();
+            }
         }
+
+        #endregion
+
+        #region EXTERNAL DLLS
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vk);
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+        #endregion
+
     }
 }

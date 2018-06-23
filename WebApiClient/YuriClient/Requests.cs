@@ -13,16 +13,6 @@ using System.Windows.Forms;
 
 namespace YuriClient
 {
-    [DataContract]
-    internal class SoundsResult
-    {
-        [DataMember]
-        internal string status;
-        [DataMember]
-        internal int code;
-        [DataMember]
-        internal object desc;
-    }
 
     class Requests
     {
@@ -81,6 +71,22 @@ namespace YuriClient
             string json = BasicRequest("sounds/?token=" + this.key);
             var res = JsonConvert.DeserializeAnonymousType(json, definition);
             return res.desc.sounds;
+        }
+
+        public List<List<string>> GetGuilds()
+        {
+            var definition = new
+            {
+                status = "",
+                code = 0,
+                desc = new {
+                    n = 0,
+                    servers = new List<List<string>>()
+                }
+            };
+            string json = BasicRequest("guilds?token=" + this.key);
+            var res = JsonConvert.DeserializeAnonymousType(json, definition);
+            return res.desc.servers;
         }
 
         public void PlayRequest(string file, string guildID)
