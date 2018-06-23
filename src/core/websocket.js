@@ -5,7 +5,7 @@ const { info, error } = require('../util/msgs')
 
 const express = require('express')
 
-// zhyQUaHHdFwyUB7zW8GCB5Jb7AOh38e7AJgSuV4xdsN478lPxHtM2GGNAGqXpPT7
+// DEVTOKEN: zhyQUaHHdFwyUB7zW8GCB5Jb7AOh38e7AJgSuV4xdsN478lPxHtM2GGNAGqXpPT7
 
 const STATUS = {
     ERROR: "ERROR",
@@ -23,7 +23,6 @@ const ERRCODE = {
 class Websocket {
 
     constructor() {
-        console.log(Main.config)
         this.app = express()
         this.token = Main.config.wstoken
         if (!this.token || this.token == "") {
@@ -31,6 +30,7 @@ class Websocket {
             return
         }
 
+        // PLAY SOUND METHOD
         this.app.get('/', (req, res) => {
 
             var guildID = req.query.guild
@@ -59,6 +59,27 @@ class Websocket {
             }).catch(e => {
                 this._sendStatus(res, STATUS.ERROR, ERRCODE.PLAYER_ERROR, e)
             })
+        })
+
+        this.app.get('/sounds', (req, res) => {
+            res.set('Content-Type', 'application/json')
+
+            if (!this._checkToken) {
+                this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_TOKEN)
+                return
+            }
+
+            var fileList = Player.getFilelist()
+                .map(f => f.split('.')[0])
+
+            res.send(JSON.stringify({
+                status: STATUS.OK, 
+                code: 0,
+                desc: {
+                    n: fileList.length,
+                    sounds: fileList
+                }
+            }, 0, 2))
         })
 
         this.server = this.app.listen(6612, () => {
