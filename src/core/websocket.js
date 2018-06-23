@@ -33,12 +33,13 @@ class Websocket {
         // PLAY SOUND METHOD
         this.app.get('/', (req, res) => {
 
+            var token = req.query.token
             var guildID = req.query.guild
             var soundFile = req.query.file
 
             res.set('Content-Type', 'application/json')
 
-            if (!this._checkToken) {
+            if (!this._checkToken(token)) {
                 this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_TOKEN)
                 return
             }
@@ -61,10 +62,13 @@ class Websocket {
             })
         })
 
+        // PLAY SOUND FILE
         this.app.get('/sounds', (req, res) => {
             res.set('Content-Type', 'application/json')
 
-            if (!this._checkToken) {
+            var token = req.query.token
+
+            if (!this._checkToken(token)) {
                 this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_TOKEN)
                 return
             }
@@ -80,6 +84,19 @@ class Websocket {
                     sounds: fileList
                 }
             }, 0, 2))
+        })
+
+        // CHECK TOKEN
+        this.app.get('/token', (req, res) => {
+            res.set('Content-Type', 'application/json')
+
+            var token = req.query.token
+
+            if (!this._checkToken(token))
+                this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_TOKEN)
+            else
+                this._sendStatus(res, STATUS.OK, 0)
+            
         })
 
         this.server = this.app.listen(6612, () => {
