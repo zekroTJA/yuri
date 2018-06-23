@@ -3,3 +3,4 @@ package-lock.json
 WebApiClient/YuriClient/bin/*
 WebApiClient/YuriClient/obj/*
 */packages/*
+WebApiClient/.vs/*
