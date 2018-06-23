@@ -1,4 +1,4 @@
-const { config, client, settings } = require('../main')
+const Main = require('../main')
 const Logger = require('../util/logger')
 const fs = require('fs')
 const { getTime } = require('../util/timeFormat')
@@ -43,16 +43,16 @@ class Player {
             return _b - _a
         }
 
-        let loc = config.fileloc
+        let loc = Main.config.fileloc
         let files = fs.readdirSync(loc)
-            .filter(f => config.files.indexOf(f.split('.')[1].toLowerCase()) > -1)
+            .filter(f => Main.config.files.indexOf(f.split('.')[1].toLowerCase()) > -1)
         if (sorted)
             files.sort(_filter)
         return files
     }
 
     _volume() {
-        return settings.guild(this.guild).volume ? settings.guild(this.guild).volume : 1
+        return Main.settings.guild(this.guild).volume ? Main.settings.guild(this.guild).volume : 1
     }
 
     play(soundfile) {
@@ -75,7 +75,7 @@ class Player {
             Logger.debug(`[PLAYER] [${getDelay()}] Found file, starting playing file`)
 
             if (file) {
-                this.con.playFile(`${config.fileloc}/${file}`).setVolume(this._volume())
+                this.con.playFile(`${Main.config.fileloc}/${file}`).setVolume(this._volume())
                 // DEBUG
                 Logger.debug(`[PLAYER] [${getDelay()}] File played`)
                 
@@ -89,7 +89,7 @@ class Player {
                     guildLog[this.guild.id] = guildLog[this.guild.id].slice(0, 20)
                 }
 
-                if (config.writestats) {
+                if (Main.config.writestats) {
                     if (soundfile.indexOf('.') > -1)
                         soundfile = soundfile.substring(0, soundfile.indexOf('.'))
                     let stat = soundStats[soundfile]

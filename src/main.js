@@ -4,6 +4,7 @@ const fs = require('fs')
 const Logger = require('./util/logger')
 const { CrashCollector } = require('./util/crashCollector')
 const { Settings } = require('./core/settings')
+const Websocket = require('./core/websocket')
 
 // Creating discord client instance
 var client = new Discord.Client()
@@ -65,8 +66,9 @@ require('./core/reactionEvent')
 require('./core/voiceEvent')
 require('./util/gameRotator')
 
-
 Logger.debug('Debug mode enabled')
+
+var ws = new Websocket()
 
 // Logging into this shit
 client.login(DEBUG_MODE ? process.argv[3] : config.token)
