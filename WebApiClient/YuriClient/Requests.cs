@@ -16,17 +16,21 @@ namespace YuriClient
 
     class Requests
     {
-        private const string APIURL = "http://zekro.de:6612/";
         private string key;
+        private string url;
 
-        public Requests(string key)
+        public Requests(string key, string url)
         {
             this.key = key;
+            this.url = url;
         }
 
         public bool CheckToken()
         {
             string json = BasicRequest("token?token=" + this.key);
+            if (json == "")
+                return false;
+
             var def = new
             {
                 status = "",
@@ -39,21 +43,26 @@ namespace YuriClient
 
         private string BasicRequest(string dir)
         {
-            WebRequest request = WebRequest.Create(APIURL + dir);
+            try
+            {
+                WebRequest request = WebRequest.Create(url + "/" + dir);
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                Stream dataStream = response.GetResponseStream();
+                StreamReader reader = new StreamReader(dataStream);
+                string responseFromServer = reader.ReadToEnd();
+                Console.WriteLine(responseFromServer);
 
-            // request.Credentials = CredentialCache.DefaultCredentials;
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                reader.Close();
+                dataStream.Close();
+                response.Close();
 
-            Stream dataStream = response.GetResponseStream();
-            StreamReader reader = new StreamReader(dataStream);
-            string responseFromServer = reader.ReadToEnd();
-            Console.WriteLine(responseFromServer);
-
-            reader.Close();
-            dataStream.Close();
-            response.Close();
-
-            return responseFromServer;
+                return responseFromServer;
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Connection error:\n" + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return "";
+            }
         }
 
         public List<string> GetSoundFiles()

@@ -58,5 +58,17 @@ namespace YuriClient.Properties {
                 this["GuildID"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string APIUrl {
+            get {
+                return ((string)(this["APIUrl"]));
+            }
+            set {
+                this["APIUrl"] = value;
+            }
+        }
     }
 }

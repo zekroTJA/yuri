@@ -122,6 +122,7 @@ namespace YuriClient
             LoadKeyList();
 
             tbToken.Text = Settings.Default.Token?.ToString();
+            tbAPIUrl.Text = Settings.Default.APIUrl?.ToString();
 
            // RegisterHotKey(this.Handle, 0, (int)KeyModifier.Control, Keys.NumPad0.GetHashCode());
            // RegisterHotKey(this.Handle, 1, (int)KeyModifier.Control | (int)KeyModifier.Alt, Keys.NumPad1.GetHashCode());
@@ -224,10 +225,12 @@ namespace YuriClient
 
         private void btLogin_Click(object sender, EventArgs e)
         {
-            requests = new Requests(tbToken.Text);
+            requests = new Requests(tbToken.Text, tbAPIUrl.Text);
+
             if (requests.CheckToken())
             {
                 tbToken.Enabled = false;
+                tbAPIUrl.Enabled = false;
                 btLogin.Enabled = false;
                 btLogin.Text = "Logged in";
                 btLogin.BackColor = Color.Green;
@@ -236,6 +239,7 @@ namespace YuriClient
                 panKey.Enabled = true;
 
                 Settings.Default.Token = tbToken.Text;
+                Settings.Default.APIUrl = tbAPIUrl.Text;
                 Settings.Default.Save();
 
                 LoadSoundList();

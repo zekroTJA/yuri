@@ -44,6 +44,8 @@
             this.cbStrg = new System.Windows.Forms.CheckBox();
             this.textBox2 = new System.Windows.Forms.Label();
             this.cbGuild = new System.Windows.Forms.ComboBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.tbAPIUrl = new System.Windows.Forms.TextBox();
             this.panKey.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -64,7 +66,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tbToken.Location = new System.Drawing.Point(65, 10);
             this.tbToken.Name = "tbToken";
-            this.tbToken.Size = new System.Drawing.Size(725, 20);
+            this.tbToken.Size = new System.Drawing.Size(333, 20);
             this.tbToken.TabIndex = 1;
             // 
             // label1
@@ -212,11 +214,31 @@
             this.cbGuild.Size = new System.Drawing.Size(725, 21);
             this.cbGuild.TabIndex = 10;
             // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(413, 13);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(49, 13);
+            this.label2.TabIndex = 11;
+            this.label2.Text = "APIURL:";
+            // 
+            // tbAPIUrl
+            // 
+            this.tbAPIUrl.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.tbAPIUrl.Location = new System.Drawing.Point(468, 10);
+            this.tbAPIUrl.Name = "tbAPIUrl";
+            this.tbAPIUrl.Size = new System.Drawing.Size(322, 20);
+            this.tbAPIUrl.TabIndex = 12;
+            // 
             // FMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(886, 421);
+            this.Controls.Add(this.tbAPIUrl);
+            this.Controls.Add(this.label2);
             this.Controls.Add(this.cbGuild);
             this.Controls.Add(this.textBox2);
             this.Controls.Add(this.panKey);
@@ -253,6 +275,8 @@
         private System.Windows.Forms.Button btRemove;
         private System.Windows.Forms.Label textBox2;
         private System.Windows.Forms.ComboBox cbGuild;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.TextBox tbAPIUrl;
     }
 }
 
