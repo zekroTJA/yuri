@@ -36,7 +36,7 @@ Then, just define some key combinations with some sounds.
 ![](http://zekro.de/ss/YuriClient_2018-06-24_02-28-40.png)
 
 **Attention:**  
-These are global hotkeys! That means, that they *could* overwrite some hot key of games orprograms, so chose them carefully!
+These are global hotkeys! That means, that they *could* overwrite some hot keys of games or programs, so chose them carefully!
 
 ---
 
