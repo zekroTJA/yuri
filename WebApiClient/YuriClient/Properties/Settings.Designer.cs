@@ -70,5 +70,17 @@ namespace YuriClient.Properties {
                 this["APIUrl"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool MinimizeToSystemTray {
+            get {
+                return ((bool)(this["MinimizeToSystemTray"]));
+            }
+            set {
+                this["MinimizeToSystemTray"] = value;
+            }
+        }
     }
 }

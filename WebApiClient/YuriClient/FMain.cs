@@ -10,6 +10,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml;
 using YuriClient.Properties;
 
 namespace YuriClient
@@ -25,7 +26,7 @@ namespace YuriClient
 
     public partial class FMain : Form
     {
-        private const string VERSION = "0.2.2";
+        private const string VERSION = "0.3.0";
         private Requests requests;
         private Dictionary<int, string> keysets = new Dictionary<int, string>();
         private Dictionary<string, string> guilds = new Dictionary<string, string>();
@@ -112,6 +113,7 @@ namespace YuriClient
         {
             InitializeComponent();
             this.Text = "Yuri WebAPIClient v." + VERSION;
+            notifyIcon.Text = this.Text;
             //Settings.Default.RegisteredKeys = "";
             //Settings.Default.Save();
         }
@@ -123,6 +125,7 @@ namespace YuriClient
 
             tbToken.Text = Settings.Default.Token?.ToString();
             tbAPIUrl.Text = Settings.Default.APIUrl?.ToString();
+            cbToTray.Checked = Settings.Default.MinimizeToSystemTray;
 
            // RegisterHotKey(this.Handle, 0, (int)KeyModifier.Control, Keys.NumPad0.GetHashCode());
            // RegisterHotKey(this.Handle, 1, (int)KeyModifier.Control | (int)KeyModifier.Alt, Keys.NumPad1.GetHashCode());
@@ -221,6 +224,13 @@ namespace YuriClient
             Settings.Default.Save();
         }
 
+        void MaximizeWindowFromTray()
+        {
+            this.Show();
+            this.WindowState = FormWindowState.Normal;
+            notifyIcon.Visible = false;
+        }
+
         #region UI FUNCTIONS
 
         private void btLogin_Click(object sender, EventArgs e)
@@ -317,23 +327,108 @@ namespace YuriClient
         }
 
 
+        private void FMain_Resize(object sender, EventArgs e)
+        {
+            if (this.WindowState == FormWindowState.Minimized && cbToTray.Checked)
+            {
+                notifyIcon.Visible = true;
+                this.Hide();
+            }
+
+            else if (this.WindowState == FormWindowState.Normal && cbToTray.Checked)
+            {
+                notifyIcon.Visible = false;
+            }
+        }
+        
+
+        private void notifyIcon_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            MaximizeWindowFromTray();
+        }
+
+
+        private void maximizeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MaximizeWindowFromTray();
+        }
+
+
+        private void btExportSettings_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog fd = new SaveFileDialog();
+            fd.Filter = "XML-Save-File (*.xml)|*.xml";
+            fd.ShowDialog();
+            if (fd.FileName == "" || !fd.CheckPathExists)
+                return;
+
+            using (XmlWriter w = XmlWriter.Create(fd.FileName))
+            {
+                w.WriteStartElement("config");
+                w.WriteElementString("Token", Settings.Default.Token);
+                w.WriteElementString("RegisteredKeys", Settings.Default.RegisteredKeys);
+                w.WriteElementString("GuildID", Settings.Default.GuildID);
+                w.WriteElementString("APIUrl", Settings.Default.APIUrl);
+                w.WriteElementString("MinimizeToSystemTray", Settings.Default.MinimizeToSystemTray ? "1" : "0");
+                w.WriteEndElement();
+            }
+        }
+
+
+        private void btImportSettings_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog fd = new OpenFileDialog();
+            fd.Filter = "XML-Save-File (*.xml)|*.xml";
+            fd.ShowDialog();
+            if (fd.FileName == "" || !fd.CheckFileExists)
+                return;
+
+            XmlDocument doc = new XmlDocument();
+            doc.Load(fd.FileName);
+
+            XmlElement mainelem = doc.DocumentElement;
+
+            Settings.Default.Token = tbToken.Text =
+                mainelem.GetElementsByTagName("Token")[0].InnerText;
+            Settings.Default.RegisteredKeys =
+                mainelem.GetElementsByTagName("RegisteredKeys")[0].InnerText;
+            Settings.Default.GuildID =
+                mainelem.GetElementsByTagName("GuildID")[0].InnerText;
+            Settings.Default.APIUrl = tbAPIUrl.Text =
+                mainelem.GetElementsByTagName("APIUrl")[0].InnerText;
+            Settings.Default.MinimizeToSystemTray = cbToTray.Checked =
+                mainelem.GetElementsByTagName("MinimizeToSystemTray")[0].InnerText == "1";
+
+        }
+
+
+        private void closeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
+            Settings.Default.MinimizeToSystemTray = cbToTray.Checked;
+
             if (cbGuild.Text != null && cbGuild.Text != "" && guilds.ContainsKey(cbGuild.Text))
-            {
                 Settings.Default.GuildID = guilds[cbGuild.Text];
-                Settings.Default.Save();
-            }
+
+            Settings.Default.Save();
         }
 
         #endregion
 
         #region EXTERNAL DLLS
+
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vk);
+
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
-        #endregion
 
+
+        #endregion
     }
 }

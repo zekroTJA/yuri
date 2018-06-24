@@ -29,6 +29,7 @@ function reloadConfig() {
 const DEF_CONF = {
     token: "",
     prefix: ".",
+    wstoken: "exampletokenactuallythisneedstobemorecomplexandthisisjustfortravis",
     files: ["mp3", "mp4", "wav", "ogg"],
     fileloc: "./sounds",
     owner: "",

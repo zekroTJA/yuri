@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FMain));
             this.btLogin = new System.Windows.Forms.Button();
             this.tbToken = new System.Windows.Forms.TextBox();
@@ -46,7 +47,16 @@
             this.cbGuild = new System.Windows.Forms.ComboBox();
             this.label2 = new System.Windows.Forms.Label();
             this.tbAPIUrl = new System.Windows.Forms.TextBox();
+            this.cbToTray = new System.Windows.Forms.CheckBox();
+            this.notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
+            this.cmsTrayIcon = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.maximizeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.closeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.label3 = new System.Windows.Forms.Label();
+            this.btExportSettings = new System.Windows.Forms.Button();
+            this.btImportSettings = new System.Windows.Forms.Button();
             this.panKey.SuspendLayout();
+            this.cmsTrayIcon.SuspendLayout();
             this.SuspendLayout();
             // 
             // btLogin
@@ -83,10 +93,12 @@
             this.lbKeys.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.lbKeys.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.lbKeys.FormattingEnabled = true;
             this.lbKeys.Location = new System.Drawing.Point(0, 71);
+            this.lbKeys.Margin = new System.Windows.Forms.Padding(3, 3, 3, 10);
             this.lbKeys.Name = "lbKeys";
-            this.lbKeys.Size = new System.Drawing.Size(859, 264);
+            this.lbKeys.Size = new System.Drawing.Size(859, 249);
             this.lbKeys.TabIndex = 3;
             this.lbKeys.SelectedIndexChanged += new System.EventHandler(this.lbKeys_SelectedIndexChanged);
             // 
@@ -141,7 +153,7 @@
             this.panKey.Enabled = false;
             this.panKey.Location = new System.Drawing.Point(15, 67);
             this.panKey.Name = "panKey";
-            this.panKey.Size = new System.Drawing.Size(859, 333);
+            this.panKey.Size = new System.Drawing.Size(859, 320);
             this.panKey.TabIndex = 8;
             // 
             // btRemove
@@ -234,11 +246,86 @@
             this.tbAPIUrl.Size = new System.Drawing.Size(221, 20);
             this.tbAPIUrl.TabIndex = 12;
             // 
+            // cbToTray
+            // 
+            this.cbToTray.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.cbToTray.AutoSize = true;
+            this.cbToTray.Location = new System.Drawing.Point(15, 395);
+            this.cbToTray.Name = "cbToTray";
+            this.cbToTray.Size = new System.Drawing.Size(133, 17);
+            this.cbToTray.TabIndex = 13;
+            this.cbToTray.Text = "Minimize to system tray";
+            this.cbToTray.UseVisualStyleBackColor = true;
+            // 
+            // notifyIcon
+            // 
+            this.notifyIcon.ContextMenuStrip = this.cmsTrayIcon;
+            this.notifyIcon.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon.Icon")));
+            this.notifyIcon.Text = "notifyIcon1";
+            this.notifyIcon.Visible = true;
+            this.notifyIcon.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon_MouseDoubleClick);
+            // 
+            // cmsTrayIcon
+            // 
+            this.cmsTrayIcon.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.maximizeToolStripMenuItem,
+            this.closeToolStripMenuItem});
+            this.cmsTrayIcon.Name = "cmsTrayIcon";
+            this.cmsTrayIcon.Size = new System.Drawing.Size(125, 48);
+            // 
+            // maximizeToolStripMenuItem
+            // 
+            this.maximizeToolStripMenuItem.Name = "maximizeToolStripMenuItem";
+            this.maximizeToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
+            this.maximizeToolStripMenuItem.Text = "Maximize";
+            this.maximizeToolStripMenuItem.Click += new System.EventHandler(this.maximizeToolStripMenuItem_Click);
+            // 
+            // closeToolStripMenuItem
+            // 
+            this.closeToolStripMenuItem.Name = "closeToolStripMenuItem";
+            this.closeToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
+            this.closeToolStripMenuItem.Text = "Close";
+            this.closeToolStripMenuItem.Click += new System.EventHandler(this.closeToolStripMenuItem_Click);
+            // 
+            // label3
+            // 
+            this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(566, 396);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(311, 13);
+            this.label3.TabIndex = 15;
+            this.label3.Text = "© 2018-present Ringo Hoffmann (zekro Development) | zekro.de";
+            // 
+            // btExportSettings
+            // 
+            this.btExportSettings.Location = new System.Drawing.Point(177, 392);
+            this.btExportSettings.Name = "btExportSettings";
+            this.btExportSettings.Size = new System.Drawing.Size(97, 21);
+            this.btExportSettings.TabIndex = 16;
+            this.btExportSettings.Text = "Export config...";
+            this.btExportSettings.UseVisualStyleBackColor = true;
+            this.btExportSettings.Click += new System.EventHandler(this.btExportSettings_Click);
+            // 
+            // btImportSettings
+            // 
+            this.btImportSettings.Location = new System.Drawing.Point(287, 392);
+            this.btImportSettings.Name = "btImportSettings";
+            this.btImportSettings.Size = new System.Drawing.Size(97, 21);
+            this.btImportSettings.TabIndex = 17;
+            this.btImportSettings.Text = "Import config...";
+            this.btImportSettings.UseVisualStyleBackColor = true;
+            this.btImportSettings.Click += new System.EventHandler(this.btImportSettings_Click);
+            // 
             // FMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(886, 421);
+            this.Controls.Add(this.btImportSettings);
+            this.Controls.Add(this.btExportSettings);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.cbToTray);
             this.Controls.Add(this.tbAPIUrl);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.cbGuild);
@@ -253,8 +340,10 @@
             this.Text = "Yuri WebAPIClient v.0.1.0";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
+            this.Resize += new System.EventHandler(this.FMain_Resize);
             this.panKey.ResumeLayout(false);
             this.panKey.PerformLayout();
+            this.cmsTrayIcon.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -279,6 +368,14 @@
         private System.Windows.Forms.ComboBox cbGuild;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox tbAPIUrl;
+        private System.Windows.Forms.CheckBox cbToTray;
+        private System.Windows.Forms.NotifyIcon notifyIcon;
+        private System.Windows.Forms.ContextMenuStrip cmsTrayIcon;
+        private System.Windows.Forms.ToolStripMenuItem maximizeToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem closeToolStripMenuItem;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Button btExportSettings;
+        private System.Windows.Forms.Button btImportSettings;
     }
 }
 
