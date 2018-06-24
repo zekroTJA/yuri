@@ -24,10 +24,10 @@ Just [download](https://github.com/zekroTJA/yuri/releases) the lastest version o
 
 Also, don't forget to place the `Newtonsoft.Json.dll` right next to the file.
 
-Then, just start the tool, enter your API adress (defaultly `http://yourserversip:6612`) and your token you've set in the config.
+Then, just start the tool, enter your API address (defaultly `http://yourserversip:6612`) and your token you've set in the config.
 After, klick on `Login`.
 
-Then, you can chose one of the guilds the bot is connected to. There you should obviously use the guild you are currently talking on.
+Then, you can choose one of the guilds the bot is connected to. There you should obviously use the guild you are currently talking on.
 
 Also very important is that the bot is still connected to your voice channel! Otherwise nothing will happen, because the API needs to find the player instance for the set guild.
 
