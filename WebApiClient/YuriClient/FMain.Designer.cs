@@ -66,7 +66,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tbToken.Location = new System.Drawing.Point(65, 10);
             this.tbToken.Name = "tbToken";
-            this.tbToken.Size = new System.Drawing.Size(333, 20);
+            this.tbToken.Size = new System.Drawing.Size(443, 20);
             this.tbToken.TabIndex = 1;
             // 
             // label1
@@ -207,6 +207,8 @@
             // 
             // cbGuild
             // 
+            this.cbGuild.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.cbGuild.Enabled = false;
             this.cbGuild.FormattingEnabled = true;
             this.cbGuild.Location = new System.Drawing.Point(65, 36);
@@ -216,8 +218,9 @@
             // 
             // label2
             // 
+            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(413, 13);
+            this.label2.Location = new System.Drawing.Point(514, 13);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(49, 13);
             this.label2.TabIndex = 11;
@@ -225,11 +228,10 @@
             // 
             // tbAPIUrl
             // 
-            this.tbAPIUrl.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.tbAPIUrl.Location = new System.Drawing.Point(468, 10);
+            this.tbAPIUrl.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.tbAPIUrl.Location = new System.Drawing.Point(569, 10);
             this.tbAPIUrl.Name = "tbAPIUrl";
-            this.tbAPIUrl.Size = new System.Drawing.Size(322, 20);
+            this.tbAPIUrl.Size = new System.Drawing.Size(221, 20);
             this.tbAPIUrl.TabIndex = 12;
             // 
             // FMain

@@ -25,7 +25,7 @@ namespace YuriClient
 
     public partial class FMain : Form
     {
-        private const string VERSION = "0.2.0";
+        private const string VERSION = "0.2.2";
         private Requests requests;
         private Dictionary<int, string> keysets = new Dictionary<int, string>();
         private Dictionary<string, string> guilds = new Dictionary<string, string>();
