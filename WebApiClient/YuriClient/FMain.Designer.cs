@@ -64,7 +64,7 @@
             this.lbKeys.Location = new System.Drawing.Point(0, 71);
             this.lbKeys.Margin = new System.Windows.Forms.Padding(3, 3, 3, 10);
             this.lbKeys.Name = "lbKeys";
-            this.lbKeys.Size = new System.Drawing.Size(859, 301);
+            this.lbKeys.Size = new System.Drawing.Size(895, 444);
             this.lbKeys.TabIndex = 3;
             this.lbKeys.SelectedIndexChanged += new System.EventHandler(this.lbKeys_SelectedIndexChanged);
             // 
@@ -75,7 +75,7 @@
             this.cbSound.FormattingEnabled = true;
             this.cbSound.Location = new System.Drawing.Point(128, 31);
             this.cbSound.Name = "cbSound";
-            this.cbSound.Size = new System.Drawing.Size(647, 21);
+            this.cbSound.Size = new System.Drawing.Size(683, 21);
             this.cbSound.TabIndex = 5;
             this.cbSound.SelectedIndexChanged += new System.EventHandler(this.cbSound_SelectedIndexChanged);
             // 
@@ -86,7 +86,7 @@
             this.cbKey.FormattingEnabled = true;
             this.cbKey.Location = new System.Drawing.Point(128, 4);
             this.cbKey.Name = "cbKey";
-            this.cbKey.Size = new System.Drawing.Size(647, 21);
+            this.cbKey.Size = new System.Drawing.Size(683, 21);
             this.cbKey.TabIndex = 6;
             this.cbKey.SelectedIndexChanged += new System.EventHandler(this.cbKey_SelectedIndexChanged);
             // 
@@ -94,7 +94,7 @@
             // 
             this.btAddkey.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btAddkey.Enabled = false;
-            this.btAddkey.Location = new System.Drawing.Point(781, 4);
+            this.btAddkey.Location = new System.Drawing.Point(817, 4);
             this.btAddkey.Name = "btAddkey";
             this.btAddkey.Size = new System.Drawing.Size(75, 23);
             this.btAddkey.TabIndex = 7;
@@ -118,14 +118,14 @@
             this.panKey.Controls.Add(this.cbSound);
             this.panKey.Location = new System.Drawing.Point(15, 12);
             this.panKey.Name = "panKey";
-            this.panKey.Size = new System.Drawing.Size(859, 375);
+            this.panKey.Size = new System.Drawing.Size(895, 526);
             this.panKey.TabIndex = 8;
             // 
             // btRemove
             // 
             this.btRemove.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btRemove.Enabled = false;
-            this.btRemove.Location = new System.Drawing.Point(781, 29);
+            this.btRemove.Location = new System.Drawing.Point(817, 29);
             this.btRemove.Name = "btRemove";
             this.btRemove.Size = new System.Drawing.Size(75, 23);
             this.btRemove.TabIndex = 12;
@@ -177,7 +177,7 @@
             // 
             this.cbToTray.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.cbToTray.AutoSize = true;
-            this.cbToTray.Location = new System.Drawing.Point(15, 395);
+            this.cbToTray.Location = new System.Drawing.Point(15, 546);
             this.cbToTray.Name = "cbToTray";
             this.cbToTray.Size = new System.Drawing.Size(133, 17);
             this.cbToTray.TabIndex = 13;
@@ -218,15 +218,16 @@
             // 
             this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(566, 396);
+            this.label3.Location = new System.Drawing.Point(823, 547);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(311, 13);
+            this.label3.Size = new System.Drawing.Size(87, 13);
             this.label3.TabIndex = 15;
-            this.label3.Text = "© 2018-present Ringo Hoffmann (zekro Development) | zekro.de";
+            this.label3.Text = "© 2018 zekro.de";
             // 
             // btExportSettings
             // 
-            this.btExportSettings.Location = new System.Drawing.Point(157, 392);
+            this.btExportSettings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btExportSettings.Location = new System.Drawing.Point(157, 543);
             this.btExportSettings.Name = "btExportSettings";
             this.btExportSettings.Size = new System.Drawing.Size(97, 21);
             this.btExportSettings.TabIndex = 16;
@@ -236,7 +237,8 @@
             // 
             // btImportSettings
             // 
-            this.btImportSettings.Location = new System.Drawing.Point(260, 392);
+            this.btImportSettings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btImportSettings.Location = new System.Drawing.Point(260, 543);
             this.btImportSettings.Name = "btImportSettings";
             this.btImportSettings.Size = new System.Drawing.Size(97, 21);
             this.btImportSettings.TabIndex = 17;
@@ -246,7 +248,8 @@
             // 
             // btLogout
             // 
-            this.btLogout.Location = new System.Drawing.Point(363, 392);
+            this.btLogout.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btLogout.Location = new System.Drawing.Point(363, 543);
             this.btLogout.Name = "btLogout";
             this.btLogout.Size = new System.Drawing.Size(97, 21);
             this.btLogout.TabIndex = 18;
@@ -256,7 +259,8 @@
             // 
             // btRefetch
             // 
-            this.btRefetch.Location = new System.Drawing.Point(466, 392);
+            this.btRefetch.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btRefetch.Location = new System.Drawing.Point(466, 543);
             this.btRefetch.Name = "btRefetch";
             this.btRefetch.Size = new System.Drawing.Size(97, 21);
             this.btRefetch.TabIndex = 19;
@@ -268,7 +272,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(886, 421);
+            this.ClientSize = new System.Drawing.Size(922, 572);
             this.Controls.Add(this.btRefetch);
             this.Controls.Add(this.btLogout);
             this.Controls.Add(this.btImportSettings);
@@ -277,7 +281,7 @@
             this.Controls.Add(this.cbToTray);
             this.Controls.Add(this.panKey);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MinimumSize = new System.Drawing.Size(384, 260);
+            this.MinimumSize = new System.Drawing.Size(683, 260);
             this.Name = "FMain";
             this.Text = "Yuri WebAPIClient v.0.1.0";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
