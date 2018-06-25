@@ -144,7 +144,7 @@ Get a list of all guidls the bot is connected to.
     "guilds": [
       [
          "<guild name>",
-         "<guild id>
+         "<guild id>"
       ]
      ]
   }
