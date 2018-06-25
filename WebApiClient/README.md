@@ -37,5 +37,131 @@ These are global hotkeys! That means, that they *could* overwrite some hot keys 
 
 ---
 
+# API Endpoints
+
+If you want to create your own client app, here are all endpoints of the socket. Arguments needs to be passed as URL parameters.
+
+The APIs anwer will always look like following:
+
+**On success:**  
+```json
+{
+  "status": "OK",
+  "code": 0,
+  "desc": "OK"
+}
+```
+
+**On error:**  
+```json
+{
+  "status": "ERROR",
+  "code": <1-7>,
+  "desc": "<error message>"
+}
+```
+
+[Here](https://github.com/zekroTJA/yuri/blob/master/src/core/websocket.js#L15-L24) you can see all error codes.
+
+### /login
+
+> /login?token=`<token>`&user=`<userID>`
+
+Logging in the user and create a session for this user.
+
+| argument | description |
+|----------|-------------|
+| token    | The token string set in the config.json |
+| user     | The Discord user ID of the client |
+
+
+### /logout
+
+> /login?token=`<token>`&user=`<userID>`
+
+Log out the user and destroy the session.
+
+| argument | description |
+|----------|-------------|
+| token    | The token string set in the config.json |
+| user     | The Discord user ID of the client |
+
+
+### /play
+
+> /play?token=`<token>`&user=`<userID>`&file=`<soundFile>`
+
+Play a sound in the users channel. If the bot is not connected to the users channel, it will create a player instance and join into the voice channel of the user.
+
+| argument | description |
+|----------|-------------|
+| token    | The token string set in the config.json |
+| user     | The Discord user ID of your client |
+| file     | The sound files name to play *(without file extension)* |
+
+### /sounds
+
+> /sounds?token=`<token>`
+
+Get a list of all sound files.
+
+| argument | description |
+|----------|-------------|
+| token    | The token string set in the config.json |
+
+**Output:**
+```json
+{
+  "status": "OK",
+  "code": 0,
+  "desc": {
+    "n": <number of files>,
+    "sounds": [
+      "file1",
+      "file2"
+     ]
+  }
+}
+```
+
+### /guilds
+
+> /guilds?token=`<token>`
+
+Get a list of all guidls the bot is connected to.
+
+| argument | description |
+|----------|-------------|
+| token    | The token string set in the config.json |
+
+**Output:**
+```json
+{
+  "status": "OK",
+  "code": 0,
+  "desc": {
+    "n": <number of guilds>,
+    "guilds": [
+      [
+         "<guild name>",
+         "<guild id>
+      ]
+     ]
+  }
+}
+```
+
+### /token
+
+> /token?token=`<token>`
+
+Check if the token is valid.
+
+| argument | description |
+|----------|-------------|
+| token    | The token string set in the config.json |
+
+---
+
 © 2018 Ringo Hoffmann (zekro Development)  
 contact[at]zekro.de | zekro.de
