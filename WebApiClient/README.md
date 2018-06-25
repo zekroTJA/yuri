@@ -24,16 +24,13 @@ Just [download](https://github.com/zekroTJA/yuri/releases) the lastest version o
 
 Also, don't forget to place the `Newtonsoft.Json.dll` right next to the file.
 
-Then, just start the tool, enter your API address (defaultly `http://yourserversip:6612`) and your token you've set in the config.
-After, klick on `Login`.
+Then, just start the tool, log in with the websocket URL *(defaultly something like `http://yourserversIP:6612`)*, your token you've set in the `config.json` and your Discord ClientID *(just enter `<prefix>myid` in the chat and the bot will give you your ID)*. You need to be in a voice channel on any guild the bot is connected to that the bot can fetch the guild and create a player if needed.
 
-Then, you can choose one of the guilds the bot is connected to. There you should obviously use the guild you are currently talking on.
-
-Also very important is that the bot is still connected to your voice channel! Otherwise nothing will happen, because the API needs to find the player instance for the set guild.
+![](http://zekro.de/ss/YuriClient_2018-06-25_13-33-56.png)
 
 Then, just define some key combinations with some sounds.
 
-![](http://zekro.de/ss/YuriClient_2018-06-24_02-28-40.png)
+![](http://zekro.de/ss/YuriClient_2018-06-25_13-48-09.png)
 
 **Attention:**  
 These are global hotkeys! That means, that they *could* overwrite some hot keys of games or programs, so chose them carefully!
