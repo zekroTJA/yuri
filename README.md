@@ -1,7 +1,7 @@
 <div align="center">
      <img src="http://zekro.de/ss/yurilogo.png" width="200"/>
      <h1>~ Yuri ~</h1>
-     <strong>If you believe or not, the best discord soundboard in whole north korea!</strong><br><br>
+     <strong>If you believe or not, the best discord soundboard in whole north korea!<br>And it can be controlled with HOTKEYS!</strong><br><br>
      <a href="" ><img src="https://img.shields.io/github/commit-activity/y/zekroTJA/yuri.svg" /></a>&nbsp;
      <a href="" ><img src="https://img.shields.io/github/languages/top/zekroTJA/yuri.svg" /></a>&nbsp;
      <a href="https://travis-ci.org/zekroTJA/yuri" ><img src="https://travis-ci.org/zekroTJA/yuri.svg?branch=master" /></a>&nbsp;
