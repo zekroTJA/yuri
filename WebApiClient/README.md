@@ -24,19 +24,142 @@ Just [download](https://github.com/zekroTJA/yuri/releases) the lastest version o
 
 Also, don't forget to place the `Newtonsoft.Json.dll` right next to the file.
 
-Then, just start the tool, enter your API address (defaultly `http://yourserversip:6612`) and your token you've set in the config.
-After, klick on `Login`.
+Then, just start the tool, log in with the websocket URL *(defaultly something like `http://yourserversIP:6612`)*, your token you've set in the `config.json` and your Discord ClientID *(just enter `<prefix>myid` in the chat and the bot will give you your ID)*. You need to be in a voice channel on any guild the bot is connected to that the bot can fetch the guild and create a player if needed.
 
-Then, you can choose one of the guilds the bot is connected to. There you should obviously use the guild you are currently talking on.
-
-Also very important is that the bot is still connected to your voice channel! Otherwise nothing will happen, because the API needs to find the player instance for the set guild.
+![](http://zekro.de/ss/YuriClient_2018-06-25_13-33-56.png)
 
 Then, just define some key combinations with some sounds.
 
-![](http://zekro.de/ss/YuriClient_2018-06-24_02-28-40.png)
+![](http://zekro.de/ss/YuriClient_2018-06-25_13-48-09.png)
 
 **Attention:**  
 These are global hotkeys! That means, that they *could* overwrite some hot keys of games or programs, so chose them carefully!
+
+---
+
+## API Endpoints
+
+If you want to create your own client app, here are all endpoints of the socket. Arguments needs to be passed as URL parameters.
+
+The APIs anwer will always look like following:
+
+**On success:**  
+```json
+{
+  "status": "OK",
+  "code": 0,
+  "desc": "OK"
+}
+```
+
+**On error:**  
+```json
+{
+  "status": "ERROR",
+  "code": <1-7>,
+  "desc": "<error message>"
+}
+```
+
+[Here](https://github.com/zekroTJA/yuri/blob/master/src/core/websocket.js#L15-L24) you can see all error codes.
+
+### /login
+
+> /login?token=`<token>`&user=`<userID>`
+
+Logging in the user and create a session for this user.
+
+| argument | description |
+|----------|-------------|
+| token    | The token string set in the config.json |
+| user     | The Discord user ID of the client |
+
+
+### /logout
+
+> /login?token=`<token>`&user=`<userID>`
+
+Log out the user and destroy the session.
+
+| argument | description |
+|----------|-------------|
+| token    | The token string set in the config.json |
+| user     | The Discord user ID of the client |
+
+
+### /play
+
+> /play?token=`<token>`&user=`<userID>`&file=`<soundFile>`
+
+Play a sound in the users channel. If the bot is not connected to the users channel, it will create a player instance and join into the voice channel of the user.
+
+| argument | description |
+|----------|-------------|
+| token    | The token string set in the config.json |
+| user     | The Discord user ID of your client |
+| file     | The sound files name to play *(without file extension)* |
+
+### /sounds
+
+> /sounds?token=`<token>`
+
+Get a list of all sound files.
+
+| argument | description |
+|----------|-------------|
+| token    | The token string set in the config.json |
+
+**Output:**
+```json
+{
+  "status": "OK",
+  "code": 0,
+  "desc": {
+    "n": <number of files>,
+    "sounds": [
+      "file1",
+      "file2"
+     ]
+  }
+}
+```
+
+### /guilds
+
+> /guilds?token=`<token>`
+
+Get a list of all guidls the bot is connected to.
+
+| argument | description |
+|----------|-------------|
+| token    | The token string set in the config.json |
+
+**Output:**
+```json
+{
+  "status": "OK",
+  "code": 0,
+  "desc": {
+    "n": <number of guilds>,
+    "guilds": [
+      [
+         "<guild name>",
+         "<guild id>"
+      ]
+     ]
+  }
+}
+```
+
+### /token
+
+> /token?token=`<token>`
+
+Check if the token is valid.
+
+| argument | description |
+|----------|-------------|
+| token    | The token string set in the config.json |
 
 ---
 
