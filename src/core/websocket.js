@@ -14,12 +14,13 @@ const STATUS = {
 
 const ERRCODE = {
     OK: 0,
-    INVALID_TOKEN        : 1,
-    INVALID_GUILD        : 2,
-    INVALID_FILE         : 3,
-    PLAYER_ERROR         : 4,
-    INVALID_LOGIN        : 5,
-    SESSION_NOT_LOGGED_IN: 6
+    INVALID_TOKEN:         1,
+    INVALID_GUILD:         2,
+    INVALID_FILE:          3,
+    PLAYER_ERROR:          4,
+    INVALID_LOGIN:         5,
+    SESSION_NOT_LOGGED_IN: 6,
+    NO_VC:                 7 
 }
 
 class Session {
@@ -34,16 +35,19 @@ class Session {
                         if (memb) {
                             this.guild = g
                             this.member = memb
-                            this.vc = memb.voiceChannel
                         }
                     })
                     if (this.member)
                         res(this)
                     else
-                        reject('No member found!')
+                        reject({message: 'User not found in any voice channel!'})
                 })
                 .catch(reject)
         })
+    }
+
+    get vc() {
+        return this.member.voiceChannel
     }
 }
 
@@ -130,6 +134,11 @@ class Websocket {
                 return
             }
             
+            if (!session.vc) {
+                this._sendStatus(res, STATUS.ERROR, ERRCODE.NO_VC)
+                return
+            }
+
             new Promise((res, rej) => {
                 var player = players[session.guild.id]
                 if (player)
@@ -226,6 +235,8 @@ class Websocket {
                     return msg ? msg : "Invalid login."
                 case ERRCODE.SESSION_NOT_LOGGED_IN:
                     return "Session not logged in."
+                case ERRCODE.NO_VC:
+                    return "USer not in voice channel."
                 default:
                     return "OK"
             }
