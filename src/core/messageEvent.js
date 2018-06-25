@@ -319,6 +319,11 @@ client.on('message', (msg) => {
                 })
             break;
 
+        // ID COMMAND
+        case 'myid':
+            info(chan, 'Your ID is:\n```php\n' + memb.id + '\n```')
+            break;
+
         // PLAY SOUND COMMAND
         default:
             if (!vc) {
