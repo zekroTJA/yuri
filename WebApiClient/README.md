@@ -37,7 +37,7 @@ These are global hotkeys! That means, that they *could* overwrite some hot keys 
 
 ---
 
-# API Endpoints
+## API Endpoints
 
 If you want to create your own client app, here are all endpoints of the socket. Arguments needs to be passed as URL parameters.
 
