@@ -48,6 +48,8 @@
             this.label3 = new System.Windows.Forms.Label();
             this.btExportSettings = new System.Windows.Forms.Button();
             this.btImportSettings = new System.Windows.Forms.Button();
+            this.btLogout = new System.Windows.Forms.Button();
+            this.btRefetch = new System.Windows.Forms.Button();
             this.panKey.SuspendLayout();
             this.cmsTrayIcon.SuspendLayout();
             this.SuspendLayout();
@@ -224,7 +226,7 @@
             // 
             // btExportSettings
             // 
-            this.btExportSettings.Location = new System.Drawing.Point(177, 392);
+            this.btExportSettings.Location = new System.Drawing.Point(157, 392);
             this.btExportSettings.Name = "btExportSettings";
             this.btExportSettings.Size = new System.Drawing.Size(97, 21);
             this.btExportSettings.TabIndex = 16;
@@ -234,7 +236,7 @@
             // 
             // btImportSettings
             // 
-            this.btImportSettings.Location = new System.Drawing.Point(287, 392);
+            this.btImportSettings.Location = new System.Drawing.Point(260, 392);
             this.btImportSettings.Name = "btImportSettings";
             this.btImportSettings.Size = new System.Drawing.Size(97, 21);
             this.btImportSettings.TabIndex = 17;
@@ -242,11 +244,33 @@
             this.btImportSettings.UseVisualStyleBackColor = true;
             this.btImportSettings.Click += new System.EventHandler(this.btImportSettings_Click);
             // 
+            // btLogout
+            // 
+            this.btLogout.Location = new System.Drawing.Point(363, 392);
+            this.btLogout.Name = "btLogout";
+            this.btLogout.Size = new System.Drawing.Size(97, 21);
+            this.btLogout.TabIndex = 18;
+            this.btLogout.Text = "Logout";
+            this.btLogout.UseVisualStyleBackColor = true;
+            this.btLogout.Click += new System.EventHandler(this.btLogout_Click);
+            // 
+            // btRefetch
+            // 
+            this.btRefetch.Location = new System.Drawing.Point(466, 392);
+            this.btRefetch.Name = "btRefetch";
+            this.btRefetch.Size = new System.Drawing.Size(97, 21);
+            this.btRefetch.TabIndex = 19;
+            this.btRefetch.Text = "Refetch";
+            this.btRefetch.UseVisualStyleBackColor = true;
+            this.btRefetch.Click += new System.EventHandler(this.btRefetch_Click);
+            // 
             // FMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(886, 421);
+            this.Controls.Add(this.btRefetch);
+            this.Controls.Add(this.btLogout);
             this.Controls.Add(this.btImportSettings);
             this.Controls.Add(this.btExportSettings);
             this.Controls.Add(this.label3);
@@ -286,6 +310,8 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Button btExportSettings;
         private System.Windows.Forms.Button btImportSettings;
+        private System.Windows.Forms.Button btLogout;
+        private System.Windows.Forms.Button btRefetch;
     }
 }
 

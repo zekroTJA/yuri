@@ -238,7 +238,7 @@ class Websocket {
                 case ERRCODE.NO_VC:
                     return "USer not in voice channel."
                 default:
-                    return "OK"
+                    return msg ? msg : "OK"
             }
         })()
         res.send(JSON.stringify({ status, code, desc }, 0, 2))

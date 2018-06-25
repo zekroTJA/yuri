@@ -16,9 +16,9 @@ namespace YuriClient
 
     public class Requests
     {
-        private string key;
-        private string url;
-        private string clientid;
+        public string key { get; }
+        public string url { get; }
+        public string clientid { get; }
 
         public Requests(string key, string url, string clientid)
         {

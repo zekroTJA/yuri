@@ -44,7 +44,7 @@ namespace YuriClient
         private void btLogin_Click(object sender, EventArgs e)
         {
             Requests requests = new Requests(tbToken.Text, tbUrl.Text, tbClientId.Text);
-
+            
             string rescode = requests.Login();
 
             if (rescode == "OK")
