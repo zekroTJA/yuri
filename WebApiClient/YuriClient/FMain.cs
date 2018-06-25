@@ -26,7 +26,7 @@ namespace YuriClient
 
     public partial class FMain : Form
     {
-        private const string VERSION = "0.3.0";
+        private const string VERSION = "0.4.1";
         private Requests requests;
         private Dictionary<int, string> keysets = new Dictionary<int, string>();
         private Dictionary<string, string> guilds = new Dictionary<string, string>();
@@ -109,9 +109,12 @@ namespace YuriClient
         }
 
 
-        public FMain()
+        public FMain(Requests requests)
         {
             InitializeComponent();
+
+            this.requests = requests;
+
             this.Text = "Yuri WebAPIClient v." + VERSION;
             notifyIcon.Text = this.Text;
             //Settings.Default.RegisteredKeys = "";
@@ -122,9 +125,9 @@ namespace YuriClient
         private void Form1_Load(object sender, EventArgs e)
         {
             LoadKeyList();
+            LoadRegisteredKeys();
+            LoadSoundList();
 
-            tbToken.Text = Settings.Default.Token?.ToString();
-            tbAPIUrl.Text = Settings.Default.APIUrl?.ToString();
             cbToTray.Checked = Settings.Default.MinimizeToSystemTray;
 
            // RegisterHotKey(this.Handle, 0, (int)KeyModifier.Control, Keys.NumPad0.GetHashCode());
@@ -141,19 +144,14 @@ namespace YuriClient
                 Keys key = (Keys)(((int)m.LParam >> 16) & 0xFFFF);                  // The key of the hotkey that was pressed.
                 KEYMODIFIERS modifier = (KEYMODIFIERS)((int)m.LParam & 0xFFFF);       // The modifier of the hotkey that was pressed.
                 int id = m.WParam.ToInt32();                                        // The id of the hotkey that was pressed.
-
-                if (cbGuild.Text == "")
-                {
-                    MessageBox.Show("Please enter a valid guild ID!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
+                
                 string file = "";
                 foreach (int keyset in keysets.Keys)
                 {
                     if (KeyConfig.GetOnlyKey(keyset) == (int)key)
                         file = keysets[keyset];
                 }
-                requests.PlayRequest(file, guilds[cbGuild.Text]);
+                requests.PlayRequest(file);
             }
         }
         
@@ -166,18 +164,6 @@ namespace YuriClient
             {
                 cbSound.Items.Add(s);
             });
-        }
-
-
-        void LoadGuilds() {
-
-            List<List<string>> response = requests.GetGuilds();
-            response.ForEach(r =>
-            {
-                guilds.Add(r[0], r[1]);
-                cbGuild.Items.Add(r[0]);
-            });
-
         }
 
 
@@ -195,6 +181,10 @@ namespace YuriClient
         {
             if (Settings.Default.RegisteredKeys == "")
                 return;
+
+            for (int i = 0; i < keysets.Count; i++)
+                UnregisterHotKey(this.Handle, i);
+            keysets = new Dictionary<int, string>();
             foreach (string elementset in Settings.Default.RegisteredKeys.Split(';'))
             {
                 Console.WriteLine(elementset);
@@ -232,45 +222,6 @@ namespace YuriClient
         }
 
         #region UI FUNCTIONS
-
-        private void btLogin_Click(object sender, EventArgs e)
-        {
-            requests = new Requests(tbToken.Text, tbAPIUrl.Text);
-
-            if (requests.CheckToken())
-            {
-                tbToken.Enabled = false;
-                tbAPIUrl.Enabled = false;
-                btLogin.Enabled = false;
-                btLogin.Text = "Logged in";
-                btLogin.BackColor = Color.Green;
-                cbGuild.Enabled = true;
-
-                panKey.Enabled = true;
-
-                Settings.Default.Token = tbToken.Text;
-                Settings.Default.APIUrl = tbAPIUrl.Text;
-                Settings.Default.Save();
-
-                LoadSoundList();
-                LoadGuilds();
-                LoadRegisteredKeys();
-
-                if (Settings.Default.GuildID != null && Settings.Default.GuildID != "" && guilds.ContainsValue(Settings.Default.GuildID))
-                {
-                    foreach (string key in guilds.Keys)
-                    {
-                        if (guilds[key] == Settings.Default.GuildID)
-                            cbGuild.Text = key;
-                    }
-                }
-            }
-            else
-            {
-                MessageBox.Show("Invalid token!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-
-        }
 
 
         private void btAddkey_Click(object sender, EventArgs e)
@@ -388,16 +339,18 @@ namespace YuriClient
 
             XmlElement mainelem = doc.DocumentElement;
 
-            Settings.Default.Token = tbToken.Text =
+            Settings.Default.Token =
                 mainelem.GetElementsByTagName("Token")[0].InnerText;
             Settings.Default.RegisteredKeys =
                 mainelem.GetElementsByTagName("RegisteredKeys")[0].InnerText;
             Settings.Default.GuildID =
                 mainelem.GetElementsByTagName("GuildID")[0].InnerText;
-            Settings.Default.APIUrl = tbAPIUrl.Text =
+            Settings.Default.APIUrl =
                 mainelem.GetElementsByTagName("APIUrl")[0].InnerText;
             Settings.Default.MinimizeToSystemTray = cbToTray.Checked =
                 mainelem.GetElementsByTagName("MinimizeToSystemTray")[0].InnerText == "1";
+
+            LoadRegisteredKeys();
 
         }
 
@@ -411,11 +364,9 @@ namespace YuriClient
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             Settings.Default.MinimizeToSystemTray = cbToTray.Checked;
-
-            if (cbGuild.Text != null && cbGuild.Text != "" && guilds.ContainsKey(cbGuild.Text))
-                Settings.Default.GuildID = guilds[cbGuild.Text];
-
             Settings.Default.Save();
+            requests.Logout();
+            Application.Exit();
         }
 
         #endregion

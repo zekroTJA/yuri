@@ -14,31 +14,17 @@ using System.Windows.Forms;
 namespace YuriClient
 {
 
-    class Requests
+    public class Requests
     {
         private string key;
         private string url;
+        private string clientid;
 
-        public Requests(string key, string url)
+        public Requests(string key, string url, string clientid)
         {
             this.key = key;
             this.url = url;
-        }
-
-        public bool CheckToken()
-        {
-            string json = BasicRequest("token?token=" + this.key);
-            if (json == "")
-                return false;
-
-            var def = new
-            {
-                status = "",
-                code = 0
-            };
-            var res = JsonConvert.DeserializeAnonymousType(json, def);
-            Console.WriteLine(res.code);
-            return res.code == 0;
+            this.clientid = clientid;
         }
 
         private string BasicRequest(string dir)
@@ -65,6 +51,27 @@ namespace YuriClient
             }
         }
 
+        public string Login()
+        {
+            string json = BasicRequest("login?token=" + this.key + "&user=" + this.clientid);
+            if (json == "")
+                return "no response";
+            var def = new
+            {
+                status = "",
+                code = 0,
+                desc = ""
+            };
+            var res = JsonConvert.DeserializeAnonymousType(json, def);
+            return res.desc;
+        }
+
+        public void Logout()
+        {
+            BasicRequest("logout?token=" + this.key + "&user=" + this.clientid);
+        }
+        
+        
         public List<string> GetSoundFiles()
         {
             var definition = new
@@ -81,27 +88,48 @@ namespace YuriClient
             var res = JsonConvert.DeserializeAnonymousType(json, definition);
             return res.desc.sounds;
         }
+        
+        
 
-        public List<List<string>> GetGuilds()
+        public void PlayRequest(string file)
         {
-            var definition = new
-            {
-                status = "",
-                code = 0,
-                desc = new {
-                    n = 0,
-                    servers = new List<List<string>>()
-                }
-            };
-            string json = BasicRequest("guilds?token=" + this.key);
-            var res = JsonConvert.DeserializeAnonymousType(json, definition);
-            return res.desc.servers;
+            BasicRequest("play?token=" + this.key + "&user=" + this.clientid + "&file=" + file);
         }
 
-        public void PlayRequest(string file, string guildID)
-        {
-            BasicRequest("?token=" + this.key + "&guild=" + guildID + "&file=" + file);
-        }
+        #region DEPRECATED
+        // public bool CheckToken()
+        // {
+        //     string json = BasicRequest("token?token=" + this.key);
+        //     if (json == "")
+        //         return false;
+        // 
+        //     var def = new
+        //     {
+        //         status = "",
+        //         code = 0
+        //     };
+        //     var res = JsonConvert.DeserializeAnonymousType(json, def);
+        //     Console.WriteLine(res.code);
+        //     return res.code == 0;
+        // }
+        // 
+        // public List<List<string>> GetGuilds()
+        // {
+        //     var definition = new
+        //     {
+        //         status = "",
+        //         code = 0,
+        //         desc = new
+        //         {
+        //             n = 0,
+        //             servers = new List<List<string>>()
+        //         }
+        //     };
+        //     string json = BasicRequest("guilds?token=" + this.key);
+        //     var res = JsonConvert.DeserializeAnonymousType(json, definition);
+        //     return res.desc.servers;
+        // }
+        #endregion
 
     }
 }

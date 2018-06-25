@@ -14,38 +14,114 @@ const STATUS = {
 
 const ERRCODE = {
     OK: 0,
-    INVALID_TOKEN: 1,
-    INVALID_GUILD: 2,
-    INVALID_FILE : 3,
-    PLAYER_ERROR : 4
+    INVALID_TOKEN        : 1,
+    INVALID_GUILD        : 2,
+    INVALID_FILE         : 3,
+    PLAYER_ERROR         : 4,
+    INVALID_LOGIN        : 5,
+    SESSION_NOT_LOGGED_IN: 6
+}
+
+class Session {
+    constructor(userid) {
+        return new Promise((res, reject) => {
+            this.userid = userid;
+            Main.client.fetchUser(userid, true)
+                .then(user => {
+                    this.user = user
+                    Main.client.guilds.forEach(g => {
+                        let memb = g.members.find(m => m.id == this.user.id && m.voiceChannel)
+                        if (memb) {
+                            this.guild = g
+                            this.member = memb
+                            this.vc = memb.voiceChannel
+                        }
+                    })
+                    if (this.member)
+                        res(this)
+                    else
+                        reject('No member found!')
+                })
+                .catch(reject)
+        })
+    }
 }
 
 class Websocket {
 
     constructor() {
+
+        this.sessions = {}
         this.app = express()
         this.token = Main.config.wstoken
+
         if (!this.token || this.token == "") {
             Logger.error("Can not set up Websocket API! Missing token in config!")
             return
         }
 
-        // PLAY SOUND METHOD
-        this.app.get('/', (req, res) => {
+        // LOGG IN AND CREATE SESSION FOR USER ID
+        this.app.get('/login', (req, res) => {
             res.set('Content-Type', 'application/json')
-            
-            var token = req.query.token
-            var guildID = req.query.guild
-            var soundFile = req.query.file
 
+            var token = req.query.token
+            var userID = req.query.user
 
             if (!this._checkToken(token)) {
                 this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_TOKEN)
                 return
             }
 
-            if (!Object.keys(players).includes(guildID)) {
-                this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_GUILD)
+            new Session(userID)
+                .then(session => {
+                    this._sendStatus(res, STATUS.OK, ERRCODE.OK)
+                    this.sessions[userID] = session
+                    Logger.info(`[Websocket Login] ${req.connection.remoteAddress} (CID: ${userID} | TAG: ${session.user.tag})`)
+                })
+                .catch(e => {
+                    this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_LOGIN, e.message)
+                })
+        })
+
+        // LOGGOUT
+        this.app.get('/logout', (req, res) => {
+            res.set('Content-Type', 'application/json')
+
+            var token = req.query.token
+            var userID = req.query.user
+
+            if (!this._checkToken(token)) {
+                this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_TOKEN)
+                return
+            }
+
+            var session = this.sessions[userID]
+            if (session) {
+                this.sessions[userID] = null
+                this._sendStatus(res, STATUS.OK, ERRCODE.OK)
+                Logger.info(`[Websocket Logout] ${req.connection.remoteAddress} (CID: ${userID} | TAG: ${session.user.tag})`)
+            }
+            else
+                this._sendStatus(res, STATUS.ERROR, ERRCODE.SESSION_NOT_LOGGED_IN)
+        })
+
+        // PLAY SOUND METHOD
+        this.app.get('/play', (req, res) => {
+            res.set('Content-Type', 'application/json')
+            
+            var token = req.query.token
+            var userID = req.query.user
+            var soundFile = req.query.file
+
+            if (!this._checkToken(token)) {
+                this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_TOKEN)
+                return
+            }
+
+            var session = this.sessions[userID]
+
+            if (!session) {
+                this._sendStatus(res, STATUS.ERROR, ERRCODE.SESSION_NOT_LOGGED_IN)
                 return
             }
 
@@ -54,11 +130,21 @@ class Websocket {
                 return
             }
             
-            var player = players[guildID]
-            player.play(soundFile).then(() => {
-                this._sendStatus(res, STATUS.OK, 0)
+            new Promise((res, rej) => {
+                var player = players[session.guild.id]
+                if (player)
+                    res(player)
+                else
+                    new Player(session.vc)
+                        .then(p => res(p))
+            }).then(player => {
+                player.play(soundFile).then(() => {
+                    this._sendStatus(res, STATUS.OK, 0)
+                }).catch(e => {
+                    this._sendStatus(res, STATUS.ERROR, ERRCODE.PLAYER_ERROR, e.message)
+                })
             }).catch(e => {
-                this._sendStatus(res, STATUS.ERROR, ERRCODE.PLAYER_ERROR, e)
+                this._sendStatus(res, STATUS.ERROR, ERRCODE.PLAYER_ERROR, e.message)
             })
         })
 
@@ -136,6 +222,10 @@ class Websocket {
                     return "File name not set."
                 case ERRCODE.PLAYER_ERROR:
                     return msg ? msg : "Unknown player error."
+                case ERRCODE.INVALID_LOGIN:
+                    return msg ? msg : "Invalid login."
+                case ERRCODE.SESSION_NOT_LOGGED_IN:
+                    return "Session not logged in."
                 default:
                     return "OK"
             }

@@ -30,9 +30,6 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FMain));
-            this.btLogin = new System.Windows.Forms.Button();
-            this.tbToken = new System.Windows.Forms.TextBox();
-            this.label1 = new System.Windows.Forms.Label();
             this.lbKeys = new System.Windows.Forms.ListBox();
             this.cbSound = new System.Windows.Forms.ComboBox();
             this.cbKey = new System.Windows.Forms.ComboBox();
@@ -43,10 +40,6 @@
             this.cbWindows = new System.Windows.Forms.CheckBox();
             this.cbShift = new System.Windows.Forms.CheckBox();
             this.cbStrg = new System.Windows.Forms.CheckBox();
-            this.textBox2 = new System.Windows.Forms.Label();
-            this.cbGuild = new System.Windows.Forms.ComboBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.tbAPIUrl = new System.Windows.Forms.TextBox();
             this.cbToTray = new System.Windows.Forms.CheckBox();
             this.notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.cmsTrayIcon = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -59,35 +52,6 @@
             this.cmsTrayIcon.SuspendLayout();
             this.SuspendLayout();
             // 
-            // btLogin
-            // 
-            this.btLogin.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btLogin.Location = new System.Drawing.Point(796, 10);
-            this.btLogin.Name = "btLogin";
-            this.btLogin.Size = new System.Drawing.Size(75, 23);
-            this.btLogin.TabIndex = 0;
-            this.btLogin.Text = "Login";
-            this.btLogin.UseVisualStyleBackColor = true;
-            this.btLogin.Click += new System.EventHandler(this.btLogin_Click);
-            // 
-            // tbToken
-            // 
-            this.tbToken.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.tbToken.Location = new System.Drawing.Point(65, 10);
-            this.tbToken.Name = "tbToken";
-            this.tbToken.Size = new System.Drawing.Size(443, 20);
-            this.tbToken.TabIndex = 1;
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 13);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(47, 13);
-            this.label1.TabIndex = 2;
-            this.label1.Text = "TOKEN:";
-            // 
             // lbKeys
             // 
             this.lbKeys.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -98,7 +62,7 @@
             this.lbKeys.Location = new System.Drawing.Point(0, 71);
             this.lbKeys.Margin = new System.Windows.Forms.Padding(3, 3, 3, 10);
             this.lbKeys.Name = "lbKeys";
-            this.lbKeys.Size = new System.Drawing.Size(859, 249);
+            this.lbKeys.Size = new System.Drawing.Size(859, 301);
             this.lbKeys.TabIndex = 3;
             this.lbKeys.SelectedIndexChanged += new System.EventHandler(this.lbKeys_SelectedIndexChanged);
             // 
@@ -150,10 +114,9 @@
             this.panKey.Controls.Add(this.btAddkey);
             this.panKey.Controls.Add(this.cbKey);
             this.panKey.Controls.Add(this.cbSound);
-            this.panKey.Enabled = false;
-            this.panKey.Location = new System.Drawing.Point(15, 67);
+            this.panKey.Location = new System.Drawing.Point(15, 12);
             this.panKey.Name = "panKey";
-            this.panKey.Size = new System.Drawing.Size(859, 320);
+            this.panKey.Size = new System.Drawing.Size(859, 375);
             this.panKey.TabIndex = 8;
             // 
             // btRemove
@@ -207,44 +170,6 @@
             this.cbStrg.TabIndex = 8;
             this.cbStrg.Text = "STRG";
             this.cbStrg.UseVisualStyleBackColor = true;
-            // 
-            // textBox2
-            // 
-            this.textBox2.AutoSize = true;
-            this.textBox2.Location = new System.Drawing.Point(12, 39);
-            this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(46, 13);
-            this.textBox2.TabIndex = 9;
-            this.textBox2.Text = "GUILID:";
-            // 
-            // cbGuild
-            // 
-            this.cbGuild.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.cbGuild.Enabled = false;
-            this.cbGuild.FormattingEnabled = true;
-            this.cbGuild.Location = new System.Drawing.Point(65, 36);
-            this.cbGuild.Name = "cbGuild";
-            this.cbGuild.Size = new System.Drawing.Size(725, 21);
-            this.cbGuild.TabIndex = 10;
-            // 
-            // label2
-            // 
-            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(514, 13);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(49, 13);
-            this.label2.TabIndex = 11;
-            this.label2.Text = "APIURL:";
-            // 
-            // tbAPIUrl
-            // 
-            this.tbAPIUrl.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.tbAPIUrl.Location = new System.Drawing.Point(569, 10);
-            this.tbAPIUrl.Name = "tbAPIUrl";
-            this.tbAPIUrl.Size = new System.Drawing.Size(221, 20);
-            this.tbAPIUrl.TabIndex = 12;
             // 
             // cbToTray
             // 
@@ -326,14 +251,7 @@
             this.Controls.Add(this.btExportSettings);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.cbToTray);
-            this.Controls.Add(this.tbAPIUrl);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.cbGuild);
-            this.Controls.Add(this.textBox2);
             this.Controls.Add(this.panKey);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.tbToken);
-            this.Controls.Add(this.btLogin);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(384, 260);
             this.Name = "FMain";
@@ -350,10 +268,6 @@
         }
 
         #endregion
-
-        private System.Windows.Forms.Button btLogin;
-        private System.Windows.Forms.TextBox tbToken;
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ListBox lbKeys;
         private System.Windows.Forms.ComboBox cbSound;
         private System.Windows.Forms.ComboBox cbKey;
@@ -364,10 +278,6 @@
         private System.Windows.Forms.CheckBox cbShift;
         private System.Windows.Forms.CheckBox cbStrg;
         private System.Windows.Forms.Button btRemove;
-        private System.Windows.Forms.Label textBox2;
-        private System.Windows.Forms.ComboBox cbGuild;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.TextBox tbAPIUrl;
         private System.Windows.Forms.CheckBox cbToTray;
         private System.Windows.Forms.NotifyIcon notifyIcon;
         private System.Windows.Forms.ContextMenuStrip cmsTrayIcon;
