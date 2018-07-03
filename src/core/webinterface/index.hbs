@@ -2,6 +2,47 @@
 
 <iframe width="0" height="0" style="display: none" border="0" name="dummyframe" id="dummyframe"></iframe>
 
+<script>
+    filelist = [
+        {{# each fileList}}
+            "{{this}}",
+        {{/each}}
+    ]
+
+    var fullbackup = ""
+
+    var user = "{{ user }}"
+
+    function filter(cond) {
+        if (!container)
+            return
+
+        if (cond.length == 0) {
+            container.innerHTML = fullbackup
+            return
+        }
+
+        var filteredlist = filelist.filter(e => e.includes(cond.toLowerCase()))
+
+        container.innerHTML = ""
+
+        filteredlist.forEach(e => {
+            container.innerHTML +=
+            '<div>' +
+                `<form action="wiplay" method="get" id="btform_${e}" target="dummyframe">` +
+                    `<input type="hidden" name="file" value="${e}" />` +
+                    `<input type="hidden" name="user" value="${user}" />` +
+                    `<a onclick="document.getElementById('btform_${e}').submit(); return false;" href="javascript:{}" >` +
+                        '<div class="tile">' +
+                            e
+                        '</div>' +
+                    '</a>' +
+                '</form>' +
+            '</div>'
+        })
+    }
+</script>
+
 <div style="
     display: flex;
     padding-left: 10px;
@@ -21,9 +62,24 @@
             width: 120px;
         " />
     </form>
+
+    <div style="
+            right: 100px;
+            top: 39px;
+            position: absolute;
+            display: flex;
+        ">
+        <input type="text" id="searchbar" class="textbox" style="
+            text-align: right;
+            margin-right: 10px;
+        ">
+        <img src="src/search.png" height="20" />
+    </div>
+    
+
 </div>
 
-<div class="container">
+<div class="container" id="indexcontainer">
     {{# each fileList }}
         <div>
             <form action="wiplay" method="get" id="btform_{{ this }}" target="dummyframe">
@@ -38,3 +94,18 @@
         </div>
     {{/each}}
 </div>
+
+<script>
+    var container = document.getElementById('indexcontainer')
+    var searchbar = document.getElementById('searchbar')
+
+    fullbackup = container.innerHTML
+
+    searchbar.oninput = () => {
+        var val = searchbar.value
+        setTimeout(() => {
+            if (val == searchbar.value)
+                filter(val)
+        }, 250)
+    }
+</script>

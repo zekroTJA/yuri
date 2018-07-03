@@ -28,7 +28,7 @@ const ERRCODE = {
 class Session {
     constructor(userid) {
         return new Promise((res, reject) => {
-            this.userid = userid;
+            this.userid = userid
             Main.client.fetchUser(userid, true)
                 .then(user => {
                     this.user = user
@@ -116,7 +116,7 @@ class Websocket {
             new Session(user)
                 .then(session => {
                     this.sessions[user] = session
-                    Logger.info(`[Websocket Login (WEB)] ${req.connection.remoteAddress} (CID: ${user} | TAG: ${session.user.tag})`)
+                    Logger.info(`[Websocket Login (WEB)] CID: ${user} | TAG: ${session.user.tag}`)
                     res.redirect('/?user=' + user)
                 })
                 .catch(e => {
@@ -129,7 +129,8 @@ class Websocket {
 
         this.app.get('/wilogout', (req, res) => {
             var user = req.query.user
-            Logger.info(`[Websocket Logout (WEB)] ${req.connection.remoteAddress} (CID: ${user} | TAG: ${this.sessions[user].user.tag})`)
+            Logger.info(`[Websocket Logout (WEB)] CID: ${user} | TAG: ${this.sessions[user].user.tag}`)
+            // Logger.info(`[Websocket Logout (WEB)] ${req.connection.remoteAddress} CID: ${user} | TAG: ${this.sessions[user].user.tag}`)
             this.sessions[user] = null
             res.redirect('/')
         })
@@ -180,7 +181,7 @@ class Websocket {
                 .then(session => {
                     this._sendStatus(res, STATUS.OK, ERRCODE.OK)
                     this.sessions[userID] = session
-                    Logger.info(`[Websocket Login] ${req.connection.remoteAddress} (CID: ${userID} | TAG: ${session.user.tag})`)
+                    Logger.info(`[Websocket Login] CID: ${userID} | TAG: ${session.user.tag}`)
                 })
                 .catch(e => {
                     this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_LOGIN, e.message)
@@ -203,7 +204,7 @@ class Websocket {
             if (session) {
                 this.sessions[userID] = null
                 this._sendStatus(res, STATUS.OK, ERRCODE.OK)
-                Logger.info(`[Websocket Logout] ${req.connection.remoteAddress} (CID: ${userID} | TAG: ${session.user.tag})`)
+                Logger.info(`[Websocket Logout] CID: ${userID} | TAG: ${session.user.tag}`)
             }
             else
                 this._sendStatus(res, STATUS.ERROR, ERRCODE.SESSION_NOT_LOGGED_IN)
