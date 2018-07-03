@@ -1,0 +1,13 @@
+<iframe width="0" height="0" style = "display: none" border="0" name="dummyframe" id="dummyframe"></iframe>
+
+<div class="container">
+    {{# each fileList }}
+        <div class="tile">
+            <form action = "wiplay", method = "get" id = "btform_{{ this }}" target="dummyframe">
+                <input type="hidden" name="file" value="{{ this }}" />
+                <input type="hidden" name="user" value="{{ ../user }}" />
+                <a onclick="document.getElementById('btform_{{ this }}').submit({a: 'b'}); return false;" href="javascript:{}" >{{this}}</a>
+            </form>
+        </div>
+    {{/each}}
+</div>

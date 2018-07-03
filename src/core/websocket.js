@@ -2,8 +2,10 @@ const Main = require('../main')
 const Logger = require('../util/logger')
 const { players, Player } = require('../core/player')
 const { info, error } = require('../util/msgs')
+const path = require('path')
 
 const express = require('express')
+const hbs = require('express-handlebars')
 
 // DEVTOKEN: zhyQUaHHdFwyUB7zW8GCB5Jb7AOh38e7AJgSuV4xdsN478lPxHtM2GGNAGqXpPT7
 
@@ -54,15 +56,72 @@ class Session {
 class Websocket {
 
     constructor() {
-
         this.sessions = {}
         this.app = express()
+        this.app.engine('hbs', hbs({
+            extname: 'hbs',
+            defaultLayout: 'layout',
+            layoutsDir: __dirname + '/webinterface/layouts'
+        }))
+        this.app.set('views', path.join(__dirname, 'webinterface'))
+        this.app.set('view engine', 'hbs')
+        this.app.use(express.static(path.join(__dirname, 'webinterface')))
         this.token = Main.config.wstoken
 
         if (!this.token || this.token == "") {
             Logger.error("Can not set up Websocket API! Missing token in config!")
             return
         }
+
+        this.app.get('/', (req, res) => {
+            var user = req.query.user
+            if (!user || !this.sessions[user]) {
+                res.render('error', {
+                    code: ERRCODE.INVALID_LOGIN,
+                    reason: "User with ID " + user + " not logged in!"
+                })
+                return
+            }
+
+            var fileList = Player.getFilelist()
+                .map(f => f.split('.')[0])
+
+            res.render('index', {
+                title: "YUUURIIII!!", 
+                fileList,
+                user
+            })
+        })
+
+        this.app.get('/wiplay', (req, res) => {
+            var user = req.query.user
+            var soundFile = req.query.file
+
+            var session = this.sessions[user]
+
+            if (!user || !session)
+                return
+            
+
+            new Promise((res, rej) => {
+                var player = players[session.guild.id]
+                if (player)
+                    res(player)
+                else
+                    new Player(session.vc)
+                        .then(p => res(p))
+            }).then(player => {
+                player.play(soundFile).then(() => {
+                    res.send()
+                }).catch(e => {
+                    console.log(e)
+                    res.send()
+                })
+            }).catch(e => {
+                console.log(e)
+                res.send()
+            })
+        })
 
         // LOGG IN AND CREATE SESSION FOR USER ID
         this.app.get('/login', (req, res) => {
