@@ -75,22 +75,63 @@ class Websocket {
 
         this.app.get('/', (req, res) => {
             var user = req.query.user
-            if (!user || !this.sessions[user]) {
+            var token = req.query.token
+            var sortbydate = (req.query.sortbydate == 1)
+
+            if (!this.sessions[user]) {
+                res.render('login', { user, token })
+                return
+            }
+
+            var fileList = Player.getFilelist(sortbydate)
+                .map(f => f.split('.')[0])
+
+            res.render('index', {
+                fileList,
+                user,
+                sortbydate
+            })
+        })
+
+        this.app.get('/wilogin', (req, res) => {
+            var token = req.query.token
+            var user = req.query.user
+
+            if (!user || !token || user == "" || token == "") {
                 res.render('error', {
                     code: ERRCODE.INVALID_LOGIN,
-                    reason: "User with ID " + user + " not logged in!"
+                    reason: "Invalid login credentials."
                 })
                 return
             }
 
-            var fileList = Player.getFilelist()
-                .map(f => f.split('.')[0])
+            if (!this._checkToken(token)) {
+                res.render('error', {
+                    code: ERRCODE.INVALID_TOKEN,
+                    reason: "Invalid token."
+                })
+                return
+            }
 
-            res.render('index', {
-                title: "YUUURIIII!!", 
-                fileList,
-                user
-            })
+            new Session(user)
+                .then(session => {
+                    this.sessions[user] = session
+                    Logger.info(`[Websocket Login (WEB)] ${req.connection.remoteAddress} (CID: ${user} | TAG: ${session.user.tag})`)
+                    res.redirect('/?user=' + user)
+                })
+                .catch(e => {
+                    res.render('error', {
+                        code: ERRCODE.INVALID_LOGIN,
+                        reason: e.message
+                    })
+                })
+        })
+
+        this.app.get('/wilogout', (req, res) => {
+            var user = req.query.user
+            Logger.info(`[Websocket Logout (WEB)] ${req.connection.remoteAddress} (CID: ${user} | TAG: ${this.sessions[user].user.tag})`)
+            this.sessions[user] = null
+            res.redirect('/')
         })
 
         this.app.get('/wiplay', (req, res) => {

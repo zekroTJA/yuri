@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+
+<a class="infobtn">
+    <img src="src/info.png" height="30"/>
+    <div class="infopage">
+        <h3>INFO</h3>
+        <p>
+            This is the web interface of the Yuri soundboard. Just enter here your token 
+            <i>(this which the owner set in the config and gave you hopefully ;) )</i> and 
+            your Discord user ID. This you can get if you enable the developer settings in 
+            Discord, right-click on your name and click on <i>Copy ID</i> :
+            <br>
+            <br>
+            <img src="src/screen2.png" width="350">
+            <br>
+            <img src="src/screen1.png" width="350">
+        </p>
+    </div>  
+</a>
+
+<h1 class="center" style="padding-top: 100px">LOGIN</h1>
+
+<form action="wilogin" method="get" class="center" style="margin-top: 50px">
+
+    <p class="center">TOKEN</p>
+    <input type="password" class="textbox" name="token" value="{{ token }}">
+
+    <p class="center" style="margin-top: 50px">USER ID</p>
+    <input type="text" class="textbox" name="user" value="{{ user }}">
+
+    <br>
+    <input type="submit" class="button" style="margin-top: 50px">
+
+</form>

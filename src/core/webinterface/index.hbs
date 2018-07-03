@@ -1,12 +1,39 @@
-<iframe width="0" height="0" style = "display: none" border="0" name="dummyframe" id="dummyframe"></iframe>
+<!DOCTYPE html>
+
+<iframe width="0" height="0" style="display: none" border="0" name="dummyframe" id="dummyframe"></iframe>
+
+<div style="
+    display: flex;
+    padding-left: 10px;
+">
+    <h1>YURI WEBINTERFACE</h1>
+
+    <form action="wilogout" method="get" style="padding-left: 30px;">
+        <input type="hidden" name="user" value="{{ user }}" />
+        <input type="submit" value="LOGOUT" class="button btn_logout" />
+    </form>
+
+    <form action="/" method="get" style="padding-left: 20px;">
+        <input type="hidden" name="user" value="{{ user }}" />
+        <input type="hidden" name="sortbydate" value="{{#if sortbydate}}0{{else}}1{{/if}}" />
+        <input type="submit" value="SORT BY {{#if sortbydate}}NAME{{else}}DATE{{/if}}" class="button btn_logout" style="
+            background-color: transparent;
+            width: 120px;
+        " />
+    </form>
+</div>
 
 <div class="container">
     {{# each fileList }}
-        <div class="tile">
-            <form action = "wiplay", method = "get" id = "btform_{{ this }}" target="dummyframe">
+        <div>
+            <form action="wiplay" method="get" id="btform_{{ this }}" target="dummyframe">
                 <input type="hidden" name="file" value="{{ this }}" />
                 <input type="hidden" name="user" value="{{ ../user }}" />
-                <a onclick="document.getElementById('btform_{{ this }}').submit({a: 'b'}); return false;" href="javascript:{}" >{{this}}</a>
+                <a onclick="document.getElementById('btform_{{ this }}').submit(); return false;" href="javascript:{}" >
+                    <div class="tile">
+                        {{this}}
+                    </div>
+                </a>
             </form>
         </div>
     {{/each}}
