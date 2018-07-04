@@ -45,10 +45,15 @@
     }
 </script>
 
+{{!------------------------- PAGE CONTENT -------------------------}}
+
 {{!-- TOP CONTROL BAR --}}
 <div class="flexdiv">
 
     {{!-- HEADING --}}
+    <img src="src/yurilogo.png" height="40" style="
+        margin: 20px 15px 0 0px;
+    " />
     <h1>YURI WEBINTERFACE</h1>
 
     {{!-- LOGOUT BUTTON --}}
@@ -67,6 +72,7 @@
         " />
     </form>
 
+    {{!-- ADVANCED BUTTON --}}
     <button id="btn_advanced" class="button btn_logout">▼ ADVANCED</button>
 
     {{!-- SEARCH BAR --}}
@@ -86,7 +92,19 @@
 </div>
 
 <div class="flexdiv" id="advanced_container" style="height: 0px;">
-    <h2>ADVANCED STUFF COMMING SOON :^)</h2>
+    {{!-- INFO TEXT --}}
+    <p style="font-size: 12px; height: 12px; padding: 0px;">
+        {{voicechannel.name}} <i>({{voicechannel.id}})</i> @ {{guild.name}} <i>({{guild.id}})</i> 
+        | Logged in as {{usertag}} <i>({{user}})</i>
+    </p>
+    <div class="line-break"></div>
+
+    {{!-- RESTART BOT BUTTON --}}
+    <form action="wirestart" method="get" style="position: relative; top: -25px;" target="dummyframe">
+        <input type="hidden" name="user" value="{{ user }}" />
+        <input type="hidden" name="token" value="{{ token }}" />
+        <input type="submit" value="RESTART BOT" class="button btn_logout" id="btn_restart"/>
+    </form>
 </div>
 
 {{!-- SOUND BUTTONS CONTAINER --}}
@@ -111,17 +129,19 @@
         margin-top: 30px; 
         margin-bottom: 30px;
     "/>
-    <p>Fork me on <a href="https://github.com/zekroTJA/yuri" style="color: cyan;">GitHub</a>!</p>
-    <p>© Ringo Hoffmann 2018 | contact[at]zekro.de | <a href="https://zekro.de" style="color: cyan;">zekro.de</a></p>
+    <p>Yuri Web Interface v.{{WEBINTERFACE_VERSION}} | Fork me on <a href="https://github.com/zekroTJA/yuri" target="_blank" style="color: cyan;">GitHub</a>!</p>
+    <p>© Ringo Hoffmann 2018 | contact[at]zekro.de | <a href="https://zekro.de" target="_blank" style="color: cyan;">zekro.de</a></p>
 </div>
 
-
+{{!------------------------- AFTERLOAD SCRIPT -------------------------}}
 
 <script>
     var container = document.getElementById('indexcontainer')
     var searchbar = document.getElementById('searchbar')
     var btadvanced = document.getElementById('btn_advanced')
     var advancedcontainer = document.getElementById('advanced_container')
+    var btrestart = document.getElementById('btn_restart')
+    var dummyframe = document.getElementById('dummyframe')
 
     // just to don't re-filter the whole list if search bar is empty
     fullbackup = container.innerHTML
@@ -136,13 +156,26 @@
 
     btadvanced.onclick = function() {
         if (advancedcontainer.style.height == "0px") {
-            advancedcontainer.style.height = "80px"
+            advancedcontainer.style.height = "100px"
             btadvanced.innerText = "▲ ADVANCED"
         }
         else {
             advancedcontainer.style.height = "0px"
             btadvanced.innerText = "▼ ADVANCED"
         }
+    }
+
+    btrestart.onclick = function() {
+        btrestart.style.backgroundColor = "#5727af";
+        var counter = 5;
+        btrestart.value = `RELOADING IN ${counter}...`
+        setInterval(() => {
+            btrestart.value = `RELOADING IN ${--counter}...`
+        }, 1000)
+        setTimeout(() => {
+            dummyframe.src = "/login?token={{token}}&user={{user}}"
+            window.location = "/"
+        }, 5000)
     }
 
 </script>

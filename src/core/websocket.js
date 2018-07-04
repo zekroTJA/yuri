@@ -9,6 +9,8 @@ const hbs = require('express-handlebars')
 
 // DEVTOKEN: zhyQUaHHdFwyUB7zW8GCB5Jb7AOh38e7AJgSuV4xdsN478lPxHtM2GGNAGqXpPT7
 
+const WEBINTERFACE_VERSION = "1.5.0"
+
 const STATUS = {
     ERROR: "ERROR",
     OK: "OK"
@@ -26,9 +28,10 @@ const ERRCODE = {
 }
 
 class Session {
-    constructor(userid) {
+    constructor(userid, token) {
         return new Promise((res, reject) => {
             this.userid = userid
+            this.token = token
             Main.client.fetchUser(userid, true)
                 .then(user => {
                     this.user = user
@@ -80,7 +83,9 @@ class Websocket {
             var token = req.query.token
             var sortbydate = (req.query.sortbydate == 1)
 
-            if (!this.sessions[user]) {
+            var session = this.sessions[user]
+
+            if (!session) {
                 res.render('login', { user, token })
                 return
             }
@@ -91,7 +96,18 @@ class Websocket {
             res.render('index', {
                 fileList,
                 user,
-                sortbydate
+                usertag: session.user.tag,
+                voicechannel: {
+                    id: session.vc.id,
+                    name: session.vc.name
+                },
+                guild: {
+                    id: session.guild.id,
+                    name: session.guild.name
+                },
+                sortbydate,
+                token: session.token,
+                WEBINTERFACE_VERSION
             })
         })
 
@@ -116,7 +132,7 @@ class Websocket {
                 return
             }
 
-            new Session(user)
+            new Session(user, token)
                 .then(session => {
                     this.sessions[user] = session
                     this.ipregister[req.connection.remoteAddress] = user
@@ -171,6 +187,15 @@ class Websocket {
             })
         })
 
+        // WEBINTERFACE RESTART BOT
+        this.app.get('/wirestart', (req, res) => {
+            var token = req.query.token
+            if (!this._checkToken(token))
+                return
+
+            process.exit();
+        })
+
         // LOGG IN AND CREATE SESSION FOR USER ID
         this.app.get('/login', (req, res) => {
             res.set('Content-Type', 'application/json')
@@ -183,7 +208,7 @@ class Websocket {
                 return
             }
 
-            new Session(userID)
+            new Session(userID, token)
                 .then(session => {
                     this._sendStatus(res, STATUS.OK, ERRCODE.OK)
                     this.sessions[userID] = session

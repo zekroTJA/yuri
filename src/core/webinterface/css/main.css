@@ -54,11 +54,14 @@ a {
     flex-wrap: wrap;
     width: 100%;
     height: 100%;
+    /* align-content: space-between;
+    justify-content: space-between; */
 }
 
 .flexdiv {
     display: flex;
     padding-left: 10px;
+    flex-flow: row wrap;
     overflow: hidden;
     transition: all .25s ease-in-out;
 }
@@ -114,4 +117,18 @@ a {
 
 #btn_advanced:hover {
     background-color: rgb(23, 172, 209);
+}
+
+.line-break {
+    width: 100%;
+}
+
+#btn_restart {
+    width: 140px;
+    background-color: rgba(209, 23, 70, 0.527);
+    transition: all .25s ease-in-out;
+}
+
+#btn_restart:hover {
+    background-color: rgb(209, 23, 70);
 }
