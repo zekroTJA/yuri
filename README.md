@@ -1,7 +1,7 @@
 <div align="center">
      <img src="http://zekro.de/ss/yurilogo.png" width="200"/>
      <h1>~ Yuri ~</h1>
-     <strong>If you believe or not, the best discord soundboard in whole north korea!<br>And it can be controlled with HOTKEYS!</strong><br><br>
+     <strong>If you believe or not, the best discord soundboard in whole north korea!<br>And it can be controlled with HOTKEYS or over the WEBINTERFACE!</strong><br><br>
      <a href="" ><img src="https://img.shields.io/github/commit-activity/y/zekroTJA/yuri.svg" /></a>&nbsp;
      <a href="" ><img src="https://img.shields.io/github/languages/top/zekroTJA/yuri.svg" /></a>&nbsp;
      <a href="https://travis-ci.org/zekroTJA/yuri" ><img src="https://travis-ci.org/zekroTJA/yuri.svg?branch=master" /></a>&nbsp;
@@ -65,19 +65,25 @@ or if you want that the bot should run 24/7, then use [**screen**](https://linux
 
 
 8. Place some sound files in the defined location and enter `.help` in discord to see all commands of the soundboard bot! ;)                  
+---
 
+## Web Interface
+
+If you set a valid token in the config, you can login to a web interface. This can be accessed on `http://<ipoftheserver>:6612` *or with the port you set to if you changed it.*
+
+Then, join a voice channel on a guild the bot is connecte to and enter your token and your user ID. More information about that you can find in the info field.
+
+![](http://zekro.de/ss/chrome_2018-07-04_17-37-54.png)
+
+After login, you can play sounds by clicking the tiles, search for sounds or manage the bot.
+
+![](http://zekro.de/ss/chrome_2018-07-04_17-39-54.png)
 
 ---
 
-## Current plans
+## Hotkey Client
 
-- [x] playing stats + command to display
-- [ ] rename command
-- [ ] lockchan command to lock bot on only one voice channel perm guild
-- [ ] general simple settings system
-- [ ] blacklist
-- [ ] volume settings
-- [ ] prank command
+**[Here](https://github.com/zekroTJA/yuri/blob/master/WebApiClient/README.md)** you will find more information about setting up the websocket and getting the hotkey client.
 
 ---
 
