@@ -9,7 +9,7 @@ const hbs = require('express-handlebars')
 
 // DEVTOKEN: zhyQUaHHdFwyUB7zW8GCB5Jb7AOh38e7AJgSuV4xdsN478lPxHtM2GGNAGqXpPT7
 
-const WEBINTERFACE_VERSION = "1.5.0"
+const WEBINTERFACE_VERSION = "1.6.1"
 
 const STATUS = {
     ERROR: "ERROR",
