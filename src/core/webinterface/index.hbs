@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 
+{{!-- invisible frame where the web request answers are send to to don't reload the page after  --}}
 <iframe width="0" height="0" style="display: none" border="0" name="dummyframe" id="dummyframe"></iframe>
 
 <script>
+    // Creating filellist for filtering
     filelist = [
         {{# each fileList}}
             "{{this}}",
@@ -10,9 +12,9 @@
     ]
 
     var fullbackup = ""
-
     var user = "{{ user }}"
 
+    // filtering method to filter sound list by name
     function filter(cond) {
         if (!container)
             return
@@ -43,17 +45,19 @@
     }
 </script>
 
-<div style="
-    display: flex;
-    padding-left: 10px;
-">
+{{!-- TOP CONTROL BAR --}}
+<div class="flexdiv">
+
+    {{!-- HEADING --}}
     <h1>YURI WEBINTERFACE</h1>
 
+    {{!-- LOGOUT BUTTON --}}
     <form action="wilogout" method="get" style="padding-left: 30px;">
         <input type="hidden" name="user" value="{{ user }}" />
         <input type="submit" value="LOGOUT" class="button btn_logout" />
     </form>
 
+    {{!-- SORT BY BUTTON --}}
     <form action="/" method="get" style="padding-left: 20px;">
         <input type="hidden" name="user" value="{{ user }}" />
         <input type="hidden" name="sortbydate" value="{{#if sortbydate}}0{{else}}1{{/if}}" />
@@ -63,6 +67,9 @@
         " />
     </form>
 
+    <button id="btn_advanced" class="button btn_logout">▼ ADVANCED</button>
+
+    {{!-- SEARCH BAR --}}
     <div style="
             right: 100px;
             top: 39px;
@@ -76,9 +83,13 @@
         <img src="src/search.png" height="20" />
     </div>
     
-
 </div>
 
+<div class="flexdiv" id="advanced_container" style="height: 0px;">
+    <h2>ADVANCED STUFF COMMING SOON :^)</h2>
+</div>
+
+{{!-- SOUND BUTTONS CONTAINER --}}
 <div class="container" id="indexcontainer">
     {{# each fileList }}
         <div>
@@ -95,17 +106,34 @@
     {{/each}}
 </div>
 
+
 <script>
     var container = document.getElementById('indexcontainer')
     var searchbar = document.getElementById('searchbar')
+    var btadvanced = document.getElementById('btn_advanced')
+    var advancedcontainer = document.getElementById('advanced_container')
 
+    // just to don't re-filter the whole list if search bar is empty
     fullbackup = container.innerHTML
 
-    searchbar.oninput = () => {
+    searchbar.oninput = function() {
         var val = searchbar.value
         setTimeout(() => {
             if (val == searchbar.value)
                 filter(val)
         }, 250)
     }
+
+    btadvanced.onclick = function() {
+        if (advancedcontainer.style.height == "0px") {
+            advancedcontainer.style.height = "80px"
+            btadvanced.innerText = "▲ ADVANCED"
+        }
+        else {
+            advancedcontainer.style.height = "0px"
+            btadvanced.innerText = "▼ ADVANCED"
+        }
+        
+    }
+
 </script>

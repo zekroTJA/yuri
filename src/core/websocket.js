@@ -57,6 +57,7 @@ class Websocket {
 
     constructor() {
         this.sessions = {}
+        this.ipregister = {}
         this.app = express()
         this.app.engine('hbs', hbs({
             extname: 'hbs',
@@ -73,8 +74,9 @@ class Websocket {
             return
         }
 
+        // WEBINTERFACE
         this.app.get('/', (req, res) => {
-            var user = req.query.user
+            var user = req.query.user ? req.query.user : this.ipregister[req.connection.remoteAddress]
             var token = req.query.token
             var sortbydate = (req.query.sortbydate == 1)
 
@@ -93,6 +95,7 @@ class Websocket {
             })
         })
 
+        // WEBINTERFACE LOGIN
         this.app.get('/wilogin', (req, res) => {
             var token = req.query.token
             var user = req.query.user
@@ -116,6 +119,7 @@ class Websocket {
             new Session(user)
                 .then(session => {
                     this.sessions[user] = session
+                    this.ipregister[req.connection.remoteAddress] = user
                     Logger.info(`[Websocket Login (WEB)] CID: ${user} | TAG: ${session.user.tag}`)
                     res.redirect('/?user=' + user)
                 })
@@ -127,14 +131,16 @@ class Websocket {
                 })
         })
 
+        // WEBINTERFACE LOGOUT
         this.app.get('/wilogout', (req, res) => {
             var user = req.query.user
             Logger.info(`[Websocket Logout (WEB)] CID: ${user} | TAG: ${this.sessions[user].user.tag}`)
-            // Logger.info(`[Websocket Logout (WEB)] ${req.connection.remoteAddress} CID: ${user} | TAG: ${this.sessions[user].user.tag}`)
             this.sessions[user] = null
+            this.ipregister[req.connection.remoteAddress] = null
             res.redirect('/')
         })
 
+        // WEBINTERFACE PLAY
         this.app.get('/wiplay', (req, res) => {
             var user = req.query.user
             var soundFile = req.query.file
@@ -181,9 +187,11 @@ class Websocket {
                 .then(session => {
                     this._sendStatus(res, STATUS.OK, ERRCODE.OK)
                     this.sessions[userID] = session
+                    this.ipregister[req.connection.remoteAddress] = userID
                     Logger.info(`[Websocket Login] CID: ${userID} | TAG: ${session.user.tag}`)
                 })
                 .catch(e => {
+                    console.log(e)
                     this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_LOGIN, e.message)
                 })
         })
@@ -203,6 +211,7 @@ class Websocket {
             var session = this.sessions[userID]
             if (session) {
                 this.sessions[userID] = null
+                this.ipregister[req.connection.remoteAddress] = null
                 this._sendStatus(res, STATUS.OK, ERRCODE.OK)
                 Logger.info(`[Websocket Logout] CID: ${userID} | TAG: ${session.user.tag}`)
             }

@@ -56,6 +56,13 @@ a {
     height: 100%;
 }
 
+.flexdiv {
+    display: flex;
+    padding-left: 10px;
+    overflow: hidden;
+    transition: all .25s ease-in-out;
+}
+
 .tile {
     padding: 10px;
     background-color: rgba(140, 228, 82, 0.609);
@@ -96,4 +103,15 @@ a {
     width: 350px;
     background-color: #006064;
     padding: 1px 20px 5px 20px;
+}
+
+#btn_advanced {
+    margin-left: 20px;
+    background-color: transparent;
+    width: 120px;
+    background-color: rgba(23, 172, 209, 0.527);
+}
+
+#btn_advanced:hover {
+    background-color: rgb(23, 172, 209);
 }
