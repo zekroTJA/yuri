@@ -5,8 +5,11 @@
      <img src="https://forthebadge.com/images/badges/made-with-javascript.svg" height="30" />&nbsp;
      <img src="https://forthebadge.com/images/badges/uses-html.svg" height="30" />&nbsp;
      <img src="https://forthebadge.com/images/badges/uses-css.svg" height="30" />&nbsp;
-     <a href="https://zekro.de/discord"><img src="https://img.shields.io/discord/307084334198816769.svg?logo=discord&style=for-the-badge" height="30"></a><br>
-     <a href="https://travis-ci.org/zekroTJA/yuri" ><img src="https://travis-ci.org/zekroTJA/yuri.svg?branch=master" /></a>
+     <a href="https://zekro.de/discord"><img src="https://img.shields.io/discord/307084334198816769.svg?logo=discord&style=for-the-badge" height="30"></a>
+     <br>
+     <br>
+     <a href="https://travis-ci.org/zekroTJA/yuri" ><img src="https://travis-ci.org/zekroTJA/yuri.svg?branch=master" /></a>&nbsp;
+     <a href="https://github.com/zekroTJA/yuri/releases" ><img src="https://img.shields.io/github/downloads/zekrotja/yuri/latest/total.svg" /></a>
 </div>
 
 ---
