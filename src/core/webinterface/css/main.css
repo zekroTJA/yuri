@@ -83,11 +83,11 @@ a {
     height: 30px;
     margin-top: 25px;
     width: 100px;
-    background-color: #ca3a1abf;
+    background-color: rgba(202, 58, 26, 0.749);
 }
 
 .btn_logout:hover {
-    background-color: #ca3a1a;
+    background-color: rgb(202, 58, 26);
 }
 
 #btn_restart {
@@ -156,7 +156,7 @@ a {
     margin-top: 10px;
     display: none;
     width: 350px;
-    background-color: #006064;
+    background-color: rgb(0, 98, 102);
     padding: 1px 20px 5px 20px;
 }
 
@@ -180,7 +180,7 @@ a {
     left: 0px;
     width: 100%;
     height: 30px;
-    background-color: #d1432a;
+    background-color: rgb(209, 67, 42);
     text-align: center;
     animation-name: noscriptbanner_animation;
     animation-duration: 1s;
