@@ -2,9 +2,11 @@
      <img src="http://zekro.de/ss/yurilogo.png" width="200"/>
      <h1>~ Yuri ~</h1>
      <strong>If you believe or not, the best discord soundboard in whole north korea!<br>And it can be controlled with HOTKEYS or over the WEBINTERFACE!</strong><br><br>
-     <a href="" ><img src="https://img.shields.io/github/commit-activity/y/zekroTJA/yuri.svg" /></a>&nbsp;
-     <a href="" ><img src="https://img.shields.io/github/languages/top/zekroTJA/yuri.svg" /></a>&nbsp;
-     <a href="https://travis-ci.org/zekroTJA/yuri" ><img src="https://travis-ci.org/zekroTJA/yuri.svg?branch=master" /></a>&nbsp;
+     <a href="https://travis-ci.org/zekroTJA/yuri" ><img src="https://travis-ci.org/zekroTJA/yuri.svg?branch=master&style=for-the-badge" /></a>&nbsp;
+     <img src="https://forthebadge.com/images/badges/made-with-javascript.svg" height="30" />&nbsp;
+     <img src="https://forthebadge.com/images/badges/uses-html.svg" height="30" />&nbsp;
+     <img src="https://forthebadge.com/images/badges/uses-css.svg" height="30" />&nbsp;
+     <a href="https://zekro.de/discord"><img src="https://img.shields.io/discord/307084334198816769.svg?logo=discord&style=for-the-badge" height="30"></a>
 </div>
 
 ---
