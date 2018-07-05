@@ -55,7 +55,7 @@ class Player {
         return Main.settings.guild(this.guild).volume ? Main.settings.guild(this.guild).volume : 1
     }
 
-    play(soundfile) {
+    play(soundfile, memb) {
         // DEBUG
         var STARTTIME = Date.now()
         function getDelay() { return Date.now() - STARTTIME }
@@ -81,7 +81,7 @@ class Player {
                 
                 Logger.debug(`[PLAYED] '${file}' on guild ${this.guild.name}`)
 
-                let logline = `\`${getTime()}\` - **${file.split('.')[0]}** - *(${this.vc.name})*`
+                let logline = `\`${getTime()}\` - **${file.split('.')[0]}** - *(${memb.user.tag})*`
                 if (!guildLog[this.guild.id])
                     guildLog[this.guild.id] = [ logline ]
                 else {
@@ -108,10 +108,10 @@ class Player {
         this.con.dispatcher.end()
     }
 
-    random() {
+    random(memb) {
         let files = Player.getFilelist()
         let file = files[Math.floor(Math.random() * files.length)]
-        return this.play(file)
+        return this.play(file, memb)
     }
 
     setVolume(vol) {

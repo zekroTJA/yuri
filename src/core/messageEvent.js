@@ -309,7 +309,7 @@ client.on('message', (msg) => {
         case 'rand':
         case 'random':
             _getPlayer()
-                .then(p => p.random()
+                .then(p => p.random(memb)
                     .then(() => msg.delete())
                 )
                 .catch(err => {
@@ -333,7 +333,7 @@ client.on('message', (msg) => {
             }
             _getPlayer()
                 .then(p => {
-                    p.play(invoke)
+                    p.play(invoke, memb)
                         .then(() => msg.delete())
                 })
                 .catch(err => {

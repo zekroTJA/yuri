@@ -175,7 +175,7 @@ class Websocket {
                     new Player(session.vc)
                         .then(p => res(p))
             }).then(player => {
-                player.play(soundFile).then(() => {
+                player.play(soundFile, session.member).then(() => {
                     res.send()
                 }).catch(e => {
                     console.log(e)
@@ -282,7 +282,7 @@ class Websocket {
                     new Player(session.vc)
                         .then(p => res(p))
             }).then(player => {
-                player.play(soundFile).then(() => {
+                player.play(soundFile, session.member).then(() => {
                     this._sendStatus(res, STATUS.OK, 0)
                 }).catch(e => {
                     this._sendStatus(res, STATUS.ERROR, ERRCODE.PLAYER_ERROR, e.message)
