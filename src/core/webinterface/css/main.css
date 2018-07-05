@@ -66,6 +66,8 @@ a {
     transition: all .25s ease-in-out;
 }
 
+/* ----------------- HEADER BAR ----------------- */
+
 .tile {
     padding: 10px;
     background-color: rgba(140, 228, 82, 0.609);
@@ -88,6 +90,56 @@ a {
     background-color: #ca3a1a;
 }
 
+#btn_restart {
+    width: 120px;
+    background-color: rgba(209, 23, 70, 0.527);
+    transition: all .25s ease-in-out;
+}
+
+#btn_restart:hover {
+    background-color: rgb(209, 23, 70);
+}
+
+#btn_stop {
+    width: 120px;
+    background-color: rgba(209, 181, 23, 0.527);
+    transition: all .25s ease-in-out;
+}
+
+#btn_advanced {
+    margin-left: 20px;
+    width: 120px;
+    background-color: rgba(23, 172, 209, 0.527);
+}
+
+#btn_advanced:hover {
+    background-color: rgb(23, 172, 209);
+}
+
+#btn_sortby {
+    margin-left: 20px;
+    width: 120px;
+    background-color: rgba(23, 209, 94, 0.527);
+}
+
+#btn_sortby:hover {
+    background-color: rgb(23, 209, 94);
+}
+
+/* ----------------- HEADER BAR ----------------- */
+
+#btn_showlog {
+    background-color: rgba(128, 128, 128, 0.527);
+}
+
+#btn_showlog:hover {
+    background-color: rgba(128, 128, 128, 0.822);
+}
+
+#btn_channelaction {
+    width: 100%;
+}
+
 .infobtn {
     margin: 0px 10px; 
     position: absolute;
@@ -108,29 +160,12 @@ a {
     padding: 1px 20px 5px 20px;
 }
 
-#btn_advanced {
-    margin-left: 20px;
-    background-color: transparent;
-    width: 120px;
-    background-color: rgba(23, 172, 209, 0.527);
-}
-
-#btn_advanced:hover {
-    background-color: rgb(23, 172, 209);
-}
-
 .line-break {
     width: 100%;
 }
 
-#btn_restart {
-    width: 140px;
-    background-color: rgba(209, 23, 70, 0.527);
-    transition: all .25s ease-in-out;
-}
-
-#btn_restart:hover {
-    background-color: rgb(209, 23, 70);
+#btn_stop:hover {
+    background-color: rgba(209, 181, 23, 1);
 }
 
 @keyframes noscriptbanner_animation {

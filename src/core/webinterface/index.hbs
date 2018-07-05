@@ -21,6 +21,7 @@
 
         if (cond.length == 0) {
             container.innerHTML = fullbackup
+            psoundnumber.innerText = filelist.length
             return
         }
 
@@ -42,6 +43,8 @@
                 '</form>' +
             '</div>'
         })
+
+        psoundnumber.innerText = `${filteredlist.length} / ${filelist.length}`
     }
 </script>
 
@@ -65,21 +68,35 @@
     {{!-- LOGOUT BUTTON --}}
     <form action="wilogout" method="get" style="padding-left: 30px;">
         <input type="hidden" name="user" value="{{ user }}" />
+        <input type="hidden" name="token" value="{{ token }}" />
         <input type="submit" value="LOGOUT" class="button btn_logout" />
     </form>
 
     {{!-- SORT BY BUTTON --}}
-    <form action="/" method="get" style="padding-left: 20px;">
+    <form action="/" method="get" />
         <input type="hidden" name="user" value="{{ user }}" />
         <input type="hidden" name="sortbydate" value="{{#if sortbydate}}0{{else}}1{{/if}}" />
-        <input type="submit" value="SORT BY {{#if sortbydate}}NAME{{else}}DATE{{/if}}" class="button btn_logout" style="
-            background-color: transparent;
-            width: 120px;
-        " />
+        <input type="submit" value="SORT BY {{#if sortbydate}}NAME{{else}}DATE{{/if}}" class="button btn_logout" id="btn_sortby"/>
+    </form>
+
+    {{!-- STOP SOUND BUTTON --}}
+    <form action="wistop" method="get" style="padding-left: 20px;" target="dummyframe">
+        <input type="hidden" name="user" value="{{ user }}" />
+        <input type="hidden" name="token" value="{{ token }}" />
+        <input type="submit" value="STOP" id="btn_stop" class="button btn_logout" />
     </form>
 
     {{!-- ADVANCED BUTTON --}}
     <button id="btn_advanced" class="button btn_logout">▼ ADVANCED</button>
+
+    <div style="
+        display: flex;
+        margin: 17px 0 0 30px;
+        font-size: 15px;
+        color: #ffffffa6;
+    ">
+        <p id="p_soundnumber" >0</p><p>&nbsp;SOUNDS</p>
+    </div>
 
     {{!-- SEARCH BAR --}}
     <div style="
@@ -111,6 +128,20 @@
         <input type="hidden" name="token" value="{{ token }}" />
         <input type="submit" value="RESTART BOT" class="button btn_logout" id="btn_restart"/>
     </form>
+
+    {{!-- CHANNEL ACTION BUTTON --}}
+    <form action="wichannelaction" method="get" style="position: relative; top: -25px; margin-left: 20px;" target="dummyframe">
+        <input type="hidden" name="user" value="{{ user }}" />
+        <input type="hidden" name="token" value="{{ token }}" />
+        <input type="submit" value="{{#if inchannel}}QUIT{{else}}JOIN{{/if}} CHANNEL" class="button btn_logout" id="btn_channelaction"/>
+    </form>
+
+    {{!-- SHOW LOG BUTTON --}}
+    <button id="btn_showlog" class="button btn_logout" style="
+        position: relative; 
+        top: -25px;
+        margin-left: 20px;
+    ">SHOW LOG</button>
 </div>
 
 {{!-- SOUND BUTTONS CONTAINER --}}
@@ -119,6 +150,7 @@
         <div>
             <form action="wiplay" method="get" id="btform_{{ this }}" target="dummyframe">
                 <input type="hidden" name="file" value="{{ this }}" />
+                <input type="hidden" name="token" value="{{ ../token }}" />
                 <input type="hidden" name="user" value="{{ ../user }}" />
                 <a onclick="document.getElementById('btform_{{ this }}').submit(); return false;" href="javascript:{}" >
                     <div class="tile">
@@ -148,9 +180,14 @@
     var advancedcontainer = document.getElementById('advanced_container')
     var btrestart = document.getElementById('btn_restart')
     var dummyframe = document.getElementById('dummyframe')
+    var btnshowlog = document.getElementById('btn_showlog')
+    var psoundnumber = document.getElementById('p_soundnumber')
+    var btnchannelaction = document.getElementById('btn_channelaction')
 
     // just to don't re-filter the whole list if search bar is empty
     fullbackup = container.innerHTML
+
+    psoundnumber.innerText = filelist.length
 
     searchbar.oninput = function() {
         var val = searchbar.value
@@ -182,6 +219,15 @@
             dummyframe.src = "/login?token={{token}}&user={{user}}"
             window.location = "/"
         }, 5000)
+    }
+
+    btnshowlog.onclick = function() {
+        window.open('/wishowlog?token={{token}}&guild={{guild.id}}&user={{user}}', 'newwindow', 'width=400,height=600')
+    }
+
+    btnchannelaction.onclick = function() {
+        btnchannelaction.value = 
+            btnchannelaction.value.startsWith('JOIN') ? "QUIT CHANNEL" : "JOIN CHANNEL"
     }
 
 </script>

@@ -1,6 +1,6 @@
 const Main = require('../main')
 const Logger = require('../util/logger')
-const { players, Player } = require('../core/player')
+const { players, guildLog, Player } = require('../core/player')
 const { info, error } = require('../util/msgs')
 const path = require('path')
 
@@ -39,6 +39,7 @@ class Session {
                         let memb = g.members.find(m => m.id == this.user.id && m.voiceChannel)
                         if (memb) {
                             this.guild = g
+                            this.player = players[g.id]
                             this.member = memb
                         }
                     })
@@ -107,6 +108,7 @@ class Websocket {
                 },
                 sortbydate,
                 token: session.token,
+                inchannel: (session.guild.me.voiceChannel != null),
                 WEBINTERFACE_VERSION
             })
         })
@@ -150,6 +152,12 @@ class Websocket {
         // WEBINTERFACE LOGOUT
         this.app.get('/wilogout', (req, res) => {
             var user = req.query.user
+
+            if (!this._checkToken(req.query.token)) {
+                res.send("")
+                return
+            }
+
             Logger.info(`[Websocket Logout (WEB)] CID: ${user} | TAG: ${this.sessions[user].user.tag}`)
             this.sessions[user] = null
             this.ipregister[req.connection.remoteAddress] = null
@@ -161,11 +169,15 @@ class Websocket {
             var user = req.query.user
             var soundFile = req.query.file
 
+            if (!this._checkToken(req.query.token)) {
+                res.send("")
+                return
+            }
+
             var session = this.sessions[user]
 
             if (!user || !session)
                 return
-            
 
             new Promise((res, rej) => {
                 var player = players[session.guild.id]
@@ -175,6 +187,7 @@ class Websocket {
                     new Player(session.vc)
                         .then(p => res(p))
             }).then(player => {
+                session.player = player
                 player.play(soundFile, session.member).then(() => {
                     res.send()
                 }).catch(e => {
@@ -190,11 +203,116 @@ class Websocket {
         // WEBINTERFACE RESTART BOT
         this.app.get('/wirestart', (req, res) => {
             var token = req.query.token
-            if (!this._checkToken(token))
+            var user = req.query.user
+            if (!this._checkToken(token)) {
+                res.send("")
                 return
+            }
 
-            process.exit();
+            var session = this.sessions[user]
+
+            new Promise((res, rej) => {
+                if (session && session.vc)
+                    session.vc.leave()
+                        .then(res()).catch(rej())
+                else
+                    res()
+            }).then(() => {
+                process.exit();
+            }).catch(() => {
+                process.exit();
+            })
+            
+            
         })
+
+        // WEBINTERFACE STOP SOUND
+        this.app.get('/wistop', (req, res) => {
+            var user = req.query.user
+
+            if (!this._checkToken(req.query.token)) {
+                res.send("")
+                return
+            }
+
+            var session = this.sessions[user]
+
+            if (session && session.player) {
+                session.player.stop();
+                console.log("stopped")
+            }
+            
+            res.send("")
+        })
+
+        // WEBINTERFACE SHOW LOG
+        this.app.get('/wishowlog', (req, res) => {
+            var guild = req.query.guild
+            var user = req.query.user
+
+            if (!this._checkToken(req.query.token)) {
+                res.send("")
+                return
+            }
+
+            var log = guildLog[guild]
+            if (log == null) {
+                res.render('error', {
+                    code: 7,
+                    reason: 'Guild not found in players log list.'
+                })
+                return
+            }
+
+            var session = this.sessions[user]
+            if (!session) {
+                res.render('error', {
+                    code: ERRCODE.INVALID_LOGIN,
+                    reason: 'Invalid session.'
+                })
+                return
+            }
+
+            // '`[05.07.2018 - 12:57:53]` - **3000** - *(zekro#9131)*'
+
+            log = log
+                .map(s => s.replace(/[`\*]/gm, ''))
+
+            res.render('log', {
+                guild: {
+                    id: session.guild.id,
+                    name: session.guild.name
+                },
+                log
+            })
+        })
+
+        this.app.get('/wichannelaction', (req, res) => {
+            var user = req.query.user
+
+            if (!this._checkToken(req.query.token)) {
+                res.send("")
+                return
+            }
+
+            var session = this.sessions[user]
+
+            if (session && session.vc) {
+                var currchan = session.guild.me.voiceChannel
+                console.log(currchan)
+                if (currchan) {
+                    if (session.player)
+                        session.player.destroy()
+                    else
+                        currchan.leave()
+                }
+                else {
+                    session.vc.join().catch()
+                }
+            }
+
+            res.send('')
+        }) 
 
         // LOGG IN AND CREATE SESSION FOR USER ID
         this.app.get('/login', (req, res) => {
@@ -274,14 +392,16 @@ class Websocket {
                 return
             }
 
-            new Promise((res, rej) => {
-                var player = players[session.guild.id]
+            new Promise(res => {
+                // var player = players[session.guild.id]
+                var player = session.player
                 if (player)
                     res(player)
                 else
                     new Player(session.vc)
                         .then(p => res(p))
             }).then(player => {
+                session.player = player
                 player.play(soundFile, session.member).then(() => {
                     this._sendStatus(res, STATUS.OK, 0)
                 }).catch(e => {
