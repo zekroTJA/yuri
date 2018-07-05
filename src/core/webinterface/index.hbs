@@ -57,16 +57,18 @@
 </noscript>
 
 {{!-- TOP CONTROL BAR --}}
-<div class="flexdiv">
+<div class="flexdiv" style="margin-bottom: 15px;" >
 
     {{!-- HEADING --}}
     <img src="src/yurilogo.png" height="40" style="
         margin: 20px 15px 0 0px;
     " />
-    <h1>YURI WEBINTERFACE</h1>
+    <h1 style="margin-bottom: 0px;" >YURI WEBINTERFACE</h1>
+
+    <div class="line-break" id="breaker_topline" style="display: none;"></div>
 
     {{!-- LOGOUT BUTTON --}}
-    <form action="wilogout" method="get" style="padding-left: 30px;">
+    <form action="wilogout" method="get" style="padding-left: 30px;" id="form_wilogout">
         <input type="hidden" name="user" value="{{ user }}" />
         <input type="hidden" name="token" value="{{ token }}" />
         <input type="submit" value="LOGOUT" class="button btn_logout" />
@@ -183,11 +185,30 @@
     var btnshowlog = document.getElementById('btn_showlog')
     var psoundnumber = document.getElementById('p_soundnumber')
     var btnchannelaction = document.getElementById('btn_channelaction')
+    var brakertopline = document.getElementById('breaker_topline')
+    var formwilogout = document.getElementById('form_wilogout')
 
     // just to don't re-filter the whole list if search bar is empty
     fullbackup = container.innerHTML
 
     psoundnumber.innerText = filelist.length
+
+
+    function transformToplane() {
+        if (window.innerWidth < 1580) {
+            if (brakertopline.style.display != "block") {
+                brakertopline.style.display = "block"
+                formwilogout.style.paddingLeft = "0px"
+            }
+        }
+        else {
+            if (brakertopline.style.display != "none")
+                brakertopline.style.display = "none"
+                formwilogout.style.paddingLeft = "30px";
+        }
+    }
+
+    transformToplane()
 
     searchbar.oninput = function() {
         var val = searchbar.value
@@ -229,5 +250,7 @@
         btnchannelaction.value = 
             btnchannelaction.value.startsWith('JOIN') ? "QUIT CHANNEL" : "JOIN CHANNEL"
     }
+
+    window.onresize = transformToplane
 
 </script>
