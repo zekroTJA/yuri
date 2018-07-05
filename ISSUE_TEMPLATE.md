@@ -8,6 +8,12 @@
 - [ ] Feature Suggestion
 - [ ] Crash
 
+## Application
+- [ ] Discord Bot Client
+- [ ] Websocket API
+- [ ] Hotkey Client
+- [ ] Web Interface
+
 ## Description
 > Please describe the issue as detailed as possible.
 
