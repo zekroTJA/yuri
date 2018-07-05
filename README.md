@@ -9,7 +9,7 @@
      <br>
      <br>
      <a href="https://travis-ci.org/zekroTJA/yuri" ><img src="https://travis-ci.org/zekroTJA/yuri.svg?branch=master" /></a>&nbsp;
-     <a href="https://github.com/zekroTJA/yuri/releases" ><img src="https://img.shields.io/github/downloads/zekrotja/yuri/latest/total.svg" /></a>
+     <img src="https://img.shields.io/github/package-json/v/zekrotja/yuri.svg" />
 </div>
 
 ---
