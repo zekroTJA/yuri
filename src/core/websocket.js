@@ -91,6 +91,12 @@ class Websocket {
                 return
             }
 
+            if (!session.vc) {
+                this.sessions[user] = null
+                res.render('login', { user, token })
+                return
+            }
+
             var fileList = Player.getFilelist(sortbydate)
                 .map(f => f.split('.')[0])
 
