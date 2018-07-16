@@ -3,6 +3,7 @@ const Logger = require('../util/logger')
 const { players, guildLog, Player } = require('../core/player')
 const { info, error } = require('../util/msgs')
 const path = require('path')
+const EventEmitter = require('events');
 
 const express = require('express')
 const hbs = require('express-handlebars')
@@ -10,6 +11,8 @@ const hbs = require('express-handlebars')
 // DEVTOKEN: zhyQUaHHdFwyUB7zW8GCB5Jb7AOh38e7AJgSuV4xdsN478lPxHtM2GGNAGqXpPT7
 
 const WEBINTERFACE_VERSION = "1.6.1"
+
+const SESSION_TIMEOUT = 3600 * 1000
 
 const STATUS = {
     ERROR: "ERROR",
@@ -43,8 +46,10 @@ class Session {
                             this.member = memb
                         }
                     })
-                    if (this.member)
+                    if (this.member) {
                         res(this)
+                        this.timer = new SessionTimer(SESSION_TIMEOUT)
+                    }
                     else
                         reject({message: 'User not found in any voice channel!'})
                 })
@@ -55,7 +60,31 @@ class Session {
     get vc() {
         return this.member.voiceChannel
     }
+
 }
+
+
+class SessionTimer extends EventEmitter {
+    constructor(timeout) {
+        super()
+        this.timeout = timeout
+        this.create()
+    }
+
+    create() {
+        this.timer = setTimeout(() => {
+            this.emit('elapsed')
+            console.log('elapsed')
+        }, this.timeout)
+    }
+
+    refresh() {
+        clearTimeout(this.timer)
+        this.create()
+        console.log('refreshed')
+    }
+}
+
 
 class Websocket {
 
@@ -142,6 +171,7 @@ class Websocket {
 
             new Session(user, token)
                 .then(session => {
+                    session.timer.on('elapsed', () => this.sessions[user] = null)
                     this.sessions[user] = session
                     this.ipregister[req.connection.remoteAddress] = user
                     Logger.info(`[Websocket Login (WEB)] CID: ${user} | TAG: ${session.user.tag}`)
@@ -184,6 +214,8 @@ class Websocket {
 
             if (!user || !session)
                 return
+
+            session.timer.refresh()
 
             new Promise((res, rej) => {
                 var player = players[session.guild.id]
@@ -244,7 +276,8 @@ class Websocket {
             var session = this.sessions[user]
 
             if (session && session.player) {
-                session.player.stop();
+                session.player.stop()
+                session.timer.refresh()                
                 console.log("stopped")
             }
             
@@ -279,7 +312,7 @@ class Websocket {
                 return
             }
 
-            // '`[05.07.2018 - 12:57:53]` - **3000** - *(zekro#9131)*'
+            session.timer.refresh()
 
             log = log
                 .map(s => s.replace(/[`\*]/gm, ''))
@@ -304,8 +337,8 @@ class Websocket {
             var session = this.sessions[user]
 
             if (session && session.vc) {
+                session.timer.refresh()
                 var currchan = session.guild.me.voiceChannel
-                console.log(currchan)
                 if (currchan) {
                     if (session.player)
                         session.player.destroy()
@@ -335,6 +368,7 @@ class Websocket {
             new Session(userID, token)
                 .then(session => {
                     this._sendStatus(res, STATUS.OK, ERRCODE.OK)
+                    session.timer.on('elapsed', () => this.sessions[user] = null)
                     this.sessions[userID] = session
                     this.ipregister[req.connection.remoteAddress] = userID
                     Logger.info(`[Websocket Login] CID: ${userID} | TAG: ${session.user.tag}`)
@@ -397,6 +431,8 @@ class Websocket {
                 this._sendStatus(res, STATUS.ERROR, ERRCODE.NO_VC)
                 return
             }
+
+            session.timer.refresh()
 
             new Promise(res => {
                 // var player = players[session.guild.id]
