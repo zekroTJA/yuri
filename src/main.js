@@ -5,6 +5,7 @@ const Logger = require('./util/logger')
 const { CrashCollector } = require('./util/crashCollector')
 const { Settings } = require('./core/settings')
 const Websocket = require('./core/websocket')
+const EventEmiter = require('events')
 
 // Creating discord client instance
 var client = new Discord.Client()
@@ -90,7 +91,10 @@ function exitHandler(exit, err) {
         process.exit()
 }
 
-new CrashCollector('./crash_logs')
+exports.eventEmiter = new EventEmiter()
+new CrashCollector('./crash_logs', (err, exit) => {
+    exports.eventEmiter.emit('closing')
+})
 
 process.on('exit', exitHandler)
 process.on('SIGINT', exitHandler.bind(null, true))

@@ -7,10 +7,11 @@ const EventEmitter = require('events');
 
 const express = require('express')
 const hbs = require('express-handlebars')
+const socketio = require('socket.io')
+const http = require('http')
 
-// DEVTOKEN: zhyQUaHHdFwyUB7zW8GCB5Jb7AOh38e7AJgSuV4xdsN478lPxHtM2GGNAGqXpPT7
 
-const WEBINTERFACE_VERSION = "1.6.1"
+const WEBINTERFACE_VERSION = "1.8.0"
 
 const SESSION_TIMEOUT = 3600 * 1000
 
@@ -81,7 +82,6 @@ class SessionTimer extends EventEmitter {
     refresh() {
         clearTimeout(this.timer)
         this.create()
-        console.log('refreshed')
     }
 }
 
@@ -100,6 +100,8 @@ class Websocket {
         this.app.set('views', path.join(__dirname, 'webinterface'))
         this.app.set('view engine', 'hbs')
         this.app.use(express.static(path.join(__dirname, 'webinterface')))
+        this.server = new http.Server(this.app)
+        this.io = socketio(this.server)
         this.token = Main.config.wstoken
 
         if (!this.token || this.token == "") {
@@ -171,7 +173,12 @@ class Websocket {
 
             new Session(user, token)
                 .then(session => {
-                    session.timer.on('elapsed', () => this.sessions[user] = null)
+                    session.timer.on('elapsed', () => {
+                        let socket = session.socket
+                        if (socket)
+                            socket.emit('logout')
+                        this.sessions[user] = null
+                    })
                     this.sessions[user] = session
                     this.ipregister[req.connection.remoteAddress] = user
                     Logger.info(`[Websocket Login (WEB)] CID: ${user} | TAG: ${session.user.tag}`)
@@ -200,44 +207,6 @@ class Websocket {
             res.redirect('/')
         })
 
-        // WEBINTERFACE PLAY
-        this.app.get('/wiplay', (req, res) => {
-            var user = req.query.user
-            var soundFile = req.query.file
-
-            if (!this._checkToken(req.query.token)) {
-                res.send("")
-                return
-            }
-
-            var session = this.sessions[user]
-
-            if (!user || !session)
-                return
-
-            session.timer.refresh()
-
-            new Promise((res, rej) => {
-                var player = players[session.guild.id]
-                if (player)
-                    res(player)
-                else
-                    new Player(session.vc)
-                        .then(p => res(p))
-            }).then(player => {
-                session.player = player
-                player.play(soundFile, session.member).then(() => {
-                    res.send()
-                }).catch(e => {
-                    console.log(e)
-                    res.send()
-                })
-            }).catch(e => {
-                console.log(e)
-                res.send()
-            })
-        })
-
         // WEBINTERFACE RESTART BOT
         this.app.get('/wirestart', (req, res) => {
             var token = req.query.token
@@ -262,26 +231,6 @@ class Websocket {
             })
             
             
-        })
-
-        // WEBINTERFACE STOP SOUND
-        this.app.get('/wistop', (req, res) => {
-            var user = req.query.user
-
-            if (!this._checkToken(req.query.token)) {
-                res.send("")
-                return
-            }
-
-            var session = this.sessions[user]
-
-            if (session && session.player) {
-                session.player.stop()
-                session.timer.refresh()                
-                console.log("stopped")
-            }
-            
-            res.send("")
         })
 
         // WEBINTERFACE SHOW LOG
@@ -325,33 +274,6 @@ class Websocket {
                 log
             })
         })
-
-        this.app.get('/wichannelaction', (req, res) => {
-            var user = req.query.user
-
-            if (!this._checkToken(req.query.token)) {
-                res.send("")
-                return
-            }
-
-            var session = this.sessions[user]
-
-            if (session && session.vc) {
-                session.timer.refresh()
-                var currchan = session.guild.me.voiceChannel
-                if (currchan) {
-                    if (session.player)
-                        session.player.destroy()
-                    else
-                        currchan.leave()
-                }
-                else {
-                    session.vc.join().catch()
-                }
-            }
-
-            res.send('')
-        }) 
 
         // LOGG IN AND CREATE SESSION FOR USER ID
         this.app.get('/login', (req, res) => {
@@ -512,8 +434,112 @@ class Websocket {
             
         })
 
-        this.server = this.app.listen(6612, () => {
+        this.server.listen(6612, () => {
             Logger.info("Websocket API set up at port " + this.server.address().port)
+        })
+
+
+        this.io.on('connection', (socket) => {
+            var session
+            Logger.info("WS onnection etablished: " + socket.id)
+
+            socket.on('thatsMe', (data) => {
+                session = this.sessions[data.user]
+                if (!session) {
+                    socket.emit('logout')
+                    socket.disconnect()
+                    return;
+                }
+                socket.join(session.guild.id)
+                session.socket = socket
+            })
+
+            socket.on('disconnecting', (socket) => {
+                Logger.info("WS onnection closed")
+                if (session)
+                    session.socket = null
+            })
+
+            socket.emit('whoAreYou')
+
+            socket.on('changeChannelStatus', () => {
+                if (session && session.vc) {
+                    session.timer.refresh()
+                    var currchan = session.guild.me.voiceChannel
+                    if (currchan) {
+                        if (session.player)
+                            session.player.destroy()
+                        else
+                            currchan.leave()
+                    }
+                    else {
+                        session.vc.join().catch()
+                    }
+                }
+            })
+
+            socket.on('stopSound', () => {
+                if (session && session.player) {
+                    session.player.stop()
+                    session.timer.refresh()
+                }
+            })
+
+            // PLAY EVENT
+            socket.on('playSound', (data) => {
+                var user = data.user
+                var soundFile = data.sound
+
+                if (!user || !session)
+                    return
+
+                session.timer.refresh()
+
+                new Promise((res, rej) => {
+                    var player = players[session.guild.id]
+                    if (player)
+                        res(player)
+                    else
+                        new Player(session.vc)
+                            .then(p => res(p))
+                }).then(player => {
+                    session.player = player
+                    let sockets = this.io.to(session.guild.id) //.of(session.guild.id)
+                    player.play(soundFile, session.member).then(() => {
+                        sockets.emit('soundPlaying', { user, sound: soundFile })
+                        player.dispatcher.on('end', () => {
+                            sockets.emit('soundStopped', { user, sound: soundFile })
+                        })
+                    }).catch(e => {
+                        sockets.emit('playError', { user, sound: soundFile, error: e })
+                        console.log(e)
+                    })
+                }).catch(e => {
+                    sockets.emit('playError', { user, sound: soundFile, error: e })
+                    console.log(e)
+                })
+            })
+
+            Main.client.on('voiceStateUpdate', (oldMemb, newMemb) => {
+                let session = this.sessions[oldMemb.id]
+                if (session && session.socket && oldMemb.voiceChannel && !newMemb.voiceChannel) {
+                    session.socket.emit('logout')
+                }
+                if (oldMemb.id != Main.client.user.id)
+                    return
+                if (!oldMemb.voiceChannel && newMemb.voiceChannel) {
+                    let vc = newMemb.voiceChannel
+                    this.io.emit('channelJoined', vc.id)
+                }
+                else if (oldMemb.voiceChannel && !newMemb.voiceChannel) {
+                    let vc = oldMemb.voiceChannel
+                    this.io.emit('channelLeft', vc.id)
+                }
+            })
+
+            Main.eventEmiter.on('closing', () => {
+                this.io.emit('logout')
+            })
         })
     }
 

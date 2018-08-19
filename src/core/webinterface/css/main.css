@@ -137,7 +137,7 @@ a {
 }
 
 #btn_channelaction {
-    width: 100%;
+    width: auto;
 }
 
 .infobtn {
@@ -162,6 +162,16 @@ a {
 
 .line-break {
     width: 100%;
+}
+
+.button_disabled {
+    background-color: #8080809e !important;
+    color: #ffffff4a !important;
+    cursor: not-allowed !important;
+}
+
+.button_sound_playing {
+    background-color: rgba(228, 82, 116, 0.85) !important;
 }
 
 #btn_stop:hover {

@@ -1,0 +1,25 @@
+{
+    "token": "",
+    "prefix": ":",
+    "files": ["mp3", "mp4", "wav", "ogg"],
+    "fileloc": "../soundboard/sounds",
+    "owner": "221905671296253953",
+    "writestats": true,
+    "enableticketsystem": false,
+    "wstoken": "",
+    "gamerota": [
+        "fixing and repairing the game", 
+        "Freibier!", 
+        "Mit Hände aber ohne Lenkrad!",
+        "Jungs, ich hab kein' Bock mehr!",
+        "grab'em by the pussy!",
+        "that was easy!",
+        "*fart*",
+        "Ich geh nur kurz kacken...",
+        "Fuck that shit im outta here!",
+        "Passiert da endlich was?!",
+        "Ey mannne!",
+        "In the middle of the street, our house!",
+        "So, meine Freunde..."
+    ]
+}

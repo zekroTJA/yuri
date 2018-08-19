@@ -75,7 +75,8 @@ class Player {
             Logger.debug(`[PLAYER] [${getDelay()}] Found file, starting playing file`)
 
             if (file) {
-                this.con.playFile(`${Main.config.fileloc}/${file}`).setVolume(this._volume())
+                this.dispatcher = this.con.playFile(`${Main.config.fileloc}/${file}`)
+                this.dispatcher.setVolume(this._volume())
                 // DEBUG
                 Logger.debug(`[PLAYER] [${getDelay()}] File played`)
                 
