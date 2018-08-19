@@ -30,17 +30,13 @@
         container.innerHTML = ""
 
         filteredlist.forEach(e => {
-            container.innerHTML +=
+            container.innerHTML += 
             '<div>' +
-                `<form action="wiplay" method="get" id="btform_${e}" target="dummyframe">` +
-                    `<input type="hidden" name="file" value="${e}" />` +
-                    `<input type="hidden" name="user" value="${user}" />` +
-                    `<a onclick="document.getElementById('btform_${e}').submit(); return false;" href="javascript:{}" >` +
-                        '<div class="tile">' +
-                            e
-                        '</div>' +
-                    '</a>' +
-                '</form>' +
+                `<a onclick="onClickPlaySound('${e}', '${user}')" href="javascript:{}" >` +
+                    '<div class="tile">' +
+                        e +
+                    '</div> ' +
+                '</a>' +
             '</div>'
         })
 
@@ -132,11 +128,10 @@
     </form>
 
     {{!-- CHANNEL ACTION BUTTON --}}
-    <form action="wichannelaction" method="get" style="position: relative; top: -25px; margin-left: 20px;" target="dummyframe">
-        <input type="hidden" name="user" value="{{ user }}" />
-        <input type="hidden" name="token" value="{{ token }}" />
-        <input type="submit" value="{{#if inchannel}}QUIT{{else}}JOIN{{/if}} CHANNEL" class="button btn_logout" id="btn_channelaction"/>
-    </form>
+    <button class="button btn_logout" style="position: relative; top: -25px; margin-left: 20px;" id="btn_channelaction"
+       onclick="onClickJoinQuit()" href="javascript:{}">
+        {{#if inchannel}}QUIT{{else}}JOIN{{/if}} CHANNEL
+    </button>
 
     {{!-- SHOW LOG BUTTON --}}
     <button id="btn_showlog" class="button btn_logout" style="
@@ -150,16 +145,11 @@
 <div class="container" id="indexcontainer">
     {{# each fileList }}
         <div>
-            <form action="wiplay" method="get" id="btform_{{ this }}" target="dummyframe">
-                <input type="hidden" name="file" value="{{ this }}" />
-                <input type="hidden" name="token" value="{{ ../token }}" />
-                <input type="hidden" name="user" value="{{ ../user }}" />
-                <a onclick="document.getElementById('btform_{{ this }}').submit(); return false;" href="javascript:{}" >
-                    <div class="tile">
-                        {{this}}
-                    </div>
-                </a>
-            </form>
+            <a onclick="onClickPlaySound('{{this}}', '{{../user}}')" href="javascript:{}" >
+                <div class="tile">
+                    {{this}}
+                </div>  
+            </a>
         </div>
     {{/each}}
 </div>
@@ -175,6 +165,9 @@
 
 {{!------------------------- AFTERLOAD SCRIPT -------------------------}}
 
+{{!-- <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script> --}}
+<script src="/socket.io/socket.io.js"></script>
+
 <script>
     var container = document.getElementById('indexcontainer')
     var searchbar = document.getElementById('searchbar')
@@ -188,11 +181,28 @@
     var brakertopline = document.getElementById('breaker_topline')
     var formwilogout = document.getElementById('form_wilogout')
 
-    // just to don't re-filter the whole list if search bar is empty
+    var socket = io()
+
+    socket.on('whoAreYou', () => {
+        socket.emit('thatsMe', {user: '{{ user }}' })
+    })
+
+    socket.on('channelJoined', channelid => {
+        btnchannelaction.innerText = "QUIT CHANNEL"
+    })
+
+    socket.on('channelLeft', channelid => {
+        btnchannelaction.innerText = "JOIN CHANNEL"
+    })
+
+
     fullbackup = container.innerHTML
 
     psoundnumber.innerText = filelist.length
 
+    function onClickPlaySound(sound, user) {
+        socket.emit('playSound', {sound, user})
+    }
 
     function transformToplane() {
         if (window.innerWidth < 1580) {
@@ -202,9 +212,10 @@
             }
         }
         else {
-            if (brakertopline.style.display != "none")
+            if (brakertopline.style.display != "none") {
                 brakertopline.style.display = "none"
-                formwilogout.style.paddingLeft = "30px";
+                formwilogout.style.paddingLeft = "30px"
+            }
         }
     }
 
@@ -247,8 +258,7 @@
     }
 
     btnchannelaction.onclick = function() {
-        btnchannelaction.value = 
-            btnchannelaction.value.startsWith('JOIN') ? "QUIT CHANNEL" : "JOIN CHANNEL"
+        socket.emit('changeChannelStatus')
     }
 
     window.onresize = transformToplane
