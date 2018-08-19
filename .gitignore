@@ -4,4 +4,4 @@ WebApiClient/YuriClient/bin/*
 WebApiClient/YuriClient/obj/*
 */packages/*
 WebApiClient/.vs/*
-
+config.json

@@ -164,6 +164,12 @@ a {
     width: 100%;
 }
 
+.button_disabled {
+    background-color: #8080809e !important;
+    color: #ffffff4a !important;
+    cursor: not-allowed !important;
+}
+
 #btn_stop:hover {
     background-color: rgba(209, 181, 23, 1);
 }

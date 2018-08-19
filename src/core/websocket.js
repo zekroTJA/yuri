@@ -11,7 +11,7 @@ const socketio = require('socket.io')
 const http = require('http')
 
 
-const WEBINTERFACE_VERSION = "1.6.1"
+const WEBINTERFACE_VERSION = "1.8.0"
 
 const SESSION_TIMEOUT = 3600 * 1000
 
@@ -82,7 +82,6 @@ class SessionTimer extends EventEmitter {
     refresh() {
         clearTimeout(this.timer)
         this.create()
-        console.log('refreshed')
     }
 }
 
@@ -174,7 +173,12 @@ class Websocket {
 
             new Session(user, token)
                 .then(session => {
-                    session.timer.on('elapsed', () => this.sessions[user] = null)
+                    session.timer.on('elapsed', () => {
+                        let socket = this.sessions[user].socket
+                        if (socket)
+                            socket.emit('logout')
+                        this.sessions[user] = null
+                    })
                     this.sessions[user] = session
                     this.ipregister[req.connection.remoteAddress] = user
                     Logger.info(`[Websocket Login (WEB)] CID: ${user} | TAG: ${session.user.tag}`)
@@ -227,26 +231,6 @@ class Websocket {
             })
             
             
-        })
-
-        // WEBINTERFACE STOP SOUND
-        this.app.get('/wistop', (req, res) => {
-            var user = req.query.user
-
-            if (!this._checkToken(req.query.token)) {
-                res.send("")
-                return
-            }
-
-            var session = this.sessions[user]
-
-            if (session && session.player) {
-                session.player.stop()
-                session.timer.refresh()                
-                console.log("stopped")
-            }
-            
-            res.send("")
         })
 
         // WEBINTERFACE SHOW LOG
@@ -461,7 +445,20 @@ class Websocket {
 
             socket.on('thatsMe', (data) => {
                 session = this.sessions[data.user]
+                if (!session) {
+                    socket.emit('logout')
+                    socket.disconnect()
+                    return;
+                }
+                session.socket = socket
             })
+
+            socket.on('disconnecting', (socket) => {
+                Logger.info("WS onnection closed")
+                if (session)
+                    session.socket = null
+            })
+
             socket.emit('whoAreYou')
 
             socket.on('changeChannelStatus', () => {
@@ -477,6 +474,13 @@ class Websocket {
                     else {
                         session.vc.join().catch()
                     }
+                }
+            })
+
+            socket.on('stopSound', () => {
+                if (session && session.player) {
+                    session.player.stop()
+                    session.timer.refresh()
                 }
             })
 
@@ -501,9 +505,8 @@ class Websocket {
                     session.player = player
                     player.play(soundFile, session.member).then(() => {
                         socket.emit('soundPlaying', { user, sound: soundFile })
-                        socket.emit('test', "TEST")
                         player.dispatcher.on('end', () => {
-                            socket.emit('soundFinished', { user, sound: soundFile })
+                            socket.emit('soundStopped', { user, sound: soundFile })
                         })
                     }).catch(e => {
                         socket.emit('playError', { user, sound: soundFile, error: e })
@@ -516,6 +519,12 @@ class Websocket {
             })
 
             Main.client.on('voiceStateUpdate', (oldMemb, newMemb) => {
+                let session = this.sessions[oldMemb.id]
+                if (session && oldMemb.voiceChannel && !newMemb.voiceChannel) {
+                    session.socket.emit('logout')
+                }
+                if (oldMemb.id != Main.client.user.id)
+                    return
                 if (!oldMemb.voiceChannel && newMemb.voiceChannel) {
                     let vc = newMemb.voiceChannel
                     this.io.emit('channelJoined', vc.id)
@@ -524,6 +533,10 @@ class Websocket {
                     let vc = oldMemb.voiceChannel
                     this.io.emit('channelLeft', vc.id)
                 }
+            })
+
+            Main.eventEmiter.on('closing', () => {
+                this.io.emit('logout')
             })
         })
     }

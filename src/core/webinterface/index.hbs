@@ -78,11 +78,15 @@
     </form>
 
     {{!-- STOP SOUND BUTTON --}}
-    <form action="wistop" method="get" style="padding-left: 20px;" target="dummyframe">
+    <button class="button btn_logout button_disabled" style="margin-left: 20px;" id="btn_stop" disabled
+       onclick="onClickStopSound()" href="javascript:{}">
+        STOP
+    </button>
+    {{!-- <form action="wistop" method="get" style="padding-left: 20px;" target="dummyframe">
         <input type="hidden" name="user" value="{{ user }}" />
         <input type="hidden" name="token" value="{{ token }}" />
         <input type="submit" value="STOP" id="btn_stop" class="button btn_logout" />
-    </form>
+    </form> --}}
 
     {{!-- ADVANCED BUTTON --}}
     <button id="btn_advanced" class="button btn_logout">▼ ADVANCED</button>
@@ -174,6 +178,7 @@
     var btadvanced = document.getElementById('btn_advanced')
     var advancedcontainer = document.getElementById('advanced_container')
     var btrestart = document.getElementById('btn_restart')
+    var btstop = document.getElementById('btn_stop')
     var dummyframe = document.getElementById('dummyframe')
     var btnshowlog = document.getElementById('btn_showlog')
     var psoundnumber = document.getElementById('p_soundnumber')
@@ -195,14 +200,35 @@
         btnchannelaction.innerText = "JOIN CHANNEL"
     })
 
+    socket.on('soundPlaying', data => {
+        btstop.disabled = false
+        btstop.classList.remove('button_disabled')
+    })
 
-    fullbackup = container.innerHTML
+    socket.on('soundStopped', data => {
+        btstop.disabled = true
+        btstop.classList.add('button_disabled')
+    })
 
-    psoundnumber.innerText = filelist.length
+    socket.on('logout', () => {
+        window.location = '/';
+    })
 
     function onClickPlaySound(sound, user) {
         socket.emit('playSound', {sound, user})
     }
+
+    function onClickJoinQuit() {
+        socket.emit('changeChannelStatus')
+    }
+
+    function onClickStopSound() {
+        socket.emit('stopSound')
+    }
+
+
+    fullbackup = container.innerHTML
+    psoundnumber.innerText = filelist.length
 
     function transformToplane() {
         if (window.innerWidth < 1580) {
@@ -255,10 +281,6 @@
 
     btnshowlog.onclick = function() {
         window.open('/wishowlog?token={{token}}&guild={{guild.id}}&user={{user}}', 'newwindow', 'width=400,height=600')
-    }
-
-    btnchannelaction.onclick = function() {
-        socket.emit('changeChannelStatus')
     }
 
     window.onresize = transformToplane
