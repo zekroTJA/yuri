@@ -170,6 +170,10 @@ a {
     cursor: not-allowed !important;
 }
 
+.button_sound_playing {
+    background-color: rgba(228, 82, 116, 0.85) !important;
+}
+
 #btn_stop:hover {
     background-color: rgba(209, 181, 23, 1);
 }

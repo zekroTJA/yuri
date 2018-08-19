@@ -174,7 +174,7 @@ class Websocket {
             new Session(user, token)
                 .then(session => {
                     session.timer.on('elapsed', () => {
-                        let socket = this.sessions[user].socket
+                        let socket = session.socket
                         if (socket)
                             socket.emit('logout')
                         this.sessions[user] = null
@@ -450,6 +450,7 @@ class Websocket {
                     socket.disconnect()
                     return;
                 }
+                socket.join(session.guild.id)
                 session.socket = socket
             })
 
@@ -503,24 +504,25 @@ class Websocket {
                             .then(p => res(p))
                 }).then(player => {
                     session.player = player
+                    let sockets = this.io.to(session.guild.id) //.of(session.guild.id)
                     player.play(soundFile, session.member).then(() => {
-                        socket.emit('soundPlaying', { user, sound: soundFile })
+                        sockets.emit('soundPlaying', { user, sound: soundFile })
                         player.dispatcher.on('end', () => {
-                            socket.emit('soundStopped', { user, sound: soundFile })
+                            sockets.emit('soundStopped', { user, sound: soundFile })
                         })
                     }).catch(e => {
-                        socket.emit('playError', { user, sound: soundFile, error: e })
+                        sockets.emit('playError', { user, sound: soundFile, error: e })
                         console.log(e)
                     })
                 }).catch(e => {
-                    socket.emit('playError', { user, sound: soundFile, error: e })
+                    sockets.emit('playError', { user, sound: soundFile, error: e })
                     console.log(e)
                 })
             })
 
             Main.client.on('voiceStateUpdate', (oldMemb, newMemb) => {
                 let session = this.sessions[oldMemb.id]
-                if (session && oldMemb.voiceChannel && !newMemb.voiceChannel) {
+                if (session && session.socket && oldMemb.voiceChannel && !newMemb.voiceChannel) {
                     session.socket.emit('logout')
                 }
                 if (oldMemb.id != Main.client.user.id)

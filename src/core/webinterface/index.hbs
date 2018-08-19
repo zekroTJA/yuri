@@ -33,7 +33,7 @@
             container.innerHTML += 
             '<div>' +
                 `<a onclick="onClickPlaySound('${e}', '${user}')" href="javascript:{}" >` +
-                    '<div class="tile">' +
+                    `<div class="tile" id="sound_${e}">` +
                         e +
                     '</div> ' +
                 '</a>' +
@@ -150,7 +150,7 @@
     {{# each fileList }}
         <div>
             <a onclick="onClickPlaySound('{{this}}', '{{../user}}')" href="javascript:{}" >
-                <div class="tile">
+                <div class="tile" id="sound_{{ this }}">
                     {{this}}
                 </div>  
             </a>
@@ -186,7 +186,7 @@
     var brakertopline = document.getElementById('breaker_topline')
     var formwilogout = document.getElementById('form_wilogout')
 
-    var socket = io()
+    var socket = io(/*'{{ guild.id }}'*/)
 
     socket.on('whoAreYou', () => {
         socket.emit('thatsMe', {user: '{{ user }}' })
@@ -203,11 +203,15 @@
     socket.on('soundPlaying', data => {
         btstop.disabled = false
         btstop.classList.remove('button_disabled')
+        document.getElementById(`sound_${data.sound}`)
+            .classList.add('button_sound_playing')
     })
 
     socket.on('soundStopped', data => {
         btstop.disabled = true
         btstop.classList.add('button_disabled')
+        document.getElementById(`sound_${data.sound}`)
+            .classList.remove('button_sound_playing')
     })
 
     socket.on('logout', () => {
