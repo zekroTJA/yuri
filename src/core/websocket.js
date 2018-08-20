@@ -13,7 +13,7 @@ const http = require('http')
 
 const WEBINTERFACE_VERSION = '1.9.0'
 
-const SESSION_TIMEOUT = 10 * 1000
+const SESSION_TIMEOUT = 1800 * 1000
 
 const STATUS = {
     ERROR: 'ERROR',
