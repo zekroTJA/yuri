@@ -89,7 +89,7 @@ Then, join a voice channel on a guild the bot is connecte to and enter your toke
 
 After login, you can play sounds by clicking the tiles, search for sounds or manage the bot.
 
-![](http://zekro.de/ss/chrome_2018-07-04_17-39-54.png)
+![](http://zekro.de/ss/2018-08-20_19-15-06.gif)
 
 ---
 
