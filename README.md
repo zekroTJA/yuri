@@ -101,6 +101,10 @@ After login, you can play sounds by clicking the tiles, search for sounds or man
 
 ## Used 3rd party dependencies
 
-- [discord.js](https://github.com/hydrabolt/discord.js)
-- [node-opus](https://github.com/Rantanen/node-opus)
-- [colors](https://github.com/Marak/colors.js)
+- [body-parser](https://www.npmjs.com/package/body-parser)
+- [colors](https://www.npmjs.com/package/colors)
+- [discord.js](https://www.npmjs.com/package/discord.js)
+- [express](https://www.npmjs.com/package/express)
+- [express-handlebars](https://www.npmjs.com/package/express-handlebars)
+- [node-opus](https://www.npmjs.com/package/node-opus)
+- [socket.io](https://www.npmjs.com/package/socket.io)
