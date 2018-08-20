@@ -450,14 +450,24 @@ class Websocket {
                     socket.disconnect()
                     return;
                 }
+                let user = session.member.user
                 socket.join(session.guild.id)
                 session.socket = socket
+                let guildsessions = Object.keys(this.sessions)
+                    .filter(k => this.sessions[k].guild && this.sessions[k].guild.id == session.guild.id && this.sessions[k].socket)
+                    .map(k => this.sessions[k].member.user)
+                let alreadyConnected = []
+                guildsessions.forEach(u => alreadyConnected.push({ id: u.id, tag: u.tag, avatarURL: u.avatarURL }))
+                this.io.to(session.guild.id).emit('userConnected', alreadyConnected)
             })
 
             socket.on('disconnecting', (socket) => {
                 Logger.info("WS onnection closed")
-                if (session)
+                if (session) {
+                    let user = session.member.user
+                    this.io.to(session.guild.id).emit('userDisconnected', { id: user.id, tag: user.tag })
                     session.socket = null
+                }
             })
 
             socket.emit('whoAreYou')

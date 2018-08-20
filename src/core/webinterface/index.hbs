@@ -100,6 +100,13 @@
         <p id="p_soundnumber" >0</p><p>&nbsp;SOUNDS</p>
     </div>
 
+    {{!-- USER AVATARS --}}
+    <div id="container_useravatars" style="
+        display: flex;
+        margin: 25px 0 0 30px;
+    ">
+    </div>
+
     {{!-- SEARCH BAR --}}
     <div style="
             right: 100px;
@@ -174,6 +181,7 @@
 
 <script>
     var container = document.getElementById('indexcontainer')
+    var containeruseravatars = document.getElementById('container_useravatars')
     var searchbar = document.getElementById('searchbar')
     var btadvanced = document.getElementById('btn_advanced')
     var advancedcontainer = document.getElementById('advanced_container')
@@ -186,7 +194,7 @@
     var brakertopline = document.getElementById('breaker_topline')
     var formwilogout = document.getElementById('form_wilogout')
 
-    var socket = io(/*'{{ guild.id }}'*/)
+    var socket = io()
 
     socket.on('whoAreYou', () => {
         socket.emit('thatsMe', {user: '{{ user }}' })
@@ -212,6 +220,25 @@
         btstop.classList.add('button_disabled')
         document.getElementById(`sound_${data.sound}`)
             .classList.remove('button_sound_playing')
+    })
+
+    socket.on('userConnected', data => {
+        while (containeruseravatars.hasChildNodes()) 
+            containeruseravatars.removeChild(containeruseravatars.lastChild)
+        data.forEach(user => {
+            let child = document.createElement('img')
+            child.src = user.avatarURL
+            child.classList = ['useravatar']
+            child.id = `img_useravatar_${user.id}`
+            child.width = child.height = '32'
+            child.title = user.tag
+            containeruseravatars.appendChild(child)
+        })
+    })
+
+    socket.on('userDisconnected', user => {
+        containeruseravatars.removeChild(
+            document.getElementById(`img_useravatar_${user.id}`))
     })
 
     socket.on('logout', () => {
