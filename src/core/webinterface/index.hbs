@@ -1,5 +1,3 @@
-<!DOCTYPE html>
-
 {{!-- invisible frame where the web request answers are send to to don't reload the page after  --}}
 <iframe width="0" height="0" style="display: none" border="0" name="dummyframe" id="dummyframe"></iframe>
 
@@ -25,11 +23,11 @@
             return
         }
 
-        var filteredlist = filelist.filter(e => e.includes(cond.toLowerCase()))
+        var filteredlist = filelist.filter((e) => e.includes(cond.toLowerCase()))
 
         container.innerHTML = ""
 
-        filteredlist.forEach(e => {
+        filteredlist.forEach((e) => {
             container.innerHTML += 
             '<div>' +
                 `<a onclick="onClickPlaySound('${e}', '${user}')" href="javascript:{}" >` +
@@ -176,10 +174,10 @@
 
 {{!------------------------- AFTERLOAD SCRIPT -------------------------}}
 
-{{!-- <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script> --}}
 <script src="/socket.io/socket.io.js"></script>
 
 <script>
+    // =============> DOM VAR DEFINITIONS
     var container = document.getElementById('indexcontainer')
     var containeruseravatars = document.getElementById('container_useravatars')
     var searchbar = document.getElementById('searchbar')
@@ -193,39 +191,41 @@
     var btnchannelaction = document.getElementById('btn_channelaction')
     var brakertopline = document.getElementById('breaker_topline')
     var formwilogout = document.getElementById('form_wilogout')
+    // <============= END DOM VAR DEFINITIONS
 
+    // =============> SOCKET
     var socket = io()
 
     socket.on('whoAreYou', () => {
         socket.emit('thatsMe', {user: '{{ user }}' })
     })
 
-    socket.on('channelJoined', channelid => {
-        btnchannelaction.innerText = "QUIT CHANNEL"
+    socket.on('channelJoined', (channelid) => {
+        btnchannelaction.innerText = 'QUIT CHANNEL'
     })
 
-    socket.on('channelLeft', channelid => {
-        btnchannelaction.innerText = "JOIN CHANNEL"
+    socket.on('channelLeft', (channelid) => {
+        btnchannelaction.innerText = 'JOIN CHANNEL'
     })
 
-    socket.on('soundPlaying', data => {
+    socket.on('soundPlaying', (data) => {
         btstop.disabled = false
         btstop.classList.remove('button_disabled')
         document.getElementById(`sound_${data.sound}`)
             .classList.add('button_sound_playing')
     })
 
-    socket.on('soundStopped', data => {
+    socket.on('soundStopped', (data) => {
         btstop.disabled = true
         btstop.classList.add('button_disabled')
         document.getElementById(`sound_${data.sound}`)
             .classList.remove('button_sound_playing')
     })
 
-    socket.on('userConnected', data => {
+    socket.on('userConnected', (data) => {
         while (containeruseravatars.hasChildNodes()) 
             containeruseravatars.removeChild(containeruseravatars.lastChild)
-        data.forEach(user => {
+        data.forEach((user) => {
             let child = document.createElement('img')
             child.src = user.avatarURL
             child.classList = ['useravatar']
@@ -236,7 +236,7 @@
         })
     })
 
-    socket.on('userDisconnected', user => {
+    socket.on('userDisconnected', (user) => {
         containeruseravatars.removeChild(
             document.getElementById(`img_useravatar_${user.id}`))
     })
@@ -256,6 +256,7 @@
     function onClickStopSound() {
         socket.emit('stopSound')
     }
+    // <============= END SOCKET
 
 
     fullbackup = container.innerHTML
@@ -278,7 +279,8 @@
 
     transformToplane()
 
-    searchbar.oninput = function() {
+    // =============> EVENT HANDLER
+    searchbar.oninput = () => {
         var val = searchbar.value
         setTimeout(() => {
             if (val == searchbar.value)
@@ -286,7 +288,7 @@
         }, 250)
     }
 
-    btadvanced.onclick = function() {
+    btadvanced.onclick = () => {
         if (advancedcontainer.style.height == "0px") {
             advancedcontainer.style.height = "100px"
             btadvanced.innerText = "▲ ADVANCED"
@@ -297,7 +299,7 @@
         }
     }
 
-    btrestart.onclick = function() {
+    btrestart.onclick = () => {
         btrestart.style.backgroundColor = "#5727af";
         var counter = 5;
         btrestart.value = `RELOADING IN ${counter}...`
@@ -310,10 +312,11 @@
         }, 5000)
     }
 
-    btnshowlog.onclick = function() {
+    btnshowlog.onclick = () => {
         window.open('/wishowlog?token={{token}}&guild={{guild.id}}&user={{user}}', 'newwindow', 'width=400,height=600')
     }
 
     window.onresize = transformToplane
+    // <============= EVENT HANDLER
 
 </script>
