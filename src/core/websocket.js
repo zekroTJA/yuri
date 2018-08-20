@@ -13,7 +13,7 @@ const http = require('http')
 
 const WEBINTERFACE_VERSION = '1.9.0'
 
-const SESSION_TIMEOUT = 3600 * 1000
+const SESSION_TIMEOUT = 10 * 1000
 
 const STATUS = {
     ERROR: 'ERROR',
@@ -173,6 +173,7 @@ class Websocket {
             new Session(user, token)
                 .then(session => {
                     session.timer.on('elapsed', () => {
+                        Logger.info(`[WS Session Expired] CID: ${user} | TAG: ${session.user.tag}`)
                         let socket = session.socket
                         if (socket)
                             socket.emit('logout')
@@ -180,7 +181,7 @@ class Websocket {
                     })
                     this.sessions[user] = session
                     this.ipregister[req.connection.remoteAddress] = user
-                    Logger.info(`[Websocket Login (WEB)] CID: ${user} | TAG: ${session.user.tag}`)
+                    Logger.info(`[WS Login (WEB)] CID: ${user} | TAG: ${session.user.tag}`)
                     res.redirect('/?user=' + user)
                 })
                 .catch(e => {
@@ -200,7 +201,7 @@ class Websocket {
                 return
             }
 
-            Logger.info(`[Websocket Logout (WEB)] CID: ${user} | TAG: ${this.sessions[user].user.tag}`)
+            Logger.info(`[WS Logout (WEB)] CID: ${user} | TAG: ${this.sessions[user].user.tag}`)
             this.sessions[user] = null
             this.ipregister[req.connection.remoteAddress] = null
             res.redirect('/')
@@ -292,7 +293,7 @@ class Websocket {
                     session.timer.on('elapsed', () => this.sessions[user] = null)
                     this.sessions[userID] = session
                     this.ipregister[req.connection.remoteAddress] = userID
-                    Logger.info(`[Websocket Login] CID: ${userID} | TAG: ${session.user.tag}`)
+                    Logger.info(`[WS Login] CID: ${userID} | TAG: ${session.user.tag}`)
                 })
                 .catch(e => {
                     console.log(e)
@@ -317,7 +318,7 @@ class Websocket {
                 this.sessions[userID] = null
                 this.ipregister[req.connection.remoteAddress] = null
                 this._sendStatus(res, STATUS.OK, ERRCODE.OK)
-                Logger.info(`[Websocket Logout] CID: ${userID} | TAG: ${session.user.tag}`)
+                Logger.info(`[WS Logout] CID: ${userID} | TAG: ${session.user.tag}`)
             }
             else
                 this._sendStatus(res, STATUS.ERROR, ERRCODE.SESSION_NOT_LOGGED_IN)
@@ -434,7 +435,7 @@ class Websocket {
         })
 
         this.server.listen(6612, () => {
-            Logger.info('Websocket API set up at port ' + this.server.address().port)
+            Logger.info('WS API set up at port ' + this.server.address().port)
         })
 
 
