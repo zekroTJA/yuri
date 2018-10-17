@@ -20,10 +20,9 @@ matrix:
         - lts/*
       script:
         - npm test
+        - docker build -t yuri .
+        - docker save -o yuri.dockerimage.tar yuri
       deploy:
-        script: |
-          docker build -t yuri .
-          docker save -o yuri.dockerimage.tar yuri
         provider: releases
         skip_cleanup: true
         api_key:
