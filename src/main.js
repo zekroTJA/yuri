@@ -72,6 +72,8 @@ Logger.debug('Debug mode enabled')
 
 var ws = new Websocket()
 
+client.on('error', (e) => Logger.error(e))
+
 // Logging into this shit
 client.login(DEBUG_MODE ? process.argv[3] : config.token)
     .catch(err => Logger.error('Failed logging in:\n' + err))

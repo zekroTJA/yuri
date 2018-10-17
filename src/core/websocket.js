@@ -11,13 +11,13 @@ const socketio = require('socket.io')
 const http = require('http')
 
 
-const WEBINTERFACE_VERSION = "1.8.0"
+const WEBINTERFACE_VERSION = '1.9.0'
 
-const SESSION_TIMEOUT = 3600 * 1000
+const SESSION_TIMEOUT = 1800 * 1000
 
 const STATUS = {
-    ERROR: "ERROR",
-    OK: "OK"
+    ERROR: 'ERROR',
+    OK: 'OK'
 }
 
 const ERRCODE = {
@@ -75,7 +75,6 @@ class SessionTimer extends EventEmitter {
     create() {
         this.timer = setTimeout(() => {
             this.emit('elapsed')
-            console.log('elapsed')
         }, this.timeout)
     }
 
@@ -105,7 +104,7 @@ class Websocket {
         this.token = Main.config.wstoken
 
         if (!this.token || this.token == "") {
-            Logger.error("Can not set up Websocket API! Missing token in config!")
+            Logger.error('Can not set up Websocket API! Missing token in config!')
             return
         }
 
@@ -158,7 +157,7 @@ class Websocket {
             if (!user || !token || user == "" || token == "") {
                 res.render('error', {
                     code: ERRCODE.INVALID_LOGIN,
-                    reason: "Invalid login credentials."
+                    reason: 'Invalid login credentials.'
                 })
                 return
             }
@@ -166,7 +165,7 @@ class Websocket {
             if (!this._checkToken(token)) {
                 res.render('error', {
                     code: ERRCODE.INVALID_TOKEN,
-                    reason: "Invalid token."
+                    reason: 'Invalid token.'
                 })
                 return
             }
@@ -174,6 +173,7 @@ class Websocket {
             new Session(user, token)
                 .then(session => {
                     session.timer.on('elapsed', () => {
+                        Logger.info(`[WS Session Expired] CID: ${user} | TAG: ${session.user.tag}`)
                         let socket = session.socket
                         if (socket)
                             socket.emit('logout')
@@ -181,7 +181,7 @@ class Websocket {
                     })
                     this.sessions[user] = session
                     this.ipregister[req.connection.remoteAddress] = user
-                    Logger.info(`[Websocket Login (WEB)] CID: ${user} | TAG: ${session.user.tag}`)
+                    Logger.info(`[WS Login (WEB)] CID: ${user} | TAG: ${session.user.tag}`)
                     res.redirect('/?user=' + user)
                 })
                 .catch(e => {
@@ -201,7 +201,7 @@ class Websocket {
                 return
             }
 
-            Logger.info(`[Websocket Logout (WEB)] CID: ${user} | TAG: ${this.sessions[user].user.tag}`)
+            Logger.info(`[WS Logout (WEB)] CID: ${user} | TAG: ${this.sessions[user].user.tag}`)
             this.sessions[user] = null
             this.ipregister[req.connection.remoteAddress] = null
             res.redirect('/')
@@ -293,7 +293,7 @@ class Websocket {
                     session.timer.on('elapsed', () => this.sessions[user] = null)
                     this.sessions[userID] = session
                     this.ipregister[req.connection.remoteAddress] = userID
-                    Logger.info(`[Websocket Login] CID: ${userID} | TAG: ${session.user.tag}`)
+                    Logger.info(`[WS Login] CID: ${userID} | TAG: ${session.user.tag}`)
                 })
                 .catch(e => {
                     console.log(e)
@@ -318,7 +318,7 @@ class Websocket {
                 this.sessions[userID] = null
                 this.ipregister[req.connection.remoteAddress] = null
                 this._sendStatus(res, STATUS.OK, ERRCODE.OK)
-                Logger.info(`[Websocket Logout] CID: ${userID} | TAG: ${session.user.tag}`)
+                Logger.info(`[WS Logout] CID: ${userID} | TAG: ${session.user.tag}`)
             }
             else
                 this._sendStatus(res, STATUS.ERROR, ERRCODE.SESSION_NOT_LOGGED_IN)
@@ -435,13 +435,13 @@ class Websocket {
         })
 
         this.server.listen(6612, () => {
-            Logger.info("Websocket API set up at port " + this.server.address().port)
+            Logger.info('WS API set up at port ' + this.server.address().port)
         })
 
 
         this.io.on('connection', (socket) => {
             var session
-            Logger.info("WS onnection etablished: " + socket.id)
+            Logger.info('WS onnection etablished: ' + socket.id)
 
             socket.on('thatsMe', (data) => {
                 session = this.sessions[data.user]
@@ -450,14 +450,24 @@ class Websocket {
                     socket.disconnect()
                     return;
                 }
+                let user = session.member.user
                 socket.join(session.guild.id)
                 session.socket = socket
+                let guildsessions = Object.keys(this.sessions)
+                    .filter(k => this.sessions[k].guild && this.sessions[k].guild.id == session.guild.id && this.sessions[k].socket)
+                    .map(k => this.sessions[k].member.user)
+                let alreadyConnected = []
+                guildsessions.forEach(u => alreadyConnected.push({ id: u.id, tag: u.tag, avatarURL: u.avatarURL }))
+                this.io.to(session.guild.id).emit('userConnected', alreadyConnected)
             })
 
             socket.on('disconnecting', (socket) => {
                 Logger.info("WS onnection closed")
-                if (session)
+                if (session) {
+                    let user = session.member.user
+                    this.io.to(session.guild.id).emit('userDisconnected', { id: user.id, tag: user.tag })
                     session.socket = null
+                }
             })
 
             socket.emit('whoAreYou')
@@ -547,19 +557,19 @@ class Websocket {
         let desc = (() => {
             switch (code) {
                 case ERRCODE.INVALID_TOKEN: 
-                    return "Invalid token."
+                    return 'Invalid token.'
                 case ERRCODE.INVALID_GUILD: 
-                    return "Invalid guild ID or no player active on this guild currently."
+                    return 'Invalid guild ID or no player active on this guild currently.'
                 case ERRCODE.INVALID_FILE:
-                    return "File name not set."
+                    return 'File name not set.'
                 case ERRCODE.PLAYER_ERROR:
-                    return msg ? msg : "Unknown player error."
+                    return msg ? msg : 'Unknown player error.'
                 case ERRCODE.INVALID_LOGIN:
-                    return msg ? msg : "Invalid login."
+                    return msg ? msg : 'Invalid login.'
                 case ERRCODE.SESSION_NOT_LOGGED_IN:
-                    return "Session not logged in."
+                    return 'Session not logged in.'
                 case ERRCODE.NO_VC:
-                    return "USer not in voice channel."
+                    return 'USer not in voice channel.'
                 default:
                     return msg ? msg : "OK"
             }

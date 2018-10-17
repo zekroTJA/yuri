@@ -2,12 +2,14 @@ const { client, config, DEBUG_MODE } = require('../main')
 const { RichEmbed } = require('discord.js')
 const Logger = require('../util/logger')
 const fs = require('fs')
+const Main = require('../main')
 
 
 client.on('ready', () => {
     Logger.info(
         `Logged in as ${client.user.tag}\n` +
-        `Invite Link:\nhttps://discordapp.com/oauth2/authorize?client_id=${client.user.id}&scope=bot&permissions=120679504`
+        `Invite Link:\nhttps://discordapp.com/oauth2/authorize?client_id=${client.user.id}&scope=bot&permissions=120679504\n` +
+        `WS Token:\n${Main.config.wstoken}`
     )
     if (fs.existsSync('RESTARTING')) {
         var filecont = fs.readFileSync('RESTARTING', 'utf8').split(':')
