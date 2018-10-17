@@ -1,0 +1,5 @@
+node_modules
+npm-debug.log
+*.yml
+*.md
+config.example.json
