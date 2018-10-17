@@ -7,6 +7,10 @@ const { Settings } = require('./core/settings')
 const Websocket = require('./core/websocket')
 const EventEmiter = require('events')
 
+if (!fs.existsSync('./expose')){
+    fs.mkdirSync('./expose');
+}
+
 // Creating discord client instance
 var client = new Discord.Client()
 
@@ -41,12 +45,12 @@ if (DEBUG_MODE) {
     var config = DEF_CONF
     Logger.info("Setting default config for testing routine...")
 }
-else if (fs.existsSync('config.json')) {
-    var config = require('../config.json')
+else if (fs.existsSync('./expose/config.json')) {
+    var config = require('../expose/config.json')
     Logger.info('Config loaded')
 }
 else {
-    fs.writeFileSync('config.json', JSON.stringify(DEF_CONF, 0, 2))
+    fs.writeFileSync('./expose/config.json', JSON.stringify(DEF_CONF, 0, 2))
     Logger.error('Config file created. Please enter your information into this file and restart the bot after.')
     process.exit()
 }
@@ -87,14 +91,14 @@ function exitHandler(exit, err) {
     settings.save()
 
     if (config.writestats)
-        fs.writeFileSync('SOUNDSTATS.json', JSON.stringify(soundStats, 0, 2))
+        fs.writeFileSync('./expose/SOUNDSTATS.json', JSON.stringify(soundStats, 0, 2))
 
     if (exit)
         process.exit()
 }
 
 exports.eventEmiter = new EventEmiter()
-new CrashCollector('./crash_logs', (err, exit) => {
+new CrashCollector('./expose/crash_logs', (err, exit) => {
     exports.eventEmiter.emit('closing')
 })
 
