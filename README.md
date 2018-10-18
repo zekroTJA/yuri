@@ -9,7 +9,7 @@
      <br>
      <br>
      <a href="https://travis-ci.org/zekroTJA/yuri" ><img src="https://travis-ci.org/zekroTJA/yuri.svg?branch=master" /></a>&nbsp;
-     <img src="https://img.shields.io/github/package-json/v/zekrotja/yuri.svg" />
+     <a href="https://github.com/zekroTJA/yuri/releases"><img src="https://img.shields.io/github/tag/zekroTJA/yuri.svg" /></a>
 </div>
 
 ---
@@ -45,38 +45,125 @@ Dev    | <a href="https://travis-ci.org/zekroTJA/yuri/branches" ><img src="https
 - Node.JS and npm
 - FFMPEG
 
+**OR**
+
+- docker
+
 ---
 
 ## Setup
 
-1. Create a discord API bot app **[here](http://discordapp.com/developers/applications/me)**
+First of all, you need to create a Discord API Bot Application [**here**](http://discordapp.com/developers/applications/me).
 
 
-2. You need to install **ffmpeg** on your system. To do this, just follow the steps described in [**this blog post**](https://superuser.com/questions/286675/how-to-install-ffmpeg-on-debian#865744)
+Now, you have **2 options** for self-hosting yuri:
+
+1. With the supplied Docker image
+2. With manual node.js setup configuration *(way more complex)*
+
+### 1 - Using the supplied Docker image
+
+Go ahead to [**Releases**](https://github.com/zekroTJA/yuri/releases) and download the latest Docker image of yuri.  
+This image contains:
+    - an image of node.js LTS (8.12.0) on Debian Jessie
+    - the source code of yuri
+    - a FFMPEG installation
+
+Then, load the image to docker with
+```
+$ sudo docker load -i yuri.dockerimage.tar
+```
+
+Now, create a directory `expose` with the folder `sounds` in it with
+```
+$ mkdir -p expose/sounds
+```
+
+Now, start the Docker container once to create the config file in the expose folder
+```
+$ sudo docker run -v $PWD/expose:/usr/src/app/expose yuri
+```
+
+Then, there sould be a created `config.json` in the `expose` directory. Open it, enter your Bot application token got from [**here**](http://discordapp.com/developers/applications/me), your prefered prefix the bot will listen to, your ID to identify you as the owner of the bot and the websocket password/token. Also, set the sound files directory to `"./expose/sounds"`.
+
+Now, you can put all your sounds into the `expose/sounds` directory.
+
+Finally, run the Docker container as deamon with the prefered port of the websocket expose:
+```
+$ sudo docker run -p 8080:6612 -v $PWD/expose:/usr/src/app/expose -d yuri
+```
+*Of course, `8080` is just an exaple here. You can expose the web interface to whatever port you want. Just keep in mind, that the pathes on the left side of the `:` behind the `-v` tag **always** needs to be an absolute path!*
+
+Now, you can check the status of the container with
+```
+sudo docker ps
+```
+
+```
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS                    NAMES
+1bdf62abc781        yuri                "bash runner.sh"    19 hours ago        Up 19 hours         0.0.0.0:6612->6612/tcp   fervent_carson
+```
+
+To stop the container, just use the stop command with the container ID of this output:
+```
+$ sudo docker stop 1bdf62abc781
+```
+
+### Manual configuration of your node.js setup
+
+> Why you need to do all this stuff: Simply, the sound library of yuri has some problems with later versions of node.js then 9.4.0. So, you need to install all dependencies on this version and run the bot with it.
+
+1. Clone the repository
+```
+$ git clone https://github.com/zekroTJA/yuri.git && cd yuri
+```
+
+2. You need to install **ffmpeg** on your system. To do this, just follow the steps described in [**this blog post**](https://superuser.com/questions/286675/how-to-install-ffmpeg-on-debian#865744).
 
 
-3. **[Download](https://github.com/zekroTJA/yuri/archive/master.zip)** this repository or clone it simply with<br>
-`$ git clone https://github.com/zekroTJA/yuri.git`
+3. Now, you need to install npm package `n`, which will be used to manage multiple node.js versions
+```
+$ sudo npm i -g n
+```
 
+4. Install node 9.4.0 and check, that the version has changed
+```
+$ sudo n 9.4.0
+$ node -v
+v9.4.0
+```
 
-4. Install all **npm dependencies** with the command<br>
-`$ npm i`
+5. Now, install all node modules
+```
+$ npm i
+```
 
+6. Then, open the `package.json` file and change the `"start"` command to `"n use 9.4.0 src/main.js"`
+```js
+"scripts": {
+  "start": "n use 9.4.0 src/main.js"
+},
+```
 
-5. Open the **config.json** file and enter there your discord **bot app token**, your discord **accound id**, the **prefix** you want to control the bot with and the **sound files location** *(absolute or relative)*, where the sound files are the bot should have access to.
+7. After that, start the bot once to create the `config.json` located in the `expose` folder.
+```
+$ npm start
+```
 
+8. Open the config file, enter your Bot application token got from [**here**](http://discordapp.com/developers/applications/me), your prefered prefix the bot will listen to, your ID to identify you as the owner of the bot and the websocket password/token. Also, set the sound files directory where you want to store your sound files. Attention: This directory will **not** be automatically created from the bot, so you will need to create the directory manually!
 
-6. Now, you can start the bot with<br>
-`$ npm start`<br>
-or if you want that the bot should run 24/7, then use [**screen**](https://linux.die.net/man/1/screen)<br>
-`$ screen -L -S soundboard npm start`
+9. Finally, you need to start the bot with the `runner.sh` script to ensure that the bot restarts after using the restart function. In best case, you should run all of this in a screen session
+```
+$ screen -dmLS yuri bash runner.sh
+```
+*If you do not want to log the output of the screen, just do not use the `L` argument.*
 
+10. At last, you should change back to your latest version of node
+```
+$ sudo n latest
+```
+*...or enter the version you prefer to use normally.*
 
-7. Then, take a look in the console and copy the **invite link** and open it in the browser to invite the soundboard bot to your server.<br>
-**This is only possible if you have admin permission on the guild!**
-
-
-8. Place some sound files in the defined location and enter `.help` in discord to see all commands of the soundboard bot! ;)                  
 ---
 
 ## Web Interface
