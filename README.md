@@ -64,10 +64,10 @@ Now, you have **2 options** for self-hosting yuri:
 ### 1 - Using the supplied Docker image
 
 Go ahead to [**Releases**](https://github.com/zekroTJA/yuri/releases) and download the latest Docker image of yuri.  
-This image contains:
-    - an image of node.js LTS (8.12.0) on Debian Jessie
-    - the source code of yuri
-    - a FFMPEG installation
+This image contains:  
+    - an image of node.js LTS (8.12.0) on Debian Jessie  
+    - the source code of yuri  
+    - a FFMPEG installation  
 
 Then, load the image to docker with
 ```
