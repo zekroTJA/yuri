@@ -58,8 +58,8 @@ First of all, you need to create a Discord API Bot Application [**here**](http:/
 
 Now, you have **2 options** for self-hosting yuri:
 
-1. With the supplied Docker image
-2. With manual node.js setup configuration *(way more complex)*
+1. [With the supplied Docker image](#1---using-the-supplied-docker-image)
+2. [With manual node.js setup configuration](#2---manual-configuration-of-your-nodejs-setup) *(way more complex)*
 
 ### 1 - Using the supplied Docker image
 
@@ -109,7 +109,7 @@ To stop the container, just use the stop command with the container ID of this o
 $ sudo docker stop 1bdf62abc781
 ```
 
-### Manual configuration of your node.js setup
+### 2 - Manual configuration of your node.js setup
 
 > Why you need to do all this stuff: Simply, the sound library of yuri has some problems with later versions of node.js then 9.4.0. So, you need to install all dependencies on this version and run the bot with it.
 
