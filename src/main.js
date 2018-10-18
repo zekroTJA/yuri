@@ -1,6 +1,8 @@
 const Discord = require('discord.js')
 const colors = require('colors')
 const fs = require('fs')
+const Sqlite = require('sqlite3')
+
 const Logger = require('./util/logger')
 const { CrashCollector } = require('./util/crashCollector')
 const { Settings } = require('./core/settings')
@@ -71,14 +73,18 @@ else {
     process.exit()
 }
 
-var settings = new Settings()
+var database = new Sqlite.Database('./expose/DB.sqlite3')
+Logger.info('Database hooked up')
+
+var settings = new Settings(database)
 
 // Exporting client and config for other modules
 Object.assign(module.exports, {
     client,
     config,
     reloadConfig,
-    settings
+    settings,
+    database
 })
 
 // Registering events
@@ -105,6 +111,7 @@ function exitHandler(exit, err) {
 
     const { soundStats } = require('./core/player')
     settings.save()
+    database.close()
 
     if (config.writestats)
         fs.writeFileSync('./expose/SOUNDSTATS.json', JSON.stringify(soundStats, 0, 2))

@@ -6,35 +6,69 @@ const FILE_NAME = 'SETTINGS.json'
 
 class Settings {
 
-    constructor() {
+    constructor(database) {
+        this.db = database
+        this.db.run('CREATE TABLE IF NOT EXISTS settings_guilds (id VARCHAR PRIMARY KEY, data VARCHAR);')
+        this.db.run('CREATE TABLE IF NOT EXISTS settings_users (id VARCHAR PRIMARY KEY, data VARCHAR);')
+
         this.settings = {
             guilds: {},
             users: {}
         }
+
         this.load()
     }
 
     load() {
-        if (fs.existsSync(FILE_NAME)) {
+        this.db.each('SELECT * FROM settings_guilds;', (err, row) => {
+            if (err) {
+                Logger.error('Failed loading from database: ' + err)
+                return this
+            }
             try {
-                this.settings = JSON.parse(fs.readFileSync(FILE_NAME, 'utf8'))
-                Logger.info('Settings loaded successfully')
+                let data = JSON.parse(row.data)
+                this.settings.guilds[row.id] = data
+            } catch (e) {
+                Logger.error(`Could not parse data for guild "${row.id}": ${e}`)
             }
-            catch (err) {
-                Logger.error('Failed loading settings:\n' + err)
+        })
+        this.db.each('SELECT * FROM settings_users;', (err, row) => {
+            if (err) {
+                Logger.error('Failed loading from database: ' + err)
+                return this
             }
-        }
+            try {
+                let data = JSON.parse(row.data)
+                this.settings.users[row.id] = data
+            } catch (e) {
+                Logger.error(`Could not parse data for user "${row.id}": ${e}`)
+            }
+        })
         return this
     }
 
     save() {
-        try {
-            fs.writeFileSync(FILE_NAME, JSON.stringify(this.settings, 0, 2))
-            Logger.info('Saved settings successfully')
-        }
-        catch (err) {
-            Logger.error('Failed saving settings to file')
-        }
+        // let statement = this.db.prepare('INSERT OR IGNORE INTO settings_guilds VALUES (?, ?);' + 
+        //                            'UPDATE settings_guilds SET data = ? WHERE id = ?;', null, console.log)
+        // Object.keys(this.settings.guilds).forEach((id) => {
+        //     statement.run([id, this.settings.guilds[id], this.settings.guilds[id], id], console.log)
+        // })
+        // statement.finalize()
+
+        // statement = this.db.prepare('INSERT OR IGNORE INTO settings_users VALUES (?, ?);' + 
+        //                            'UPDATE settings_users SET data = ? WHERE id = ?;')
+        Object.keys(this.settings.users).forEach((id) => {
+            console.log(id)
+            this.db.run('INSERT INTO settings_users VALUES (?, ?);', [id, this.settings.users[id]], console.log)
+        })
+        // statement.finalize()
+        // try {
+        //     fs.writeFileSync(FILE_NAME, JSON.stringify(this.settings, 0, 2))
+        //     Logger.info('Saved settings successfully')
+        // }
+        // catch (err) {
+        //     Logger.error('Failed saving settings to file')
+        // }
         return this
     }
 

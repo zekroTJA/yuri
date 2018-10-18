@@ -6,8 +6,8 @@ const { getTime } = require('../util/timeFormat')
 var players = {}
 var guildLog = {}
 var soundStats = (() => {
-    if (fs.existsSync('SOUNDSTATS.json'))
-        return require('../../SOUNDSTATS.json')
+    if (fs.existsSync('./expose/SOUNDSTATS.json'))
+        return require('../../expose/SOUNDSTATS.json')
     else
         return {}
 })()
