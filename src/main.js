@@ -52,6 +52,17 @@ if (DEBUG_MODE) {
 }
 else if (fs.existsSync('./expose/config.json')) {
     var config = require('../expose/config.json')
+    let missingKeys = []
+    Object.keys(DEF_CONF).forEach((key) => {
+        if (!config[key])
+            missingKeys.push(key)
+    })
+    if (missingKeys.length > 0) {
+        Logger.error('Some keys are missing in your config:\n' + 
+                      missingKeys.map(k => `"${k}"`).join(', ') +
+                      '\nPlease rename your config and re-create a fresh one to correct this issue!')
+        return
+    }
     Logger.info('Config loaded')
 }
 else {
