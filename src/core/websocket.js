@@ -9,11 +9,13 @@ const express = require('express')
 const hbs = require('express-handlebars')
 const socketio = require('socket.io')
 const http = require('http')
+const request = require('request')
+const querystring = require('querystring')
 
 
 const WEBINTERFACE_VERSION = '1.9.0'
-
 const SESSION_TIMEOUT = 1800 * 1000
+const EXPOSE_PORT = 1337
 
 const STATUS = {
     ERROR: 'ERROR',
@@ -110,49 +112,45 @@ class Websocket {
 
         // WEBINTERFACE
         this.app.get('/', (req, res) => {
+            var authRedirect = () => res.redirect(`https://discordapp.com/api/oauth2/authorize?client_id=${Main.config.client.id}&redirect_uri=${encodeURIComponent(Main.config.serveraddr + ':' + EXPOSE_PORT + '/authorize')}&response_type=code&scope=identify`)
             var user = req.query.user ? req.query.user : this.ipregister[req.connection.remoteAddress]
-            var token = req.query.token
-            var sortbydate = (req.query.sortbydate == 1)
-
+            if (!user) {
+                authRedirect()
+                return
+            }
             var session = this.sessions[user]
-
-            if (!session) {
-                res.render('login', { user, token })
-                return
+            var sortbydate = (req.query.sortbydate == 1)
+            if (session && session.vc) {
+                var fileList = Player.getFilelist(sortbydate)
+                    .map(f => f.split('.')[0])
+        
+                res.render('index', {
+                    fileList,
+                    user,
+                    usertag: session.user.tag,
+                    voicechannel: {
+                        id: session.vc.id,
+                        name: session.vc.name
+                    },
+                    guild: {
+                        id: session.guild.id,
+                        name: session.guild.name
+                    },
+                    sortbydate,
+                    token: session.token,
+                    inchannel: (session.guild.me.voiceChannel != null),
+                    WEBINTERFACE_VERSION
+                })
+            } else {
+                authRedirect()    
             }
-
-            if (!session.vc) {
-                this.sessions[user] = null
-                res.render('login', { user, token })
-                return
-            }
-
-            var fileList = Player.getFilelist(sortbydate)
-                .map(f => f.split('.')[0])
-
-            res.render('index', {
-                fileList,
-                user,
-                usertag: session.user.tag,
-                voicechannel: {
-                    id: session.vc.id,
-                    name: session.vc.name
-                },
-                guild: {
-                    id: session.guild.id,
-                    name: session.guild.name
-                },
-                sortbydate,
-                token: session.token,
-                inchannel: (session.guild.me.voiceChannel != null),
-                WEBINTERFACE_VERSION
-            })
         })
 
         // WEBINTERFACE LOGIN
         this.app.get('/wilogin', (req, res) => {
             var token = req.query.token
             var user = req.query.user
+            var passedByToken = req.query.passedByToken
 
             if (!user || !token || user == "" || token == "") {
                 res.render('error', {
@@ -163,6 +161,13 @@ class Websocket {
             }
 
             if (!this._checkToken(token)) {
+                if (passedByToken == '1') {
+                    res.render('resetTokenCookie', {
+                        code: ERRCODE.INVALID_TOKEN,
+                        reason: 'Invalid token.'
+                    })
+                    return
+                }
                 res.render('error', {
                     code: ERRCODE.INVALID_TOKEN,
                     reason: 'Invalid token.'
@@ -434,7 +439,73 @@ class Websocket {
             
         })
 
-        this.server.listen(6612, () => {
+        this.app.get('/authorize', (req, res) => {
+            let code = req.query.code;
+            let resetToken = req.query.resetToken
+
+            if (resetToken) {
+                let user = req.query.user
+                res.render('login', { user, resetToken })
+            }
+            
+            let data = {
+                'client_id': Main.config.client.id,
+                'client_secret': Main.config.client.secret,
+                'grant_type': 'authorization_code',
+                'code': code,
+                'redirect_uri': Main.config.serveraddr + ':' + EXPOSE_PORT + '/authorize',
+                'scope': 'identify'
+            }
+
+            request({
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                uri: 'https://discordapp.com/api/oauth2/token',
+                body: querystring.stringify(data),
+                method: 'POST'
+            }, (err, _, body) => {
+                let bobj = JSON.parse(body)
+                if (err || bobj.error) {
+                    console.log(bobj)
+                    this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_LOGIN)
+                    return
+                }
+                request({
+                    headers: {
+                        'Authorization': 'Bearer ' + bobj.access_token
+                    },
+                    uri: 'https://discordapp.com/api/users/@me',
+                    method: 'GET'
+                }, (err, _, body) => {
+                    let bobj = JSON.parse(body)
+                    if (err || bobj.error) {
+                        this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_LOGIN)
+                        return
+                    }
+                    let user = bobj.id
+
+                    var sortbydate = (req.query.sortbydate == 1)
+
+                    var session = this.sessions[user]
+
+                    if (!session) {
+                        res.render('login', { user })
+                        return
+                    }
+                
+                    if (!session.vc) {
+                        this.sessions[user] = null
+                        res.render('login', { user })
+                        return
+                    }
+
+                    res.redirect('/?user=' + user)
+                })
+            })
+        })
+
+        this.server.listen(EXPOSE_PORT, () => {
             Logger.info('WS API set up at port ' + this.server.address().port)
         })
 
