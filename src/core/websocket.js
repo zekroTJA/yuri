@@ -13,9 +13,9 @@ const request = require('request')
 const querystring = require('querystring')
 
 
-const WEBINTERFACE_VERSION = '1.9.0'
+const WEBINTERFACE_VERSION = '1.10.0'
 const SESSION_TIMEOUT = 1800 * 1000
-const EXPOSE_PORT = 1337
+const EXPOSE_PORT = 6612
 
 const STATUS = {
     ERROR: 'ERROR',
