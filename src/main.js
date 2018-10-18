@@ -37,7 +37,7 @@ const DEF_CONF = {
         id: "id of the CLIENT (in 'General Information')",
         secret: "secret of the CLIENT (also in 'General Information')"
     },
-    serveraddr: "address of your server, i.e. http://zekro.de",
+    serveraddr: "address of your server, i.e. http://zekro.de:6612",
     prefix: ".",
     wstoken: "exampletokenactuallythisneedstobemorecomplexandthisisjustfortravis",
     files: ["mp3", "mp4", "wav", "ogg"],

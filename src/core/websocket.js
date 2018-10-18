@@ -112,7 +112,7 @@ class Websocket {
 
         // WEBINTERFACE
         this.app.get('/', (req, res) => {
-            var authRedirect = () => res.redirect(`https://discordapp.com/api/oauth2/authorize?client_id=${Main.config.client.id}&redirect_uri=${encodeURIComponent(Main.config.serveraddr + ':' + EXPOSE_PORT + '/authorize')}&response_type=code&scope=identify`)
+            var authRedirect = () => res.redirect(`https://discordapp.com/api/oauth2/authorize?client_id=${Main.config.client.id}&redirect_uri=${encodeURIComponent(Main.config.serveraddr + '/authorize')}&response_type=code&scope=identify`)
             var user = req.query.user ? req.query.user : this.ipregister[req.connection.remoteAddress]
             if (!user) {
                 authRedirect()
@@ -453,7 +453,7 @@ class Websocket {
                 'client_secret': Main.config.client.secret,
                 'grant_type': 'authorization_code',
                 'code': code,
-                'redirect_uri': Main.config.serveraddr + ':' + EXPOSE_PORT + '/authorize',
+                'redirect_uri': Main.config.serveraddr + '/authorize',
                 'scope': 'identify'
             }
 
