@@ -454,7 +454,7 @@ class Websocket {
                 socket.join(session.guild.id)
                 session.socket = socket
                 let guildsessions = Object.keys(this.sessions)
-                    .filter(k => this.sessions[k].guild && this.sessions[k].guild.id == session.guild.id && this.sessions[k].socket)
+                    .filter(k => this.sessions[k] && this.sessions[k].guild && this.sessions[k].guild.id == session.guild.id && this.sessions[k].socket)
                     .map(k => this.sessions[k].member.user)
                 let alreadyConnected = []
                 guildsessions.forEach(u => alreadyConnected.push({ id: u.id, tag: u.tag, avatarURL: u.avatarURL }))
