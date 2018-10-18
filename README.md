@@ -186,6 +186,12 @@ After login, you can play sounds by clicking the tiles, search for sounds or man
 
 ---
 
+## To Do
+
+[**Here**](https://github.com/zekroTJA/yuri/projects/1) you can find current tasks to do and ideas to implement.
+
+---
+
 ## Used 3rd party dependencies
 
 - [body-parser](https://www.npmjs.com/package/body-parser)
@@ -195,3 +201,8 @@ After login, you can play sounds by clicking the tiles, search for sounds or man
 - [express-handlebars](https://www.npmjs.com/package/express-handlebars)
 - [node-opus](https://www.npmjs.com/package/node-opus)
 - [socket.io](https://www.npmjs.com/package/socket.io)
+
+---
+
+© 2018 zekro Development (Ringo Hoffmann)  
+[zekro.de](https://zekro.de) | contact[at]zekro.de
