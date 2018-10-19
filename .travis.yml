@@ -29,8 +29,6 @@ matrix:
           secure: k0rKJOKVMUQi+2VMeXWB33xPLK5BTsmUAMFRBST6nLDrVG1Tzu8oQBocA/qAMASUl6QP4KphflTY0Y4qA1z4YC8ynrpKk72aZj1ONf0GU3OitLRRCL5Ng5b6UtBcy/8gk7PzyS/pQXpPQV+dKp5i3HmteHI6caxbrP0I28AHdnX5iS1gOfBrzB7RCRJWXpN2cfkMUvG1/Qv13Z4ZrzJENqzpwEtJhJnmjo6e1TmDs4T5Vk+MBeeBTvYfJDHr/TRuf9mxlnLNtn0b9LqAcy0p/hoT0zQOR+hh8i2TsF/zFnvPkBXxaiN1xTxouTBXKcKQtVQiPdO4aktVHl/+K150V400a4vTnJAAmRE/eu8VoBtuHw0g9KMCI2ZK5oTFEcCYhEEqjEti9hefVqzNSpDWdyXFZf5gV2q0CBt4ZaytSkwVzZF+0GVNiTcZgoE50347BsgvIPA+KE4mVyIxKJsc836vPOt4R+qem3qjomJVvuV4VFhL1CBJBySShUnxFYSaUsQAzGUjp4vipaEEWldIr3gcdOcHdFcLlrw7y9+4s5bRiQ9zI4FvFQ9Ru+D7914fWxvoCnkQX0IDY1gkiIxD9SqXWoeyTLfZWNxqWKifIXU0m2RbbV0vrHT6J1ah2I25I0Qw2klC0MloRQ5iQfPEdRll17Po7vzqxNiOQDc4hxE=
         file: yuri.dockerimage.tar
         on:
-          all_branches: true
-          repo: zekroTJA/yuri
           tag: true
 
     # build WebAPIClient
