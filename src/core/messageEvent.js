@@ -1,3 +1,4 @@
+const Main = require('../main')
 const Logger = require('../util/logger')
 const BindingHandler = require('./bindingsHandler')
 const fs = require('fs')
@@ -6,6 +7,7 @@ const { players, Player, guildLog, soundStats } = require('./player')
 const { info, error } = require('../util/msgs')
 const { listMsgs, SoundsList } = require('../util/soundsList')
 const { RichEmbed } = require('discord.js')
+const { createTable } = require('../util/stringTable')
 
 
 client.on('message', (msg) => {
@@ -165,6 +167,7 @@ client.on('message', (msg) => {
                 return
             }
             settings.set_guild(guild.id, { volume: (_vol / 100) })
+            settings.save()
             info(chan, `Set guilds player volume to \`${_vol} %\`.`)
             break;
 
@@ -197,23 +200,35 @@ client.on('message', (msg) => {
         case 'top':
             if (!config.writestats)
                 error(chan, 'Sound stats are disabled by config.')
-            else if (soundStats == {})
-                info(chan, '*Stats are currently empty*', 'TOP 20 SOUNDS')
             else {
-                info(
-                    chan, 
-                    `**Total: \`${(() => {
-                        let total = 0
-                        Object.keys(soundStats).forEach(k => total += soundStats[k])
-                        return total
-                    })()}\`**\n\n` + 
-                    Object.keys(soundStats)
-                        .sort((a, b) => soundStats[b] - soundStats[a])
-                        .slice(0, 20)
-                        .map((k, i) => `**${i + 1}** - **\`[${soundStats[k]}]\`** - ${k}`)
-                        .join('\n'),
-                    'TOP 20 SOUNDS'
-                )
+                Main.database.all('SELECT * FROM soundstats ORDER BY count DESC LIMIT 20;', [], (err, rows) => {
+                    if (err) {
+                        Logger.error(err)
+                        error(chan, 'An error occured reading from database.')
+                        return
+                    }
+                    let table = [
+                        ['#', '--'],
+                        ['SOUND', '-----'],
+                        ['COUNT', '-----']
+                    ]
+                    let count = 1
+                    let total = 0
+                    rows.forEach((row) => {
+                        table[0].push((count++).toString())
+                        table[1].push(row.name)
+                        table[2].push(row.count)
+                        total += row.count
+                    })
+                    let tstring = createTable(table, 2)
+                    chan.send(
+                        '**__TOP 20 SOUNDS__**\n\n' +
+                        `**Total: \`${total}\`**\n` + 
+                        '```\n' +
+                        tstring +
+                        '\n```'
+                    )
+                })
             }
             break;
 

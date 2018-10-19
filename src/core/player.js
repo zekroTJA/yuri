@@ -5,12 +5,6 @@ const { getTime } = require('../util/timeFormat')
 
 var players = {}
 var guildLog = {}
-var soundStats = (() => {
-    if (fs.existsSync('SOUNDSTATS.json'))
-        return require('../../SOUNDSTATS.json')
-    else
-        return {}
-})()
 
 
 class Player {
@@ -93,8 +87,11 @@ class Player {
                 if (Main.config.writestats) {
                     if (soundfile.indexOf('.') > -1)
                         soundfile = soundfile.substring(0, soundfile.indexOf('.'))
-                    let stat = soundStats[soundfile]
-                    soundStats[soundfile] = stat ? stat += 1 : 1
+                    Main.database.run('INSERT OR IGNORE INTO soundstats (name, count) VALUES (?, 0);', [soundfile], (err) => {
+                        if (!err) {
+                            Main.database.run('UPDATE soundstats SET count = count + 1 WHERE name = ?', soundfile)
+                        }
+                    })
                 }
 
                 resolve(this)
@@ -137,6 +134,5 @@ class Player {
 module.exports = {
     players,
     guildLog,
-    soundStats,
     Player
 }

@@ -28,15 +28,43 @@
 
 <h1 class="center" style="padding-top: 100px">LOGIN</h1>
 
-<form action="wilogin" method="get" class="center" style="margin-top: 50px">
+<form id="formlogin" action="wilogin" method="get" class="center" style="margin-top: 50px">
 
     <p class="center">TOKEN</p>
-    <input type="password" class="textbox" name="token" value="{{ token }}">
-
-    <p class="center" style="margin-top: 50px">USER ID</p>
-    <input type="text" class="textbox" name="user" value="{{ user }}">
-
+    <input id="tbtoken" type="password" class="textbox" name="token" value="{{ token }}">
+    <input type="hidden" name="user" value="{{ user }}">
+    <input id="passedByToken" type="hidden" name="passedByToken" value="0">
     <br>
-    <input type="submit" value="LOGIN" class="button" style="margin-top: 50px">
+    <br>
+    <p><input type="checkbox" id="cbsaveCookie"> Remember Token</p>
+
+    <input onclick="saveToken()" type="submit" value="LOGIN" class="button" style="margin-top: 50px">
 
 </form>
+
+<script>
+    var cookies = decodeURIComponent(document.cookie);
+    var cbsavetoken = document.getElementById('cbsaveCookie');
+    var tbtoken = document.getElementById('tbtoken');
+    var formlogin = document.getElementById('formlogin');
+    var passedByToken = document.getElementById('passedByToken');
+
+    if (cookies.includes('logintoken')) {
+        let csplit = cookies.split(';');
+        csplit.forEach(c => {
+            c = c.trim();
+            let s = c.split('=');
+            if (s[0] === 'logintoken') {
+                tbtoken.value = s[1];
+                passedByToken.value = '1';
+                formlogin.submit();
+            }
+        });
+    }
+
+    function saveToken() {
+        if (cbsavetoken.checked) {
+            document.cookie = `logintoken=${tbtoken.value};`;
+        }
+    }
+</script>

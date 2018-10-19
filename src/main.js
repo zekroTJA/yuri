@@ -1,6 +1,8 @@
 const Discord = require('discord.js')
 const colors = require('colors')
 const fs = require('fs')
+const Sqlite = require('sqlite3')
+
 const Logger = require('./util/logger')
 const { CrashCollector } = require('./util/crashCollector')
 const { Settings } = require('./core/settings')
@@ -32,7 +34,12 @@ function reloadConfig() {
 
 // Load or generate config
 const DEF_CONF = {
-    token: "",
+    token: "bot Token",
+    client: {
+        id: "id of the CLIENT (in 'General Information')",
+        secret: "secret of the CLIENT (also in 'General Information')"
+    },
+    serveraddr: "address of your server, i.e. http://zekro.de:6612",
     prefix: ".",
     wstoken: "exampletokenactuallythisneedstobemorecomplexandthisisjustfortravis",
     files: ["mp3", "mp4", "wav", "ogg"],
@@ -47,6 +54,17 @@ if (DEBUG_MODE) {
 }
 else if (fs.existsSync('./expose/config.json')) {
     var config = require('../expose/config.json')
+    let missingKeys = []
+    Object.keys(DEF_CONF).forEach((key) => {
+        if (!config[key])
+            missingKeys.push(key)
+    })
+    if (missingKeys.length > 0) {
+        Logger.error('Some keys are missing in your config:\n' + 
+                      missingKeys.map(k => `"${k}"`).join(', ') +
+                      '\nPlease rename your config and re-create a fresh one to correct this issue!')
+        return
+    }
     Logger.info('Config loaded')
 }
 else {
@@ -55,14 +73,19 @@ else {
     process.exit()
 }
 
-var settings = new Settings()
+var database = new Sqlite.Database('./expose/DB.sqlite3')
+database.run('CREATE TABLE IF NOT EXISTS soundstats (name VARCHAR PRIMARY KEY, count BIGINT);')
+Logger.info('Database hooked up')
+
+var settings = new Settings(database)
 
 // Exporting client and config for other modules
 Object.assign(module.exports, {
     client,
     config,
     reloadConfig,
-    settings
+    settings,
+    database
 })
 
 // Registering events
@@ -89,9 +112,10 @@ function exitHandler(exit, err) {
 
     const { soundStats } = require('./core/player')
     settings.save()
+    database.close()
 
-    if (config.writestats)
-        fs.writeFileSync('./expose/SOUNDSTATS.json', JSON.stringify(soundStats, 0, 2))
+    // if (config.writestats)
+    //     fs.writeFileSync('./expose/SOUNDSTATS.json', JSON.stringify(soundStats, 0, 2))
 
     if (exit)
         process.exit()
