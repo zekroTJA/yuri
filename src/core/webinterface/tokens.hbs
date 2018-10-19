@@ -1,0 +1,69 @@
+<div>
+
+    <p><code id="lbtoken">*********************</code></p>
+    <a class="button" style="padding: 2px 5px;" href="javascript:{}" id="ashowtoken">Show Token</a>
+    <br>
+    <br>
+    <a class="button" style="padding: 2px 5px;" href="javascript:{}" id="acopytoken">Copy Token to Clipboard</a>
+    <br>
+    <br>
+    <a class="button" style="padding: 2px 5px;" href="javascript:{}" id="aresettoken">Reset Token</a>
+
+</div>
+
+<script>
+    function setClipboardText(text){
+        var id = 'mycustom-clipboard-textarea-hidden-id';
+        var existsTextarea = document.getElementById(id);
+        if (!existsTextarea){
+            var textarea = document.createElement('textarea');
+            textarea.id = id;
+            textarea.style.position = 'fixed';
+            textarea.style.top = 0;
+            textarea.style.left = 0;
+            textarea.style.width = '1px';
+            textarea.style.height = '1px';
+            textarea.style.padding = 0;
+            textarea.style.border = 'none';
+            textarea.style.outline = 'none';
+            textarea.style.boxShadow = 'none';
+        
+            textarea.style.background = 'transparent';
+            document.querySelector('body').appendChild(textarea);
+            existsTextarea = document.getElementById(id);
+        }
+    
+        existsTextarea.value = text;
+        existsTextarea.select();
+    
+        try {
+            var status = document.execCommand('copy');
+            if (!status){
+                window.alert('Could not copy token to clipboard.');
+            } else {
+                window.alert('Token copied to clipboard.');
+            }
+        } catch (err) {
+            window.alert('Could not copy token to clipboard.');
+        }
+    }
+
+    var apitoken = '{{apitoken}}';
+
+    var lbtoken = document.getElementById('lbtoken');
+    var ashowtoken = document.getElementById('ashowtoken');
+    var acopytoken = document.getElementById('acopytoken');
+    var aresettoken = document.getElementById('aresettoken');
+
+    ashowtoken.onclick = () => {
+        if (lbtoken.innerText == apitoken) {
+            ashowtoken.innerText = 'Show Token';
+            lbtoken.innerText = '*********************';
+        } else {
+            ashowtoken.innerText = 'Hide Token';
+            lbtoken.innerText = apitoken;
+        }
+    }
+
+    
+</script>

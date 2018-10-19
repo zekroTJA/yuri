@@ -75,6 +75,7 @@ else {
 
 var database = new Sqlite.Database('./expose/DB.sqlite3')
 database.run('CREATE TABLE IF NOT EXISTS soundstats (name VARCHAR PRIMARY KEY, count BIGINT);')
+database.run('CREATE TABLE IF NOT EXISTS apitoken (uid VARCHAR PRIMARY KEY, token VARCHAR, expire BIGINT)')
 Logger.info('Database hooked up')
 
 var settings = new Settings(database)
