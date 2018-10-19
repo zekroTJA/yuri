@@ -80,6 +80,7 @@ function setBinding(chan, member, binding) {
     if (binding.toLowerCase() == 'reset') {
         // bindings[member.id] = null
         settings.set_user(member.id, { binding: null })
+        settings.save()
         info(chan, 'Unbound fast key.')
             .then(m => m.delete(3500))
         return
@@ -87,6 +88,7 @@ function setBinding(chan, member, binding) {
     if (binding.toLowerCase() == 'r') {
         // bindings[member.id] = 'r'
         settings.set_user(member.id, { binding: 'r' })
+        settings.save()
         info(chan, 'Random sounds are now bound to fast key.')
             .then(m => m.delete(3500))
         return
@@ -99,6 +101,7 @@ function setBinding(chan, member, binding) {
     else {
         // bindings[member.id] = file
         settings.set_user(member.id, { binding: file })
+        settings.save()
         info(chan, `\`${file.split('.')[0]}\` is now bound to fast key.`)
             .then(m => m.delete(3500))
     }

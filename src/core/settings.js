@@ -48,27 +48,19 @@ class Settings {
     }
 
     save() {
-        // let statement = this.db.prepare('INSERT OR IGNORE INTO settings_guilds VALUES (?, ?);' + 
-        //                            'UPDATE settings_guilds SET data = ? WHERE id = ?;', null, console.log)
-        // Object.keys(this.settings.guilds).forEach((id) => {
-        //     statement.run([id, this.settings.guilds[id], this.settings.guilds[id], id], console.log)
-        // })
-        // statement.finalize()
 
-        // statement = this.db.prepare('INSERT OR IGNORE INTO settings_users VALUES (?, ?);' + 
-        //                            'UPDATE settings_users SET data = ? WHERE id = ?;')
-        Object.keys(this.settings.users).forEach((id) => {
-            console.log(id)
-            this.db.run('INSERT INTO settings_users VALUES (?, ?);', [id, this.settings.users[id]], console.log)
+        Object.keys(this.settings.guilds).forEach((id) => {
+            let sdata = JSON.stringify(this.settings.guilds[id])
+            this.db.run('INSERT OR IGNORE INTO settings_guilds (id, data) VALUES (?, ?);', id, sdata)
+            this.db.run('UPDATE settings_guilds SET data = ? WHERE id = ?;', sdata, id)
         })
-        // statement.finalize()
-        // try {
-        //     fs.writeFileSync(FILE_NAME, JSON.stringify(this.settings, 0, 2))
-        //     Logger.info('Saved settings successfully')
-        // }
-        // catch (err) {
-        //     Logger.error('Failed saving settings to file')
-        // }
+
+        Object.keys(this.settings.users).forEach((id) => {
+            let sdata = JSON.stringify(this.settings.users[id])
+            this.db.run('INSERT OR IGNORE INTO settings_users (id, data) VALUES (?, ?);', id, sdata)
+            this.db.run('UPDATE settings_users SET data = ? WHERE id = ?;', sdata, id)
+        })
+        
         return this
     }
 
