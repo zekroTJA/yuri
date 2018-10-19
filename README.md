@@ -53,7 +53,7 @@ Dev    | <a href="https://travis-ci.org/zekroTJA/yuri/branches" ><img src="https
 
 ## Setup
 
-First of all, you need to create a Discord API Bot Application [**here**](http://discordapp.com/developers/applications/me).
+First of all, you need to create a Discord API Bot Application [**here**](http://discordapp.com/developers/applications/me). Also, you need to create an OAuth2 Apllication with it by clicking on *"OAuth2"* and add a redirect to `yourserveraddress/authorize`
 
 
 Now, you have **2 options** for self-hosting yuri:
