@@ -53,7 +53,7 @@ Dev    | <a href="https://travis-ci.org/zekroTJA/yuri/branches" ><img src="https
 
 ## Setup
 
-First of all, you need to create a Discord API Bot Application [**here**](http://discordapp.com/developers/applications/me). Also, you need to create an OAuth2 Apllication with it by clicking on *"OAuth2"* and add a redirect to `yourserveraddress/authorize`
+First of all, you need to create a Discord API Bot Application [**here**](http://discordapp.com/developers/applications/me). Also, you need to create an OAuth2 application with it by clicking on *"OAuth2"* and add a redirect to `<serveraddress>/authorize` (i.e. `http://zekro.de:6612/authorize`). It is verry important that the `<serveraddress>` is exactly the same as configured in the `config.json`!
 
 
 Now, you have **2 options** for self-hosting yuri:
@@ -201,6 +201,8 @@ After login, you can play sounds by clicking the tiles, search for sounds or man
 - [express-handlebars](https://www.npmjs.com/package/express-handlebars)
 - [node-opus](https://www.npmjs.com/package/node-opus)
 - [socket.io](https://www.npmjs.com/package/socket.io)
+- [request](https://www.npmjs.com/package/request)
+- [sqlite3](https://www.npmjs.com/package/sqlite3)
 
 ---
 
