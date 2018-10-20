@@ -1,0 +1,88 @@
+<div style="margin: 30px 20px;">
+
+    <h1>YOUR API TOKEN</h1>
+    <p><code id="tb_token">
+        {{#if generated}}
+            ***********************
+        {{else}}
+            No API token generated yet
+        {{/if}}
+    </code></p>
+    
+    <form action="/witokenrefresh" style="margin: 15px 0px;">
+        <input type="hidden" name="token" value="{{token}}">
+        <input type="hidden" name="user" value="{{user}}">
+        <button type="submit" class="button" style="font-size: 12px; width: 250px;">
+            {{#if generated}}
+                REFRESH TOKEN
+            {{else}}
+                CREATE TOKEN
+            {{/if}}
+        </button>
+    </form>
+    <button id="btn_showhide" class="button" style="font-size: 12px; width: 250px;">
+        SHOW TOKEN
+    </button>
+    <br>
+    <button id="btn_copy" class="button" style="font-size: 12px; width: 250px;">
+        COPY TOKEN TO CLIPBOARD
+    </button>
+
+</div>
+
+<script>
+    function setClipboardText(text){
+        var id = 'mycustom-clipboard-textarea-hidden-id';
+        var existsTextarea = document.getElementById(id);
+        if (!existsTextarea){
+            var textarea = document.createElement('textarea');
+            textarea.id = id;
+            textarea.style.position = 'fixed';
+            textarea.style.top = 0;
+            textarea.style.left = 0;
+            textarea.style.width = '1px';
+            textarea.style.height = '1px';
+            textarea.style.padding = 0;
+            textarea.style.border = 'none';
+            textarea.style.outline = 'none';
+            textarea.style.boxShadow = 'none';
+        
+            textarea.style.background = 'transparent';
+            document.querySelector('body').appendChild(textarea);
+            existsTextarea = document.getElementById(id);
+        }
+    
+        existsTextarea.value = text;
+        existsTextarea.select();
+    
+        try {
+            var status = document.execCommand('copy');
+            if (!status){
+                window.alert('Could not copy token to clipboard.');
+            } else {
+                window.alert('Token copied to clipboard.');
+            }
+        } catch (err) {
+            window.alert('Could not copy token to clipboard.');
+        }
+    }
+
+    var apitoken = '{{ apitoken }}';
+    var tb_token = document.getElementById('tb_token');
+    var btn_showhide = document.getElementById('btn_showhide');
+    var btn_copy = document.getElementById('btn_copy');
+
+    btn_showhide.onclick = () => {
+        if (tb_token.innerText.trim() == apitoken) {
+            tb_token.innerText = '***********************';
+            btn_showhide.innerText = 'SHOW TOKEN';
+        } else {
+            tb_token.innerText = apitoken;
+            btn_showhide.innerText = 'HIDE TOKEN';
+        }
+    }
+
+    btn_copy.onclick = () => {
+        setClipboardText(apitoken);
+    }
+</script>

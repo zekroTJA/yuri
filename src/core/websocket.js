@@ -5,6 +5,7 @@ const { info, error } = require('../util/msgs')
 const path = require('path')
 const EventEmitter = require('events');
 const DicordOAuth = require('../util/discordOAuth')
+const { randomString } = require('../util/random')
 
 const express = require('express')
 const hbs = require('express-handlebars')
@@ -32,7 +33,8 @@ const ERRCODE = {
     INVALID_LOGIN:         5,
     SESSION_NOT_LOGGED_IN: 6,
     NO_VC:                 7,
-    LOGIN_TIMED_OUT:       8
+    LOGIN_TIMED_OUT:       8,
+    INTERNAL_ERROR:        9
 }
 
 class Session {
@@ -313,14 +315,17 @@ class Websocket {
             var user = req.query.user
 
             if (!this.sessions[user].checkCode(req.query.token)) {
-                res.send("")
+                res.render('error', {
+                    code: ERRCODE.INVALID_LOGIN,
+                    reason: 'Invalid login.'
+                })
                 return
             }
 
             var log = guildLog[guild]
             if (log == null) {
                 res.render('error', {
-                    code: 7,
+                    code: ERRCODE.NO_VC,
                     reason: 'Guild not found in players log list.'
                 })
                 return
@@ -349,12 +354,117 @@ class Websocket {
             })
         })
 
+        this.app.get('/wimanagetoken', (req, res) => {
+            var user = req.query.user
+            var token = req.query.token
+
+            if (!this.sessions[user].checkCode(token)) {
+                res.render('error', {
+                    code: ERRCODE.INVALID_LOGIN,
+                    reason: 'Invalid login.'
+                })
+                return
+            }
+
+            var session = this.sessions[user]
+            if (!session) {
+                res.render('error', {
+                    code: ERRCODE.INVALID_LOGIN,
+                    reason: 'Invalid session.'
+                })
+                return
+            }
+
+            session.timer.refresh()
+
+            Main.database.all('SELECT * FROM apitokens WHERE uid = ?', [user], (err, rows) => {
+                if (err) {
+                    res.render('error', {
+                        code: ERRCODE.INTERNAL_ERROR,
+                        reason: 'Internal error: ' + err
+                    })
+                    return
+                }
+                if (rows.length < 1) {
+                    res.render('tokenManager', {
+                        token: token,
+                        user: user,
+                        generated: false
+                    })
+                } else {
+                    res.render('tokenManager', {
+                        token: token,
+                        user: user,
+                        generated: true,
+                        apitoken: rows[0].token,
+                        createdat: rows[0].createdAt
+                    })
+                }
+            })
+
+            
+        })
+
+        this.app.get('/witokenrefresh', (req, res) => {
+            var user = req.query.user
+            var token = req.query.token
+
+            if (!this.sessions[user].checkCode(token)) {
+                res.render('error', {
+                    code: ERRCODE.INVALID_LOGIN,
+                    reason: 'Invalid login.'
+                })
+                return
+            }
+
+            var session = this.sessions[user]
+            if (!session) {
+                res.render('error', {
+                    code: ERRCODE.INVALID_LOGIN,
+                    reason: 'Invalid session.'
+                })
+                return
+            }
+
+            let apitoken = sha256(this.token) + '.' + randomString(32)
+
+            Main.database.run(
+                'INSERT OR IGNORE INTO apitokens (uid, token, createdAt) VALUES (?, ?, ?);',
+                [user, apitoken, Date.now().toString()], 
+                (err) => {
+                    if (err) {
+                        res.render('error', {
+                            code: ERRCODE.INTERNAL_ERROR,
+                            reason: 'Internal error: ' + err
+                        })
+                        return
+                    }
+                    Main.database.run(
+                        'UPDATE apitokens SET token = ?, createdAt = ? WHERE uid = ?;',
+                        [apitoken, Date.now().toString(), user],
+                        (err) => {
+                            if (err) {
+                                res.render('error', {
+                                    code: ERRCODE.INTERNAL_ERROR,
+                                    reason: 'Internal error: ' + err
+                                })
+                                return
+                            }
+                            res.redirect(`/wimanagetoken?user=${user}&token=${token}`)
+                        }
+                    )
+                }
+            )
+
+            
+        })
+
           /////////////
          //// API ////
         /////////////
 
         // LOGG IN AND CREATE SESSION FOR USER ID
-        this.app.get('/login', (req, res) => {
+        this.app.get('/api/login', (req, res) => {
             res.set('Content-Type', 'application/json')
 
             var token = req.query.token
@@ -380,7 +490,7 @@ class Websocket {
         })
 
         // LOGGOUT
-        this.app.get('/logout', (req, res) => {
+        this.app.get('/api/logout', (req, res) => {
             res.set('Content-Type', 'application/json')
 
             var token = req.query.token
@@ -403,7 +513,7 @@ class Websocket {
         })
 
         // PLAY SOUND METHOD
-        this.app.get('/play', (req, res) => {
+        this.app.get('/api/play', (req, res) => {
             res.set('Content-Type', 'application/json')
             
             var token = req.query.token
@@ -455,7 +565,7 @@ class Websocket {
         })
 
         // GET SOUND FILES
-        this.app.get('/sounds', (req, res) => {
+        this.app.get('/api/sounds', (req, res) => {
             res.set('Content-Type', 'application/json')
             var token = req.query.token
 
@@ -478,7 +588,7 @@ class Websocket {
         })
 
         // SET GUILDS AND IDS
-        this.app.get('/guilds', (req, res) => {
+        this.app.get('/api/guilds', (req, res) => {
             res.set('Content-Type', 'application/json')
             var token = req.query.token
 
@@ -501,7 +611,7 @@ class Websocket {
         })
 
         // CHECK TOKEN
-        this.app.get('/token', (req, res) => {
+        this.app.get('/api/token', (req, res) => {
             res.set('Content-Type', 'application/json')
             var token = req.query.token
 
