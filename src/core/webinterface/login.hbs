@@ -64,7 +64,9 @@
 
     function saveToken() {
         if (cbsavetoken.checked) {
-            document.cookie = `logintoken=${tbtoken.value};`;
+            let d = new Date();
+            d.setTime(d.getTime() + (90 * 24 * 3600 * 1000))
+            document.cookie = `logintoken=${tbtoken.value};expires=${d.toUTCString()};`;
         }
     }
 </script>
