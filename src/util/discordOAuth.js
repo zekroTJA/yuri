@@ -73,6 +73,6 @@ class DiscordOAuth {
             });
         });
     }
-};
+}
 
 module.exports = DiscordOAuth;
