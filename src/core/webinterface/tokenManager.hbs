@@ -20,11 +20,11 @@
             {{/if}}
         </button>
     </form>
-    <button id="btn_showhide" class="button" style="font-size: 12px; width: 250px;">
+    <button id="btn_showhide" class="button" style="font-size: 12px; width: 250px;" {{#if generated}}{{else}}disabled{{/if}}>
         SHOW TOKEN
     </button>
     <br>
-    <button id="btn_copy" class="button" style="font-size: 12px; width: 250px;">
+    <button id="btn_copy" class="button" style="font-size: 12px; width: 250px;" {{#if generated}}{{else}}disabled{{/if}}>
         COPY TOKEN TO CLIPBOARD
     </button>
 

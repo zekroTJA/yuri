@@ -68,6 +68,12 @@ a {
     cursor: pointer;
 }
 
+button:disabled {
+    color: rgb(105, 105, 105) !important;
+    border: 1.5px solid rgb(105, 105, 105) !important;
+    cursor: not-allowed !important;
+}
+
 .center {
     text-align: center
 }

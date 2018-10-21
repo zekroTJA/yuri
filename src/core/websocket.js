@@ -9,6 +9,7 @@ const { randomString } = require('../util/random')
 
 const express = require('express')
 const hbs = require('express-handlebars')
+const bodyParser = require('body-parser')
 const socketio = require('socket.io')
 const http = require('http')
 const sha256 = require('sha256')
@@ -115,6 +116,7 @@ class Websocket {
         this.app.set('views', path.join(__dirname, 'webinterface'))
         this.app.set('view engine', 'hbs')
         this.app.use(express.static(path.join(__dirname, 'webinterface')))
+        this.app.use(bodyParser.json())
         this.server = new http.Server(this.app)
         this.io = socketio(this.server)
         this.token = Main.config.wstoken
@@ -464,29 +466,34 @@ class Websocket {
         /////////////
 
         // LOGG IN AND CREATE SESSION FOR USER ID
-        this.app.get('/api/login', (req, res) => {
+        this.app.post('/api/login', (req, res) => {
             res.set('Content-Type', 'application/json')
 
-            var token = req.query.token
-            var userID = req.query.user
+            var token = req.headers.authorization || req.body.token
 
-            if (!this._checkToken(token)) {
-                this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_TOKEN)
-                return
-            }
-
-            new Session(userID, token)
-                .then(session => {
-                    this._sendStatus(res, STATUS.OK, ERRCODE.OK)
-                    session.timer.on('elapsed', () => this.sessions[user] = null)
-                    this.sessions[userID] = session
-                    this.ipregister[req.connection.remoteAddress] = userID
-                    Logger.info(`[WS Login] CID: ${userID} | TAG: ${session.user.tag}`)
-                })
-                .catch(e => {
-                    console.log(e)
-                    this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_LOGIN, e.message)
-                })
+            this._checkAPIToken(token, (userID) => {
+                if (!userID) {
+                    this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_TOKEN)
+                    return
+                }
+                new Session(userID, this.token, token)
+                    .then(session => {
+                        this._sendStatus(res, STATUS.OK, ERRCODE.OK, {
+                            userid: session.userid,
+                            code: session.code,
+                            guild: session.guild,
+                            member: session.member
+                        })
+                        session.timer.on('elapsed', () => this.sessions[user] = null)
+                        this.sessions[userID] = session
+                        this.ipregister[req.connection.remoteAddress] = userID
+                        Logger.info(`[API Login] CID: ${userID} | TAG: ${session.user.tag}`)
+                    })
+                    .catch(e => {
+                        console.log(e)
+                        this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_LOGIN, e.message)
+                    })
+            })
         })
 
         // LOGGOUT
@@ -767,6 +774,20 @@ class Websocket {
 
     _checkToken(token) {
         return token == this.token
+    }
+
+    _checkAPIToken(token, cb) {
+        if (token.length < 97 || !token.includes('.') || sha256(this.token) != token.split('.')[0]) {
+            cb()
+            return
+        }
+        Main.database.all('SELECT * FROM apitokens WHERE token = ?;', [token], (err, rows) => {
+            if (err || !rows || rows.length < 1) {
+                cb()
+                return
+            }
+            cb(rows[0].uid)
+        })
     }
 
 }
