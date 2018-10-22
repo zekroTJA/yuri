@@ -15,6 +15,18 @@ exports.error = (content) => {
 }
 
 /**
+ * Display warning formated console output.
+ * @param {string} content
+ */
+exports.warning = (content) => {
+    if (!content) 
+        return
+    content.toString().split('\n').forEach(s => {
+        console.log(`${'[WARNING]'.magenta} ${s}`)
+    })
+}
+
+/**
  * Display info formated console output.
  * @param {string} content
  */

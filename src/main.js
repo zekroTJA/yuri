@@ -39,6 +39,10 @@ const DEF_CONF = {
         id: "id of the CLIENT (in 'General Information')",
         secret: "secret of the CLIENT (also in 'General Information')"
     },
+    cert: {
+        certfile: "/etc/certs/certfile.cer",
+        keyfile: "/etc/certs/keyfile.key"
+    },
     serveraddr: "address of your server, i.e. http://zekro.de:6612",
     prefix: ".",
     wstoken: "exampletokenactuallythisneedstobemorecomplexandthisisjustfortravis",
@@ -56,7 +60,7 @@ else if (fs.existsSync('./expose/config.json')) {
     var config = require('../expose/config.json')
     let missingKeys = []
     Object.keys(DEF_CONF).forEach((key) => {
-        if (!config[key])
+        if (config[key] == undefined)
             missingKeys.push(key)
     })
     if (missingKeys.length > 0) {
