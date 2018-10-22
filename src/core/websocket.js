@@ -4,18 +4,19 @@ const { players, guildLog, Player } = require('../core/player')
 const { info, error } = require('../util/msgs')
 const path = require('path')
 const EventEmitter = require('events');
+const DicordOAuth = require('../util/discordOAuth')
 
 const express = require('express')
 const hbs = require('express-handlebars')
 const socketio = require('socket.io')
 const http = require('http')
-const request = require('request')
-const querystring = require('querystring')
+const sha256 = require('sha256')
 
 
 const WEBINTERFACE_VERSION = '1.10.0'
-const SESSION_TIMEOUT = 1800 * 1000
-const EXPOSE_PORT = 6612
+const SESSION_TIMEOUT = 1800 * 1000   // 30 Minutes
+const LOGIN_TIMEOUT = 30 * 1000       // 30 Seconds
+const EXPOSE_PORT = process.argv.includes("--1337") ? 1337 : 6612
 
 const STATUS = {
     ERROR: 'ERROR',
@@ -30,14 +31,16 @@ const ERRCODE = {
     PLAYER_ERROR:          4,
     INVALID_LOGIN:         5,
     SESSION_NOT_LOGGED_IN: 6,
-    NO_VC:                 7 
+    NO_VC:                 7,
+    LOGIN_TIMED_OUT:       8
 }
 
 class Session {
-    constructor(userid, token) {
+    constructor(userid, token, code) {
         return new Promise((res, reject) => {
             this.userid = userid
             this.token = token
+            this.code = code
             Main.client.fetchUser(userid, true)
                 .then(user => {
                     this.user = user
@@ -64,6 +67,10 @@ class Session {
         return this.member.voiceChannel
     }
 
+    checkCode(code) {
+        return code == this.code
+    }
+
 }
 
 
@@ -86,12 +93,17 @@ class SessionTimer extends EventEmitter {
     }
 }
 
-
 class Websocket {
 
     constructor() {
         this.sessions = {}
         this.ipregister = {}
+        this.authorizedids = {}
+        this.oauth = new DicordOAuth({
+            clientid:     Main.config.client.id,
+            clientsecret: Main.config.client.secret,
+            serveraddr:   Main.config.serveraddr
+        })
         this.app = express()
         this.app.engine('hbs', hbs({
             extname: 'hbs',
@@ -110,12 +122,15 @@ class Websocket {
             return
         }
 
+          ///////////////////////
+         //// WEB INTERFACE ////
+        ///////////////////////
+
         // WEBINTERFACE
         this.app.get('/', (req, res) => {
-            var authRedirect = () => res.redirect(`https://discordapp.com/api/oauth2/authorize?client_id=${Main.config.client.id}&redirect_uri=${encodeURIComponent(Main.config.serveraddr + '/authorize')}&response_type=code&scope=identify`)
             var user = req.query.user ? req.query.user : this.ipregister[req.connection.remoteAddress]
             if (!user) {
-                authRedirect()
+                this.oauth.redirectToAuth('authorize', res)
                 return
             }
             var session = this.sessions[user]
@@ -137,25 +152,79 @@ class Websocket {
                         name: session.guild.name
                     },
                     sortbydate,
-                    token: session.token,
+                    token: session.code,
                     inchannel: (session.guild.me.voiceChannel != null),
                     WEBINTERFACE_VERSION
                 })
             } else {
-                authRedirect()    
+                this.oauth.redirectToAuth('authorize', res)  
             }
+        })
+
+        // OAUTH AUTHORIZATION
+        this.app.get('/authorize', (req, res) => {
+            let code = req.query.code;
+            let resetToken = req.query.resetToken
+
+            if (resetToken) {
+                let user = req.query.user
+                res.render('login', { user, resetToken })
+            }
+
+            this.oauth.getId(req, (err, user) => {
+                if (err) {
+                    this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_LOGIN)
+                    return
+                }
+                var sortbydate = (req.query.sortbydate == 1)
+                var session = this.sessions[user]
+                let hashedCode = sha256(code)
+                this.authorizedids[user] = hashedCode
+                setTimeout(() => {
+                    delete this.authorizedids[user]
+                }, LOGIN_TIMEOUT)
+
+                if (!session) {
+                    res.render('login', { user, code: hashedCode })
+                    return
+                }
+                if (!session.vc) {
+                    this.sessions[user] = null
+                    res.render('login', { user, code: hashedCode })
+                    return
+                }
+                this.sessions[user].code = hashedCode
+                res.redirect('/?user=' + user)
+            })
         })
 
         // WEBINTERFACE LOGIN
         this.app.get('/wilogin', (req, res) => {
             var token = req.query.token
             var user = req.query.user
+            var code = req.query.code
             var passedByToken = req.query.passedByToken
 
             if (!user || !token || user == "" || token == "") {
                 res.render('error', {
                     code: ERRCODE.INVALID_LOGIN,
                     reason: 'Invalid login credentials.'
+                })
+                return
+            }
+
+            if (!this.authorizedids[user]) {
+                res.render('error', {
+                    code: ERRCODE.LOGIN_TIMED_OUT,
+                    reason: 'Login timed out.'
+                })
+                return
+            }
+
+            if (this.authorizedids[user] != code) {
+                res.render('error', {
+                    code: ERRCODE.INVALID_LOGIN,
+                    reason: 'Login ID and response code hash does not match.'
                 })
                 return
             }
@@ -175,7 +244,7 @@ class Websocket {
                 return
             }
 
-            new Session(user, token)
+            new Session(user, token, code)
                 .then(session => {
                     session.timer.on('elapsed', () => {
                         Logger.info(`[WS Session Expired] CID: ${user} | TAG: ${session.user.tag}`)
@@ -201,7 +270,7 @@ class Websocket {
         this.app.get('/wilogout', (req, res) => {
             var user = req.query.user
 
-            if (!this._checkToken(req.query.token)) {
+            if (!this.sessions[user].checkCode(req.query.token)) {
                 res.send("")
                 return
             }
@@ -216,7 +285,7 @@ class Websocket {
         this.app.get('/wirestart', (req, res) => {
             var token = req.query.token
             var user = req.query.user
-            if (!this._checkToken(token)) {
+            if (!this.sessions[user].checkCode(token)) {
                 res.send("")
                 return
             }
@@ -243,7 +312,7 @@ class Websocket {
             var guild = req.query.guild
             var user = req.query.user
 
-            if (!this._checkToken(req.query.token)) {
+            if (!this.sessions[user].checkCode(req.query.token)) {
                 res.send("")
                 return
             }
@@ -279,6 +348,10 @@ class Websocket {
                 log
             })
         })
+
+          /////////////
+         //// API ////
+        /////////////
 
         // LOGG IN AND CREATE SESSION FOR USER ID
         this.app.get('/login', (req, res) => {
@@ -437,72 +510,6 @@ class Websocket {
             else
                 this._sendStatus(res, STATUS.OK, 0)
             
-        })
-
-        this.app.get('/authorize', (req, res) => {
-            let code = req.query.code;
-            let resetToken = req.query.resetToken
-
-            if (resetToken) {
-                let user = req.query.user
-                res.render('login', { user, resetToken })
-            }
-            
-            let data = {
-                'client_id': Main.config.client.id,
-                'client_secret': Main.config.client.secret,
-                'grant_type': 'authorization_code',
-                'code': code,
-                'redirect_uri': Main.config.serveraddr + '/authorize',
-                'scope': 'identify'
-            }
-
-            request({
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                uri: 'https://discordapp.com/api/oauth2/token',
-                body: querystring.stringify(data),
-                method: 'POST'
-            }, (err, _, body) => {
-                let bobj = JSON.parse(body)
-                if (err || bobj.error) {
-                    console.log(bobj)
-                    this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_LOGIN)
-                    return
-                }
-                request({
-                    headers: {
-                        'Authorization': 'Bearer ' + bobj.access_token
-                    },
-                    uri: 'https://discordapp.com/api/users/@me',
-                    method: 'GET'
-                }, (err, _, body) => {
-                    let bobj = JSON.parse(body)
-                    if (err || bobj.error) {
-                        this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_LOGIN)
-                        return
-                    }
-                    let user = bobj.id
-
-                    var sortbydate = (req.query.sortbydate == 1)
-
-                    var session = this.sessions[user]
-
-                    if (!session) {
-                        res.render('login', { user })
-                        return
-                    }
-                
-                    if (!session.vc) {
-                        this.sessions[user] = null
-                        res.render('login', { user })
-                        return
-                    }
-
-                    res.redirect('/?user=' + user)
-                })
-            })
         })
 
         this.server.listen(EXPOSE_PORT, () => {

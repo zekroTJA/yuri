@@ -148,6 +148,14 @@
         top: -25px;
         margin-left: 20px;
     ">SHOW LOG</button>
+
+    {{!-- SHOW TOKEN MANAGER --}}
+    <button id="btn_tokens" class="button btn_logout" style="
+        position: relative; 
+        top: -25px;
+        margin-left: 20px;
+        font-size: 9px;
+    ">API TOKEN MANAGEMENT</button>
 </div>
 
 {{!-- SOUND BUTTONS CONTAINER --}}
@@ -185,6 +193,7 @@
     var advancedcontainer = document.getElementById('advanced_container')
     var btrestart = document.getElementById('btn_restart')
     var btstop = document.getElementById('btn_stop')
+    var bttokens = document.getElementById('btn_tokens')
     var dummyframe = document.getElementById('dummyframe')
     var btnshowlog = document.getElementById('btn_showlog')
     var psoundnumber = document.getElementById('p_soundnumber')
@@ -314,6 +323,10 @@
 
     btnshowlog.onclick = () => {
         window.open('/wishowlog?token={{token}}&guild={{guild.id}}&user={{user}}', 'newwindow', 'width=400,height=600')
+    }
+
+    bttokens.onclick = () => {
+        
     }
 
     window.onresize = transformToplane

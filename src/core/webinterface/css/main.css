@@ -162,6 +162,14 @@ a {
     width: auto;
 }
 
+#btn_tokens {
+    background-color: #105ce99e;
+}
+
+#btn_tokens:hover {
+    background-color: #105ce9ed;
+}
+
 .infobtn {
     margin: 0px 10px; 
     position: absolute;

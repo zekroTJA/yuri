@@ -5,3 +5,4 @@ WebApiClient/YuriClient/obj/*
 */packages/*
 WebApiClient/.vs/*
 config.json
+expose/*

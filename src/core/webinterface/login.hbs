@@ -33,6 +33,7 @@
     <p class="center">TOKEN</p>
     <input id="tbtoken" type="password" class="textbox" name="token" value="{{ token }}">
     <input type="hidden" name="user" value="{{ user }}">
+    <input type="hidden" name="code" value="{{ code }}">
     <input id="passedByToken" type="hidden" name="passedByToken" value="0">
     <br>
     <br>
@@ -64,7 +65,9 @@
 
     function saveToken() {
         if (cbsavetoken.checked) {
-            document.cookie = `logintoken=${tbtoken.value};`;
+            let d = new Date();
+            d.setTime(d.getTime() + (90 * 24 * 3600 * 1000))
+            document.cookie = `logintoken=${tbtoken.value};expires=${d.toUTCString()};`;
         }
     }
 </script>
