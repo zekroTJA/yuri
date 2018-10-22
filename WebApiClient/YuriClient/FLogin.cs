@@ -22,28 +22,27 @@ namespace YuriClient
         {
             tbUrl.Text = Settings.Default.APIUrl?.ToString();
             tbToken.Text = Settings.Default.Token?.ToString();
-            tbClientId.Text = Settings.Default.ClientID?.ToString();
         }
 
         private void tbToken_TextChanged(object sender, EventArgs e)
         {
-            btLogin.Enabled = tbClientId.Text != "" && tbToken.Text != "" && tbUrl.Text != "";
+            btLogin.Enabled = tbToken.Text != "" && tbUrl.Text != "";
         }
 
         private void tbClientId_TextChanged(object sender, EventArgs e)
         {
-            btLogin.Enabled = tbClientId.Text != "" && tbToken.Text != "" && tbUrl.Text != "";
+            btLogin.Enabled = tbToken.Text != "" && tbUrl.Text != "";
         }
 
 
         private void tbUrl_TextChanged(object sender, EventArgs e)
         {
-            btLogin.Enabled = tbClientId.Text != "" && tbToken.Text != "" && tbUrl.Text != "";
+            btLogin.Enabled = tbToken.Text != "" && tbUrl.Text != "";
         }
 
         private void btLogin_Click(object sender, EventArgs e)
         {
-            Requests requests = new Requests(tbToken.Text, tbUrl.Text, tbClientId.Text);
+            Requests requests = new Requests(tbToken.Text, tbUrl.Text);
             
             string rescode = requests.Login();
 
@@ -51,7 +50,6 @@ namespace YuriClient
             {
                 Settings.Default.APIUrl = tbUrl.Text;
                 Settings.Default.Token = tbToken.Text;
-                Settings.Default.ClientID = tbClientId.Text;
                 Settings.Default.Save();
                 this.Hide();
                 new FMain(requests).Show();

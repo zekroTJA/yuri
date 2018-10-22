@@ -490,8 +490,17 @@ class Websocket {
                         this._sendStatus(res, STATUS.OK, ERRCODE.OK, {
                             userid: session.userid,
                             code: session.code,
-                            guild: session.guild,
-                            member: session.member
+                            guild: {
+                                name: session.guild.name,
+                                id: session.guild.id,
+                                ownerid: session.guild.ownerID
+                            },
+                            member: {
+                                displayName: session.member.displayName,
+                                username: session.member.user.username,
+                                tag: session.member.user.tag,
+                                id: session.member.id
+                            }
                         })
                         session.timer.on('elapsed', () => this.sessions[user] = null)
                         this.sessions[userID] = session
