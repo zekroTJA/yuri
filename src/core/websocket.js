@@ -5,9 +5,11 @@ const { info, error } = require('../util/msgs')
 const path = require('path')
 const EventEmitter = require('events');
 const DicordOAuth = require('../util/discordOAuth')
+const { randomString } = require('../util/random')
 
 const express = require('express')
 const hbs = require('express-handlebars')
+const bodyParser = require('body-parser')
 const socketio = require('socket.io')
 const http = require('http')
 const sha256 = require('sha256')
@@ -32,7 +34,8 @@ const ERRCODE = {
     INVALID_LOGIN:         5,
     SESSION_NOT_LOGGED_IN: 6,
     NO_VC:                 7,
-    LOGIN_TIMED_OUT:       8
+    LOGIN_TIMED_OUT:       8,
+    INTERNAL_ERROR:        9
 }
 
 class Session {
@@ -110,6 +113,7 @@ class Websocket {
             defaultLayout: 'layout',
             layoutsDir: __dirname + '/webinterface/layouts'
         }))
+        this.app.use(bodyParser.json())
         this.app.set('views', path.join(__dirname, 'webinterface'))
         this.app.set('view engine', 'hbs')
         this.app.use(express.static(path.join(__dirname, 'webinterface')))
@@ -313,14 +317,17 @@ class Websocket {
             var user = req.query.user
 
             if (!this.sessions[user].checkCode(req.query.token)) {
-                res.send("")
+                res.render('error', {
+                    code: ERRCODE.INVALID_LOGIN,
+                    reason: 'Invalid login.'
+                })
                 return
             }
 
             var log = guildLog[guild]
             if (log == null) {
                 res.render('error', {
-                    code: 7,
+                    code: ERRCODE.NO_VC,
                     reason: 'Guild not found in players log list.'
                 })
                 return
@@ -349,167 +356,304 @@ class Websocket {
             })
         })
 
-          /////////////
-         //// API ////
-        /////////////
-
-        // LOGG IN AND CREATE SESSION FOR USER ID
-        this.app.get('/login', (req, res) => {
-            res.set('Content-Type', 'application/json')
-
+        // WEBINTERFACE MANAGE TOKEN
+        this.app.get('/wimanagetoken', (req, res) => {
+            var user = req.query.user
             var token = req.query.token
-            var userID = req.query.user
 
-            if (!this._checkToken(token)) {
-                this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_TOKEN)
-                return
-            }
-
-            new Session(userID, token)
-                .then(session => {
-                    this._sendStatus(res, STATUS.OK, ERRCODE.OK)
-                    session.timer.on('elapsed', () => this.sessions[user] = null)
-                    this.sessions[userID] = session
-                    this.ipregister[req.connection.remoteAddress] = userID
-                    Logger.info(`[WS Login] CID: ${userID} | TAG: ${session.user.tag}`)
+            if (!this.sessions[user].checkCode(token)) {
+                res.render('error', {
+                    code: ERRCODE.INVALID_LOGIN,
+                    reason: 'Invalid login.'
                 })
-                .catch(e => {
-                    console.log(e)
-                    this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_LOGIN, e.message)
-                })
-        })
-
-        // LOGGOUT
-        this.app.get('/logout', (req, res) => {
-            res.set('Content-Type', 'application/json')
-
-            var token = req.query.token
-            var userID = req.query.user
-
-            if (!this._checkToken(token)) {
-                this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_TOKEN)
                 return
             }
 
-            var session = this.sessions[userID]
-            if (session) {
-                this.sessions[userID] = null
-                this.ipregister[req.connection.remoteAddress] = null
-                this._sendStatus(res, STATUS.OK, ERRCODE.OK)
-                Logger.info(`[WS Logout] CID: ${userID} | TAG: ${session.user.tag}`)
-            }
-            else
-                this._sendStatus(res, STATUS.ERROR, ERRCODE.SESSION_NOT_LOGGED_IN)
-        })
-
-        // PLAY SOUND METHOD
-        this.app.get('/play', (req, res) => {
-            res.set('Content-Type', 'application/json')
-            
-            var token = req.query.token
-            var userID = req.query.user
-            var soundFile = req.query.file
-
-            if (!this._checkToken(token)) {
-                this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_TOKEN)
-                return
-            }
-
-            var session = this.sessions[userID]
-
+            var session = this.sessions[user]
             if (!session) {
-                this._sendStatus(res, STATUS.ERROR, ERRCODE.SESSION_NOT_LOGGED_IN)
-                return
-            }
-
-            if (!soundFile || soundFile == "") {
-                this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_GUILD)
-                return
-            }
-            
-            if (!session.vc) {
-                this._sendStatus(res, STATUS.ERROR, ERRCODE.NO_VC)
+                res.render('error', {
+                    code: ERRCODE.INVALID_LOGIN,
+                    reason: 'Invalid session.'
+                })
                 return
             }
 
             session.timer.refresh()
 
-            new Promise(res => {
-                // var player = players[session.guild.id]
-                var player = session.player
-                if (player)
-                    res(player)
+            Main.database.all('SELECT * FROM apitokens WHERE uid = ?', [user], (err, rows) => {
+                if (err) {
+                    res.render('error', {
+                        code: ERRCODE.INTERNAL_ERROR,
+                        reason: 'Internal error: ' + err
+                    })
+                    return
+                }
+                if (rows.length < 1) {
+                    res.render('tokenManager', {
+                        token: token,
+                        user: user,
+                        generated: false
+                    })
+                } else {
+                    res.render('tokenManager', {
+                        token: token,
+                        user: user,
+                        generated: true,
+                        apitoken: rows[0].token,
+                        createdat: rows[0].createdAt
+                    })
+                }
+            })
+
+            
+        })
+
+        // WEBINTERFACE REFRESH TOKEN
+        this.app.get('/witokenrefresh', (req, res) => {
+            var user = req.query.user
+            var token = req.query.token
+
+            if (!this.sessions[user].checkCode(token)) {
+                res.render('error', {
+                    code: ERRCODE.INVALID_LOGIN,
+                    reason: 'Invalid login.'
+                })
+                return
+            }
+
+            var session = this.sessions[user]
+            if (!session) {
+                res.render('error', {
+                    code: ERRCODE.INVALID_LOGIN,
+                    reason: 'Invalid session.'
+                })
+                return
+            }
+
+            let apitoken = sha256(this.token) + '.' + randomString(32)
+
+            Main.database.run(
+                'INSERT OR IGNORE INTO apitokens (uid, token, createdAt) VALUES (?, ?, ?);',
+                [user, apitoken, Date.now().toString()], 
+                (err) => {
+                    if (err) {
+                        res.render('error', {
+                            code: ERRCODE.INTERNAL_ERROR,
+                            reason: 'Internal error: ' + err
+                        })
+                        return
+                    }
+                    Main.database.run(
+                        'UPDATE apitokens SET token = ?, createdAt = ? WHERE uid = ?;',
+                        [apitoken, Date.now().toString(), user],
+                        (err) => {
+                            if (err) {
+                                res.render('error', {
+                                    code: ERRCODE.INTERNAL_ERROR,
+                                    reason: 'Internal error: ' + err
+                                })
+                                return
+                            }
+                            res.redirect(`/wimanagetoken?user=${user}&token=${token}`)
+                        }
+                    )
+                }
+            )
+
+            
+        })
+
+          /////////////
+         //// API ////
+        /////////////
+
+        this.app.get('/api', (req, res) => {
+            res.set('Content-Type', 'application/json')
+
+            this._sendStatus(res, STATUS.OK, ERRCODE.OK, {
+            })
+        })
+
+        // LOG IN AND CREATE SESSION FOR USER ID
+        this.app.post('/api/login', (req, res) => {
+            res.set('Content-Type', 'application/json')
+
+            var token = req.headers.authorization || req.body.token
+
+            this._checkAPIToken(token, (userID) => {
+                if (!userID) {
+                    this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_TOKEN)
+                    return
+                }
+                new Session(userID, this.token, token)
+                    .then(session => {
+                        this._sendStatus(res, STATUS.OK, ERRCODE.OK, {
+                            userid: session.userid,
+                            code: session.code,
+                            guild: {
+                                name: session.guild.name,
+                                id: session.guild.id,
+                                ownerid: session.guild.ownerID
+                            },
+                            member: {
+                                displayName: session.member.displayName,
+                                username: session.member.user.username,
+                                tag: session.member.user.tag,
+                                id: session.member.id
+                            }
+                        })
+                        session.timer.on('elapsed', () => this.sessions[user] = null)
+                        this.sessions[userID] = session
+                        this.ipregister[req.connection.remoteAddress] = userID
+                        Logger.info(`[API Login] CID: ${userID} | TAG: ${session.user.tag}`)
+                    })
+                    .catch(e => {
+                        console.log(e)
+                        this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_LOGIN, e.message)
+                    })
+            })
+        })
+
+        // LOGGOUT
+        this.app.post('/api/logout', (req, res) => {
+            res.set('Content-Type', 'application/json')
+
+            var token = req.headers.authorization || req.body.token
+
+            this._checkAPIToken(token, (userID) => {
+                if (!userID) {
+                    this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_TOKEN)
+                    return
+                }
+                var session = this.sessions[userID]
+                if (session) {
+                    this.sessions[userID] = null
+                    this.ipregister[req.connection.remoteAddress] = null
+                    this._sendStatus(res, STATUS.OK, ERRCODE.OK)
+                    Logger.info(`[WS Logout] CID: ${userID} | TAG: ${session.user.tag}`)
+                }
                 else
-                    new Player(session.vc)
-                        .then(p => res(p))
-            }).then(player => {
-                session.player = player
-                player.play(soundFile, session.member).then(() => {
-                    this._sendStatus(res, STATUS.OK, 0)
+                    this._sendStatus(res, STATUS.ERROR, ERRCODE.SESSION_NOT_LOGGED_IN)
+            })
+        })
+
+        // PLAY SOUND METHOD
+        this.app.post('/api/play', (req, res) => {
+            res.set('Content-Type', 'application/json')
+            
+            var token = req.headers.authorization || req.body.token
+            var soundFile = req.body.file
+            console.log(req.body)
+
+            this._checkAPIToken(token, (userID) => {
+                if (!userID) {
+                    this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_TOKEN)
+                    return
+                }
+                var session = this.sessions[userID]
+                
+                if (!session) {
+                    this._sendStatus(res, STATUS.ERROR, ERRCODE.SESSION_NOT_LOGGED_IN)
+                    return
+                }
+    
+                if (!soundFile || soundFile == "") {
+                    this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_GUILD)
+                    return
+                }
+                
+                if (!session.vc) {
+                    this._sendStatus(res, STATUS.ERROR, ERRCODE.NO_VC)
+                    return
+                }
+    
+                session.timer.refresh()
+    
+                new Promise(res => {
+                    // var player = players[session.guild.id]
+                    var player = session.player
+                    if (player)
+                        res(player)
+                    else
+                        new Player(session.vc)
+                            .then(p => res(p))
+                }).then(player => {
+                    session.player = player
+                    player.play(soundFile, session.member).then(() => {
+                        this._sendStatus(res, STATUS.OK, 0)
+                    }).catch(e => {
+                        this._sendStatus(res, STATUS.ERROR, ERRCODE.PLAYER_ERROR, e.message)
+                    })
                 }).catch(e => {
                     this._sendStatus(res, STATUS.ERROR, ERRCODE.PLAYER_ERROR, e.message)
                 })
-            }).catch(e => {
-                this._sendStatus(res, STATUS.ERROR, ERRCODE.PLAYER_ERROR, e.message)
             })
         })
 
         // GET SOUND FILES
-        this.app.get('/sounds', (req, res) => {
+        this.app.get('/api/sounds', (req, res) => {
             res.set('Content-Type', 'application/json')
-            var token = req.query.token
 
-            if (!this._checkToken(token)) {
-                this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_TOKEN)
-                return
-            }
+            var token = req.headers.authorization || req.body.token
 
-            var fileList = Player.getFilelist()
-                .map(f => f.split('.')[0])
-
-            res.send(JSON.stringify({
-                status: STATUS.OK, 
-                code: 0,
-                desc: {
-                    n: fileList.length,
-                    sounds: fileList
+            this._checkAPIToken(token, (userID) => {
+                if (!userID) {
+                    this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_TOKEN)
+                    return
                 }
-            }, 0, 2))
+                var fileList = Player.getFilelist()
+                    .map(f => f.split('.')[0])
+
+                res.send(JSON.stringify({
+                    status: STATUS.OK, 
+                    code: 0,
+                    desc: {
+                        n: fileList.length,
+                        sounds: fileList
+                    }
+                }, 0, 2))
+            })
         })
 
         // SET GUILDS AND IDS
-        this.app.get('/guilds', (req, res) => {
+        // DEPRECATED
+        this.app.get('/api/guilds', (req, res) => {
             res.set('Content-Type', 'application/json')
-            var token = req.query.token
-
-            if (!this._checkToken(token)) {
-                this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_TOKEN)
-                return
-            }
-
-            var servers = Main.client.guilds
-                .map(g => [g.name, g.id])
             
-            res.send(JSON.stringify({
-                status: STATUS.OK, 
-                code: 0,
-                desc: {
-                    n: servers.length,
-                    servers: servers
+            var token = req.headers.authorization || req.body.token
+
+            this._checkAPIToken(token, (userID) => {
+                if (!userID) {
+                    this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_TOKEN)
+                    return
                 }
-            }, 0, 2))
+                var servers = Main.client.guilds
+                    .map(g => [g.name, g.id])
+                
+                res.send(JSON.stringify({
+                    status: STATUS.OK, 
+                    code: 0,
+                    desc: {
+                        n: servers.length,
+                        servers: servers
+                    }
+                }, 0, 2))
+            })
         })
 
         // CHECK TOKEN
-        this.app.get('/token', (req, res) => {
+        this.app.get('/api/token', (req, res) => {
             res.set('Content-Type', 'application/json')
-            var token = req.query.token
 
-            if (!this._checkToken(token))
-                this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_TOKEN)
-            else
+            var token = req.headers.authorization || req.body.token
+
+            this._checkAPIToken(token, (userID) => {
+                if (!userID) {
+                    this._sendStatus(res, STATUS.ERROR, ERRCODE.INVALID_TOKEN)
+                    return
+                }
                 this._sendStatus(res, STATUS.OK, 0)
-            
+            })
         })
 
         this.server.listen(EXPOSE_PORT, () => {
@@ -647,7 +791,7 @@ class Websocket {
                 case ERRCODE.SESSION_NOT_LOGGED_IN:
                     return 'Session not logged in.'
                 case ERRCODE.NO_VC:
-                    return 'USer not in voice channel.'
+                    return 'User not in voice channel.'
                 default:
                     return msg ? msg : "OK"
             }
@@ -657,6 +801,20 @@ class Websocket {
 
     _checkToken(token) {
         return token == this.token
+    }
+
+    _checkAPIToken(token, cb) {
+        if (!token || token.length < 97 || !token.includes('.') || sha256(this.token) != token.split('.')[0]) {
+            cb()
+            return
+        }
+        Main.database.all('SELECT * FROM apitokens WHERE token = ?;', [token], (err, rows) => {
+            if (err || !rows || rows.length < 1) {
+                cb()
+                return
+            }
+            cb(rows[0].uid)
+        })
     }
 
 }

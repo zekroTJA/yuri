@@ -20,26 +20,35 @@ namespace YuriClient
         public string url { get; }
         public string clientid { get; }
 
-        public Requests(string key, string url, string clientid)
+        public Requests(string key, string url)
         {
             this.key = key;
             this.url = url;
-            this.clientid = clientid;
         }
 
-        private string BasicRequest(string dir)
+        private string BasicRequest(string dir, string method, object data)
         {
             try
             {
                 WebRequest request = WebRequest.Create(url + "/" + dir);
+                request.Headers.Add(HttpRequestHeader.Authorization, this.key);
+                if (method != "GET")
+                {
+                    request.ContentType = "application/json";
+                    request.Method = method;
+
+                    var dataBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data));
+                    var dataStream = request.GetRequestStream();
+                    dataStream.Write(dataBytes, 0, dataBytes.Length);
+                }
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                Stream dataStream = response.GetResponseStream();
-                StreamReader reader = new StreamReader(dataStream);
+                Stream responseStream = response.GetResponseStream();
+                StreamReader reader = new StreamReader(responseStream);
                 string responseFromServer = reader.ReadToEnd();
                 Console.WriteLine(responseFromServer);
 
                 reader.Close();
-                dataStream.Close();
+                responseStream.Close();
                 response.Close();
 
                 return responseFromServer;
@@ -53,25 +62,24 @@ namespace YuriClient
 
         public string Login()
         {
-            string json = BasicRequest("login?token=" + this.key + "&user=" + this.clientid);
+            string json = BasicRequest("api/login", "POST", new { });
             if (json == "")
                 return "no response";
             var def = new
             {
                 status = "",
-                code = 0,
-                desc = ""
+                code = 0
             };
             var res = JsonConvert.DeserializeAnonymousType(json, def);
-            return res.desc;
+            return res.status;
         }
 
         public void Logout()
         {
-            BasicRequest("logout?token=" + this.key + "&user=" + this.clientid);
+            BasicRequest("api/logout", "POST", new { });
         }
-        
-        
+
+
         public List<string> GetSoundFiles()
         {
             var definition = new
@@ -84,52 +92,16 @@ namespace YuriClient
                     sounds = new List<string>()
                 }
             };
-            string json = BasicRequest("sounds/?token=" + this.key);
+            string json = BasicRequest("api/sounds", "GET", new { });
             var res = JsonConvert.DeserializeAnonymousType(json, definition);
             return res.desc.sounds;
         }
-        
-        
+
+
 
         public void PlayRequest(string file)
         {
-            BasicRequest("play?token=" + this.key + "&user=" + this.clientid + "&file=" + file);
+            BasicRequest("api/play", "POST", new { file });
         }
-
-        #region DEPRECATED
-        // public bool CheckToken()
-        // {
-        //     string json = BasicRequest("token?token=" + this.key);
-        //     if (json == "")
-        //         return false;
-        // 
-        //     var def = new
-        //     {
-        //         status = "",
-        //         code = 0
-        //     };
-        //     var res = JsonConvert.DeserializeAnonymousType(json, def);
-        //     Console.WriteLine(res.code);
-        //     return res.code == 0;
-        // }
-        // 
-        // public List<List<string>> GetGuilds()
-        // {
-        //     var definition = new
-        //     {
-        //         status = "",
-        //         code = 0,
-        //         desc = new
-        //         {
-        //             n = 0,
-        //             servers = new List<List<string>>()
-        //         }
-        //     };
-        //     string json = BasicRequest("guilds?token=" + this.key);
-        //     var res = JsonConvert.DeserializeAnonymousType(json, definition);
-        //     return res.desc.servers;
-        // }
-        #endregion
-
     }
 }

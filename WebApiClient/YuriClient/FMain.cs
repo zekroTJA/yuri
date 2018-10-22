@@ -26,7 +26,7 @@ namespace YuriClient
 
     public partial class FMain : Form
     {
-        private const string VERSION = "0.5.1";
+        private const string VERSION = "0.6.0";
         private Requests requests;
         private Dictionary<int, string> keysets = new Dictionary<int, string>();
         private Dictionary<string, string> guilds = new Dictionary<string, string>();
@@ -389,7 +389,7 @@ namespace YuriClient
 
         private void btRefetch_Click(object sender, EventArgs e)
         {
-            this.requests = new Requests(requests.key, requests.url, requests.clientid);
+            this.requests = new Requests(requests.key, requests.url);
             string res = requests.Login();
             if (res == "OK")
                 MessageBox.Show("Successfully reconnected.", "Reconnected", MessageBoxButtons.OK, MessageBoxIcon.Information);

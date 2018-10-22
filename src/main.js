@@ -75,6 +75,7 @@ else {
 
 var database = new Sqlite.Database('./expose/DB.sqlite3')
 database.run('CREATE TABLE IF NOT EXISTS soundstats (name VARCHAR PRIMARY KEY, count BIGINT);')
+database.run('CREATE TABLE IF NOT EXISTS apitokens (uid VARCHAR PRIMARY KEY, token VARCHAR, createdAt BIGINT);')
 Logger.info('Database hooked up')
 
 var settings = new Settings(database)
@@ -113,9 +114,6 @@ function exitHandler(exit, err) {
     const { soundStats } = require('./core/player')
     settings.save()
     database.close()
-
-    // if (config.writestats)
-    //     fs.writeFileSync('./expose/SOUNDSTATS.json', JSON.stringify(soundStats, 0, 2))
 
     if (exit)
         process.exit()
