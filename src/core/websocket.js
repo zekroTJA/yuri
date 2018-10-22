@@ -12,7 +12,9 @@ const hbs = require('express-handlebars')
 const bodyParser = require('body-parser')
 const socketio = require('socket.io')
 const http = require('http')
+const https = require('https')
 const sha256 = require('sha256')
+const fs = require('fs')
 
 
 const WEBINTERFACE_VERSION = '1.10.0'
@@ -117,7 +119,22 @@ class Websocket {
         this.app.set('views', path.join(__dirname, 'webinterface'))
         this.app.set('view engine', 'hbs')
         this.app.use(express.static(path.join(__dirname, 'webinterface')))
-        this.server = new http.Server(this.app)
+        this.server = (() => {
+            if (Main.config.cert &&
+                Main.config.cert.keyfile && 
+                Main.config.cert.certfile &&
+                fs.existsSync(Main.config.cert.keyfile) &&
+                fs.existsSync(Main.config.cert.certfile)
+            ) {
+                return https.createServer({
+                    key: fs.readFileSync(Main.config.cert.keyfile),
+                    cert: fs.readFileSync(Main.config.cert.certfile)
+                }, this.app)
+            } else {
+                Logger.warning('Web server running on NON TLS mode!')
+                return new http.Server(this.app)
+            }
+        })();
         this.io = socketio(this.server)
         this.token = Main.config.wstoken
 
@@ -657,7 +674,10 @@ class Websocket {
         })
 
         this.server.listen(EXPOSE_PORT, () => {
-            Logger.info('WS API set up at port ' + this.server.address().port)
+            Logger.info(
+                'WS API set up at port ' + this.server.address().port + '\n' +
+                'Access on URL ' + Main.config.serveraddr
+            )
         })
 
 
