@@ -1,0 +1,3 @@
+[submodule "yuri.hotkeyclient"]
+	path = yuri.hotkeyclient
+	url = git@github.com:zekroTJA/yuri.hotkeyclient.git
