@@ -6,10 +6,12 @@ const path = require('path')
 const EventEmitter = require('events');
 const DicordOAuth = require('../util/discordOAuth')
 const { randomString } = require('../util/random')
+const Snowflake = require('../util/snowflake')
 
 const express = require('express')
 const hbs = require('express-handlebars')
 const bodyParser = require('body-parser')
+const cookieParser = require('cookie-parser')
 const socketio = require('socket.io')
 const http = require('http')
 const https = require('https')
@@ -17,10 +19,12 @@ const sha256 = require('sha256')
 const fs = require('fs')
 
 
-const WEBINTERFACE_VERSION = '1.10.0'
+const WEBINTERFACE_VERSION = '1.11.0'
 const SESSION_TIMEOUT = 1800 * 1000   // 30 Minutes
 const LOGIN_TIMEOUT = 30 * 1000       // 30 Seconds
 const EXPOSE_PORT = process.argv.includes("--1337") ? 1337 : 6612
+
+var sessionNode = new Snowflake.Node()
 
 const STATUS = {
     ERROR: 'ERROR',
@@ -43,6 +47,7 @@ const ERRCODE = {
 class Session {
     constructor(userid, token, code) {
         return new Promise((res, reject) => {
+            this.uid = sessionNode.next()
             this.userid = userid
             this.token = token
             this.code = code
@@ -102,7 +107,6 @@ class Websocket {
 
     constructor() {
         this.sessions = {}
-        this.ipregister = {}
         this.authorizedids = {}
         this.oauth = new DicordOAuth({
             clientid:     Main.config.client.id,
@@ -116,6 +120,7 @@ class Websocket {
             layoutsDir: __dirname + '/webinterface/layouts'
         }))
         this.app.use(bodyParser.json())
+        this.app.use(cookieParser())
         this.app.set('views', path.join(__dirname, 'webinterface'))
         this.app.set('view engine', 'hbs')
         this.app.use(express.static(path.join(__dirname, 'webinterface')))
@@ -149,7 +154,17 @@ class Websocket {
 
         // WEBINTERFACE
         this.app.get('/', (req, res) => {
-            var user = req.query.user ? req.query.user : this.ipregister[req.connection.remoteAddress]
+            var sessionid = req.cookies.sessionid
+            if (sessionid) {
+                let session = Object.values(this.sessions).find(s => s && s.uid == sessionid)
+                if (session)
+                    var sessionuserid = session.userid
+            }
+
+            var user = req.query.user || sessionuserid
+            
+            console.log('USER:',user)
+
             if (!user) {
                 this.oauth.redirectToAuth('authorize', res)
                 return
@@ -275,8 +290,10 @@ class Websocket {
                         this.sessions[user] = null
                     })
                     this.sessions[user] = session
-                    this.ipregister[req.connection.remoteAddress] = user
+                    console.log(req.connection.remoteAddress)
                     Logger.info(`[WS Login (WEB)] CID: ${user} | TAG: ${session.user.tag}`)
+                    
+                    res.set('Set-Cookie', `sessionid=${session.uid}; Expires=${new Date(Date.now() + SESSION_TIMEOUT).toUTCString()} Path=/`)
                     res.redirect('/?user=' + user)
                 })
                 .catch(e => {
@@ -298,7 +315,6 @@ class Websocket {
 
             Logger.info(`[WS Logout (WEB)] CID: ${user} | TAG: ${this.sessions[user].user.tag}`)
             this.sessions[user] = null
-            this.ipregister[req.connection.remoteAddress] = null
             res.redirect('/')
         })
 
@@ -521,7 +537,7 @@ class Websocket {
                         })
                         session.timer.on('elapsed', () => this.sessions[user] = null)
                         this.sessions[userID] = session
-                        this.ipregister[req.connection.remoteAddress] = userID
+                        console.log(req.connection.remoteAddress)
                         Logger.info(`[API Login] CID: ${userID} | TAG: ${session.user.tag}`)
                     })
                     .catch(e => {
@@ -545,7 +561,6 @@ class Websocket {
                 var session = this.sessions[userID]
                 if (session) {
                     this.sessions[userID] = null
-                    this.ipregister[req.connection.remoteAddress] = null
                     this._sendStatus(res, STATUS.OK, ERRCODE.OK)
                     Logger.info(`[WS Logout] CID: ${userID} | TAG: ${session.user.tag}`)
                 }

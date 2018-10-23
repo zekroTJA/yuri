@@ -203,7 +203,7 @@
     // <============= END DOM VAR DEFINITIONS
 
     // =============> SOCKET
-    var socket = io()
+    var socket = io({ secure: true })
 
     socket.on('whoAreYou', () => {
         socket.emit('thatsMe', {user: '{{ user }}' })
