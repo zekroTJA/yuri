@@ -195,6 +195,7 @@ After login, you can play sounds by clicking the tiles, search for sounds or man
 ## Used 3rd party dependencies
 
 - [body-parser](https://www.npmjs.com/package/body-parser)
+- [cookie-parser](https://www.npmjs.com/package/cookie-parser)
 - [colors](https://www.npmjs.com/package/colors)
 - [discord.js](https://www.npmjs.com/package/discord.js)
 - [express](https://www.npmjs.com/package/express)
@@ -203,6 +204,7 @@ After login, you can play sounds by clicking the tiles, search for sounds or man
 - [socket.io](https://www.npmjs.com/package/socket.io)
 - [request](https://www.npmjs.com/package/request)
 - [sqlite3](https://www.npmjs.com/package/sqlite3)
+- [sha256](https://www.npmjs.com/package/sha256)
 
 ---
 
