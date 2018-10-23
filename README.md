@@ -18,7 +18,7 @@ Branch | Status
 -------|--------
 Master | <a href="https://travis-ci.org/zekroTJA/yuri/branches" ><img src="https://travis-ci.org/zekroTJA/yuri.svg?branch=master" /></a>
 Dev    | <a href="https://travis-ci.org/zekroTJA/yuri/branches" ><img src="https://travis-ci.org/zekroTJA/yuri.svg?branch=dev" /></a>
-MAster @ HotkeyClient | <a href="https://travis-ci.org/zekroTJA/yuri.hotkeyclient/branches"><img src="https://travis-ci.org/zekroTJA/yuri.hotkeyclient.svg?branch=master"</a>
+MAster @ HotkeyClient | <a href="https://travis-ci.org/zekroTJA/yuri.hotkeyclient/branches"><img src="https://travis-ci.org/zekroTJA/yuri.hotkeyclient.svg?branch=master" /></a>
 
 ---
 
