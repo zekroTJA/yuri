@@ -50,6 +50,21 @@
     </div>
 </noscript>
 
+<div id="privacywarn">
+    <div id="privacywarn_window">
+        <h2>PRIVACY AND COOKIE INFORMATION</h2>
+        <p>
+            Yuri is using cookies for saving session and information on your local device. Also some data will
+            be saved on the server which is used for sound logging and user and guild preferences.<br><br>
+            <b>Yuri does not save personal information about you.</b><br>
+            <p>Please read <a href="/privacy.html" target="_blank" style="color: #4DD0E1"><b>this</b></a> for more information.</p>
+        </p>
+        <button id="bt_iacceptthisshit" class="button" 
+            style="width: 100%; height: 35px; font-size: 16px; background-color: #558B2F;"
+            onclick="iAcceptedThisShit()"
+        ><b>I ACCEPT</b></button>
+    </div>
+</div>
 {{!-- TOP CONTROL BAR --}}
 <div class="flexdiv" style="margin-bottom: 15px;" >
 
@@ -80,11 +95,6 @@
        onclick="onClickStopSound()" href="javascript:{}">
         STOP
     </button>
-    {{!-- <form action="wistop" method="get" style="padding-left: 20px;" target="dummyframe">
-        <input type="hidden" name="user" value="{{ user }}" />
-        <input type="hidden" name="token" value="{{ token }}" />
-        <input type="submit" value="STOP" id="btn_stop" class="button btn_logout" />
-    </form> --}}
 
     {{!-- ADVANCED BUTTON --}}
     <button id="btn_advanced" class="button btn_logout">▼ ADVANCED</button>
@@ -200,7 +210,12 @@
     var btnchannelaction = document.getElementById('btn_channelaction')
     var brakertopline = document.getElementById('breaker_topline')
     var formwilogout = document.getElementById('form_wilogout')
+    var privacywarn = document.getElementById('privacywarn')
     // <============= END DOM VAR DEFINITIONS
+
+    if (!document.cookie.includes('privacyinfoaccepted')) {
+        privacywarn.style.display = 'block';
+    }
 
     // =============> SOCKET
     var socket = io({ secure: true })
@@ -267,6 +282,11 @@
     }
     // <============= END SOCKET
 
+
+    function iAcceptedThisShit() {
+        document.cookie = `privacyinfoaccepted=true; Expires=${new Date(Date.now() + 315360000000).toUTCString()}; Path=/`;
+        privacywarn.style.display = 'none';
+    }
 
     fullbackup = container.innerHTML
     psoundnumber.innerText = filelist.length

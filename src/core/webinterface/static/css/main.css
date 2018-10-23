@@ -1,0 +1,265 @@
+/*
+Copyright (c) 2018 Ringo Hoffmann (zekro Development)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+@import url('https://fonts.googleapis.com/css?family=Roboto');
+
+body {
+    background-color: rgb(30, 30, 30)
+}
+
+p, h1, h2, h3, h4, h5, h6, a, ul, li {
+    font-family: 'Roboto', sans-serif;
+    color: white;
+}
+
+a {
+    text-decoration: none;
+}
+
+.textbox {
+    width: 300px; 
+    height: 20px;
+    background-color: transparent;
+    color: white; 
+    text-align: center;
+    outline: none;
+    border-bottom: 1.5px solid white;
+    border-top: 0;
+    border-left: 0;
+    border-right: 0;
+    transition: all .25s ease-in-out;
+}
+
+.textbox:focus {
+    width: 360px;
+    /* transform: scaleX(1.2); */
+}
+
+.button {
+    margin-top: 20px;
+    height: 25px;
+    width: 70px;
+    padding: 3px 5px;
+    background-color: transparent;
+    color: white;
+    outline: none;
+    border: 1.5px solid white;
+    font-family: 'Raleway', sans-serif;
+    transition: .25s ease;
+    cursor: pointer;
+}
+
+button:disabled {
+    color: rgb(105, 105, 105) !important;
+    border: 1.5px solid rgb(105, 105, 105) !important;
+    cursor: not-allowed !important;
+}
+
+.center {
+    text-align: center
+}
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    height: 100%;
+    /* align-content: space-between;
+    justify-content: space-between; */
+}
+
+.flexdiv {
+    display: flex;
+    padding-left: 10px;
+    flex-flow: row wrap;
+    overflow: hidden;
+    transition: all .25s ease-in-out;
+}
+
+/* ----------------- HEADER BAR ----------------- */
+
+.tile {
+    padding: 10px;
+    background-color: rgba(140, 228, 82, 0.609);
+    margin: 10px;
+    transition: all .25s ease-in-out;
+}
+
+.tile:hover {
+    background-color: rgb(140, 228, 82);
+}
+
+.btn_logout {
+    height: 30px;
+    margin-top: 25px;
+    width: 100px;
+    background-color: rgba(202, 58, 26, 0.749);
+}
+
+.btn_logout:hover {
+    background-color: rgb(202, 58, 26);
+}
+
+#btn_restart {
+    width: 120px;
+    background-color: rgba(209, 23, 70, 0.527);
+    transition: all .25s ease-in-out;
+}
+
+#btn_restart:hover {
+    background-color: rgb(209, 23, 70);
+}
+
+#btn_stop {
+    width: 120px;
+    background-color: rgba(209, 181, 23, 0.527);
+    transition: all .25s ease-in-out;
+}
+
+#btn_advanced {
+    margin-left: 20px;
+    width: 120px;
+    background-color: rgba(23, 172, 209, 0.527);
+}
+
+#btn_advanced:hover {
+    background-color: rgb(23, 172, 209);
+}
+
+#btn_sortby {
+    margin-left: 20px;
+    width: 120px;
+    background-color: rgba(23, 209, 94, 0.527);
+}
+
+#btn_sortby:hover {
+    background-color: rgb(23, 209, 94);
+}
+
+/* ----------------- HEADER BAR ----------------- */
+
+#btn_showlog {
+    background-color: rgba(128, 128, 128, 0.527);
+}
+
+#btn_showlog:hover {
+    background-color: rgba(128, 128, 128, 0.822);
+}
+
+#btn_channelaction {
+    width: auto;
+}
+
+#btn_tokens {
+    background-color: #105ce99e;
+}
+
+#btn_tokens:hover {
+    background-color: #105ce9ed;
+}
+
+#privacywarn {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 5;
+    background-color: rgba(0, 0, 0, 0.75);
+}
+
+#privacywarn_window {
+    width: 50%;
+    max-width: 700px;
+    background-color: #37474F;
+    border-radius: 10px;
+    margin: 300px auto;
+    padding: 5px 20px 20px 20px;
+}
+
+.codeembeded {
+    background-color: rgba(0, 0, 0, 0.40);
+    padding: 5px 8px;
+    border-radius: 8px;
+}
+
+.infobtn {
+    margin: 0px 10px; 
+    position: absolute;
+    cursor: pointer;
+    transition: all .25s ease-in-out;
+}
+
+.infobtn:hover > .infopage {
+    display: block;
+}
+
+.infopage {
+    position: relative;
+    margin-top: 10px;
+    display: none;
+    width: 350px;
+    background-color: rgb(0, 98, 102);
+    padding: 1px 20px 5px 20px;
+}
+
+.line-break {
+    width: 100%;
+}
+
+.button_disabled {
+    background-color: #8080809e !important;
+    color: #ffffff4a !important;
+    cursor: not-allowed !important;
+}
+
+.button_sound_playing {
+    background-color: rgba(228, 82, 116, 0.85) !important;
+}
+
+#btn_stop:hover {
+    background-color: rgba(209, 181, 23, 1);
+}
+
+@keyframes noscriptbanner_animation {
+    0%    {top: -30px; }
+    75%   {top: -30px; }
+    100%  {top: 0px; }
+}
+
+#noscriptbanner {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 30px;
+    background-color: rgb(209, 67, 42);
+    text-align: center;
+    animation-name: noscriptbanner_animation;
+    animation-duration: 1s;
+}
+
+img.useravatar {
+    border-radius: 50%;
+    margin-right: 10px;
+}

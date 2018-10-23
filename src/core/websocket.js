@@ -123,7 +123,7 @@ class Websocket {
         this.app.use(cookieParser())
         this.app.set('views', path.join(__dirname, 'webinterface'))
         this.app.set('view engine', 'hbs')
-        this.app.use(express.static(path.join(__dirname, 'webinterface')))
+        this.app.use(express.static(path.join(__dirname, 'webinterface/static')))
         this.server = (() => {
             if (Main.config.cert &&
                 Main.config.cert.keyfile && 
@@ -162,8 +162,6 @@ class Websocket {
             }
 
             var user = req.query.user || sessionuserid
-            
-            console.log('USER:',user)
 
             if (!user) {
                 this.oauth.redirectToAuth('authorize', res)
@@ -293,7 +291,7 @@ class Websocket {
                     console.log(req.connection.remoteAddress)
                     Logger.info(`[WS Login (WEB)] CID: ${user} | TAG: ${session.user.tag}`)
                     
-                    res.set('Set-Cookie', `sessionid=${session.uid}; Expires=${new Date(Date.now() + SESSION_TIMEOUT).toUTCString()} Path=/`)
+                    res.set('Set-Cookie', `sessionid=${session.uid}; Expires=${new Date(Date.now() + SESSION_TIMEOUT).toUTCString()}; Path=/`)
                     res.redirect('/?user=' + user)
                 })
                 .catch(e => {
