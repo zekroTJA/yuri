@@ -54,7 +54,7 @@ Master @ HotkeyClient | <a href="https://travis-ci.org/zekroTJA/yuri.hotkeyclien
 
 ## Setup
 
-First of all, you need to create a Discord API Bot Application [**here**](http://discordapp.com/developers/applications/me). Also, you need to create an OAuth2 application with it by clicking on *"OAuth2"* and add a redirect to `<serveraddress>/authorize` (i.e. `http://zekro.de:6612/authorize`). It is verry important that the `<serveraddress>` is exactly the same as configured in the `config.json`!
+First of all, you need to create a Discord API Bot Application [**here**](http://discordapp.com/developers/applications/me). Also, you need to create an OAuth2 application with it by clicking on *"OAuth2"* and add a redirect to `<serveraddress>/authorize` (i.e. `http://zekro.de:6612/authorize`). It is very important that the `<serveraddress>` is exactly the same as configured in the `config.json`!
 
 
 Now, you have **2 options** for self-hosting yuri:
