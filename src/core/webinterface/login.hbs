@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+
+<a href="https://github.com/zekrotja/yuri"><img style="
+    position: absolute; 
+    top: -15px; 
+    right: -15px; 
+    border: 0;
+    transform:scale(.8);
+" src="https://s3.amazonaws.com/github/ribbons/forkme_right_white_ffffff.png" alt="Fork me on GitHub"></a>
+
+<a class="infobtn">
+    <img src="src/info.png" height="30"/>
+    <div class="infopage">
+        <h3>INFO</h3>
+        <p>
+            This is the web interface of the Yuri soundboard. Just enter here your token 
+            <i>(this which the owner set in the config and gave you hopefully ;) )</i> and 
+            your Discord user ID. This you can get if you enable the developer settings in 
+            Discord, right-click on your name and click on <i>Copy ID</i> :
+            <br>
+            <br>
+            <img src="src/screen2.png" width="350">
+            <br>
+            <img src="src/screen1.png" width="350">
+        </p>
+    </div>  
+</a>
+
+<h1 class="center" style="padding-top: 100px">LOGIN</h1>
+
+<form id="formlogin" action="wilogin" method="get" class="center" style="margin-top: 50px">
+
+    <p class="center">TOKEN</p>
+    <input id="tbtoken" type="password" class="textbox" name="token" value="{{ token }}">
+    <input type="hidden" name="user" value="{{ user }}">
+    <input type="hidden" name="code" value="{{ code }}">
+    <input id="passedByToken" type="hidden" name="passedByToken" value="0">
+    <br>
+    <br>
+    <p><input type="checkbox" id="cbsaveCookie"> Remember Token</p>
+
+    <input onclick="saveToken()" type="submit" value="LOGIN" class="button" style="margin-top: 50px">
+
+</form>
+
+<script>
+    var cookies = decodeURIComponent(document.cookie);
+    var cbsavetoken = document.getElementById('cbsaveCookie');
+    var tbtoken = document.getElementById('tbtoken');
+    var formlogin = document.getElementById('formlogin');
+    var passedByToken = document.getElementById('passedByToken');
+
+    if (cookies.includes('logintoken')) {
+        let csplit = cookies.split(';');
+        csplit.forEach(c => {
+            c = c.trim();
+            let s = c.split('=');
+            if (s[0] === 'logintoken') {
+                tbtoken.value = s[1];
+                passedByToken.value = '1';
+                formlogin.submit();
+            }
+        });
+    }
+
+    function saveToken() {
+        if (cbsavetoken.checked) {
+            let d = new Date();
+            d.setTime(d.getTime() + (90 * 24 * 3600 * 1000))
+            document.cookie = `logintoken=${tbtoken.value};expires=${d.toUTCString()};`;
+        }
+    }
+</script>

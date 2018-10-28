@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="css/main.css"/>
+        <link rel="shortcut icon" type="image/png" href="src/favicon.png"/>
+    </head>
+    <body>
+        <p>All cookies reset.</p>
+    </body>
+    <script>
+        document.cookie.split('; ')
+            .map((c) => c.split('=')[0])
+            .forEach((c) => {
+                document.cookie = c + '=0; Expires=Thu, 01 Jan 1970 00:00:00 UTC;';
+            });
+    </script>
+</html>

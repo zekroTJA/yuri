@@ -1,0 +1,8 @@
+node_modules/*
+package-lock.json
+WebApiClient/YuriClient/bin/*
+WebApiClient/YuriClient/obj/*
+*/packages/*
+WebApiClient/.vs/*
+config.json
+expose/*

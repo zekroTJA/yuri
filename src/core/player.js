@@ -1,16 +1,10 @@
-const { config, client, settings } = require('../main')
+const Main = require('../main')
 const Logger = require('../util/logger')
 const fs = require('fs')
 const { getTime } = require('../util/timeFormat')
 
 var players = {}
 var guildLog = {}
-var soundStats = (() => {
-    if (fs.existsSync('SOUNDSTATS.json'))
-        return require('../../SOUNDSTATS.json')
-    else
-        return {}
-})()
 
 
 class Player {
@@ -43,19 +37,19 @@ class Player {
             return _b - _a
         }
 
-        let loc = config.fileloc
+        let loc = Main.config.fileloc
         let files = fs.readdirSync(loc)
-            .filter(f => config.files.indexOf(f.split('.')[1].toLowerCase()) > -1)
+            .filter(f => Main.config.files.indexOf(f.split('.')[1].toLowerCase()) > -1)
         if (sorted)
             files.sort(_filter)
         return files
     }
 
     _volume() {
-        return settings.guild(this.guild).volume ? settings.guild(this.guild).volume : 1
+        return Main.settings.guild(this.guild).volume ? Main.settings.guild(this.guild).volume : 1
     }
 
-    play(soundfile) {
+    play(soundfile, memb) {
         // DEBUG
         var STARTTIME = Date.now()
         function getDelay() { return Date.now() - STARTTIME }
@@ -75,13 +69,14 @@ class Player {
             Logger.debug(`[PLAYER] [${getDelay()}] Found file, starting playing file`)
 
             if (file) {
-                this.con.playFile(`${config.fileloc}/${file}`).setVolume(this._volume())
+                this.dispatcher = this.con.playFile(`${Main.config.fileloc}/${file}`)
+                this.dispatcher.setVolume(this._volume())
                 // DEBUG
                 Logger.debug(`[PLAYER] [${getDelay()}] File played`)
                 
                 Logger.debug(`[PLAYED] '${file}' on guild ${this.guild.name}`)
 
-                let logline = `\`${getTime()}\` - **${file.split('.')[0]}** - *(${this.vc.name})*`
+                let logline = `\`${getTime()}\` - **${file.split('.')[0]}** - *(${memb.user.tag})*`
                 if (!guildLog[this.guild.id])
                     guildLog[this.guild.id] = [ logline ]
                 else {
@@ -89,11 +84,14 @@ class Player {
                     guildLog[this.guild.id] = guildLog[this.guild.id].slice(0, 20)
                 }
 
-                if (config.writestats) {
+                if (Main.config.writestats) {
                     if (soundfile.indexOf('.') > -1)
                         soundfile = soundfile.substring(0, soundfile.indexOf('.'))
-                    let stat = soundStats[soundfile]
-                    soundStats[soundfile] = stat ? stat += 1 : 1
+                    Main.database.run('INSERT OR IGNORE INTO soundstats (name, count) VALUES (?, 0);', [soundfile], (err) => {
+                        if (!err) {
+                            Main.database.run('UPDATE soundstats SET count = count + 1 WHERE name = ?', soundfile)
+                        }
+                    })
                 }
 
                 resolve(this)
@@ -108,10 +106,10 @@ class Player {
         this.con.dispatcher.end()
     }
 
-    random() {
+    random(memb) {
         let files = Player.getFilelist()
         let file = files[Math.floor(Math.random() * files.length)]
-        return this.play(file)
+        return this.play(file, memb)
     }
 
     setVolume(vol) {
@@ -136,6 +134,5 @@ class Player {
 module.exports = {
     players,
     guildLog,
-    soundStats,
     Player
 }
