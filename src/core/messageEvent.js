@@ -358,7 +358,6 @@ client.on('message', (msg) => {
                 })
     }
 
-=======
 const Logger = require('../util/logger')
 const BindingHandler = require('./bindingsHandler')
 const fs = require('fs')
