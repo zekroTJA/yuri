@@ -64,7 +64,13 @@ class Player {
             }
             let file = soundfile.split('.')[1] ? 
                        soundfile : 
-                       Player.getFilelist().find(f => f.split('.')[0] == soundfile.toLowerCase())                    
+                       Player.getFilelist().find(f => f.split('.')[0] == soundfile.toLowerCase())
+                       
+            if (!fs.existsSync(`${Main.config.fileloc}/${file}`)) {
+                Logger.debug(`[PLAYER] [${getDelay()}] File not found`)
+                reject('File not found')
+                return
+            }
             // DEBUG
             Logger.debug(`[PLAYER] [${getDelay()}] Found file, starting playing file`)
 

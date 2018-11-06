@@ -326,6 +326,7 @@ client.on('message', (msg) => {
             _getPlayer()
                 .then(p => p.random(memb)
                     .then(() => msg.delete())
+                    .catch((e) => {})
                 )
                 .catch(err => {
                     Logger.error('' + err + '\n' + err.stack)
@@ -350,6 +351,7 @@ client.on('message', (msg) => {
                 .then(p => {
                     p.play(invoke, memb)
                         .then(() => msg.delete())
+                        .catch((e) => {})
                 })
                 .catch(err => {
                     Logger.error('' + err)
