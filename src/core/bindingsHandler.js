@@ -53,7 +53,7 @@ client.on('voiceStateUpdate', (mold, mnew) => {
                 if (binding) {
                     if (binding == 'r') {
                         _getPlayer()
-                            .then(p => p.random(memb))
+                            .then(p => p.random(memb).catch((e) => {}))
                             .catch(err => {
                                 Logger.error('' + err)
                             })
@@ -61,7 +61,7 @@ client.on('voiceStateUpdate', (mold, mnew) => {
                     else {
                         _getPlayer()
                             .then(p => {
-                                p.play(binding, memb)
+                                p.play(binding, memb).catch((e) => {})
                             })
                             .catch(err => {
                                 Logger.error('' + err)

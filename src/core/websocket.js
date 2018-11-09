@@ -7,6 +7,7 @@ const EventEmitter = require('events');
 const DicordOAuth = require('../util/discordOAuth')
 const { randomString } = require('../util/random')
 const Snowflake = require('../util/snowflake')
+const Perms = require('../util/permissions')
 
 const express = require('express')
 const hbs = require('express-handlebars')
@@ -288,7 +289,6 @@ class Websocket {
                         this.sessions[user] = null
                     })
                     this.sessions[user] = session
-                    console.log(req.connection.remoteAddress)
                     Logger.info(`[WS Login (WEB)] CID: ${user} | TAG: ${session.user.tag}`)
                     
                     res.set('Set-Cookie', `sessionid=${session.uid}; Expires=${new Date(Date.now() + SESSION_TIMEOUT).toUTCString()}; Path=/`)
