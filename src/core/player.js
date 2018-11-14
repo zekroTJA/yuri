@@ -128,6 +128,12 @@ class Player {
         return this.disabled
     }
 
+    refetch() {
+        let nBefore = this.soundFiles.length
+        this.soundFiles = Player.getFilelist()
+        return this.soundFiles.length - nBefore
+    }
+
     destroy() {
         this.vc.leave()
         players[this.guild.id] = null
