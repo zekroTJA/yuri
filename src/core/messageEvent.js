@@ -340,6 +340,21 @@ client.on('message', (msg) => {
             info(chan, 'Your ID is:\n```php\n' + memb.id + '\n```')
             break;
 
+        // REFETCH COMMAND
+        case 'refetch':
+            _getPlayer()
+                .then(p => {
+                        let n = p.refetch()
+                        info(chan, `${n > 0 ? 'Added' : 'Removed'} ${Math.abs(n)} sound${Math.abs(n) == 1 ? '' : '\'s'}.`)
+                    }
+                )
+                .catch(err => {
+                    Logger.error('' + err + '\n' + err.stack)
+                    error(chan, 'Could not connect to voice channel.\nMissing permissions?')
+                        .then(m => m.delelengthlengthte(3500))
+                })
+            break;
+
         // PLAY SOUND COMMAND
         default:
             if (!vc) {
