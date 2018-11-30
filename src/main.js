@@ -77,6 +77,11 @@ else {
     process.exit()
 }
 
+if (!fs.existsSync(config.fileloc)) {
+    Logger.error('Sound file location does not exist!');
+    process.exit();
+}
+
 var database = new Sqlite.Database('./expose/DB.sqlite3')
 database.run('CREATE TABLE IF NOT EXISTS soundstats (name VARCHAR PRIMARY KEY, count BIGINT);')
 database.run('CREATE TABLE IF NOT EXISTS apitokens  (uid VARCHAR PRIMARY KEY, token VARCHAR, createdAt BIGINT);')
