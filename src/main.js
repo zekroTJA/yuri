@@ -52,7 +52,7 @@ const DEF_CONF = {
     prefix: ".",
     wstoken: "exampletokenactuallythisneedstobemorecomplexandthisisjustfortravis",
     files: ["mp3", "mp4", "wav", "ogg"],
-    fileloc: "./sounds",
+    fileloc: "/usr/src/app/expose/sounds",
     owner: "",
     writestats: true,
     gamerota: ["zekro.de"]

@@ -22,9 +22,8 @@ const nodes = [ MAIN_NODE ]
 
 function getSound(fileName) {
     return new Promise((resolve, reject) => {
-        let baseLoc = path.dirname(`${Main.config.fileloc}/${fileName}`)
         request({
-            uri: `http://${MAIN_NODE.host}:${MAIN_NODE.port}/loadtracks?identifier=${baseLoc}/${fileName}`,
+            uri: `http://${MAIN_NODE.host}:${MAIN_NODE.port}/loadtracks?identifier=${Main.config.fileloc}/${fileName}`,
             headers: {
                 'Authorization': MAIN_NODE.password
             }
