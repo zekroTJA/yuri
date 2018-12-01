@@ -1,32 +1,75 @@
 const Main = require('../main')
 const Logger = require('../util/logger')
 const fs = require('fs')
+const path = require('path')
 const { getTime } = require('../util/timeFormat')
+const { PlayerManager } = require("discord.js-lavalink");
+const request = require('request');
 
 var players = {}
 var guildLog = {}
 
+console.log('PLAYER FILE LOADED')
+
+const MAIN_NODE = { 
+    host:     Main.config.lavalink.host, 
+    port:     Main.config.lavalink.port, 
+    // region:   Main.client.guilds.first().region, 
+    password: Main.config.lavalink.password 
+}
+
+const nodes = [ MAIN_NODE ]
+
+function getSound(fileName) {
+    return new Promise((resolve, reject) => {
+        let baseLoc = path.dirname(`${Main.config.fileloc}/${fileName}`)
+        request({
+            uri: `http://${MAIN_NODE.host}:${MAIN_NODE.port}/loadtracks?identifier=${baseLoc}/${fileName}`,
+            headers: {
+                'Authorization': MAIN_NODE.password
+            }
+        }, (err, res, body) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            body = JSON.parse(body);
+            if (body && body.tracks && body.tracks.length > 0) {
+                resolve(body.tracks[0].track);
+            } else (
+                reject('file not found')
+            )
+        }).on('error', (err) => {
+            reject(err);
+        });
+    });
+}
 
 class Player {
 
     constructor(vc) {
         return new Promise((resolve, reject) => {
-
+            this.manager = new PlayerManager(Main.client, nodes, {
+                user: Main.client.user.id,
+                shards: 1
+            });
             this.guild = vc.guild
             this.vc = vc
             this.disabled = false
             this.soundFiles = Player.getFilelist()
-            vc.join()
-                .then(con => {
-                    this.con = con
-                    players[this.guild.id] = this
-                    Logger.debug('Created player on guild ' + this.guild.name)
-                    resolve(this)
-                })
-                .catch(err => { 
-                    reject(new Error('Failed connecting to voice channel.\n' + err))
-                })
-
+            this.player = this.manager.join({
+                guild: this.guild.id,
+                channel: vc.id,
+                host: MAIN_NODE.host,
+                region: this.guild.region
+            })
+            this.player.once("error", error => console.error(error));
+            this.player.once("end", data => {
+                if (data.reason === "REPLACED") return;
+            });
+            players[this.guild.id] = this
+            Logger.debug('Created player on guild ' + this.guild.name)
+            resolve(this)
         })
     }
 
@@ -51,13 +94,8 @@ class Player {
     }
 
     play(soundfile, memb) {
-        // DEBUG
-        var STARTTIME = Date.now()
-        function getDelay() { return Date.now() - STARTTIME }
         
         return new Promise((resolve, reject) => {
-            // DEBUG
-            Logger.debug(`[PLAYER] [${getDelay()}] Created Promise`)
 
             if (this.disabled) {
                 reject('Soundboard currently disabled by owner.')
@@ -68,20 +106,23 @@ class Player {
                        this.soundFiles.find(f => f.split('.')[0] == soundfile.toLowerCase())
                        
             if (!fs.existsSync(`${Main.config.fileloc}/${file}`)) {
-                Logger.debug(`[PLAYER] [${getDelay()}] File not found`)
                 reject('File not found')
                 return
             }
-            // DEBUG
-            Logger.debug(`[PLAYER] [${getDelay()}] Found file, starting playing file`)
 
             if (file) {
-                this.dispatcher = this.con.playFile(`${Main.config.fileloc}/${file}`)
-                this.dispatcher.setVolume(this._volume())
-                // DEBUG
-                Logger.debug(`[PLAYER] [${getDelay()}] File played`)
-                
                 Logger.debug(`[PLAYED] '${file}' on guild ${this.guild.name}`)
+
+                getSound(file).then((track) => {
+                    this.player.play(track);
+                    this.player.once("error", error => console.error(error));
+                    this.player.once("end", data => {
+                        Logger.debug(`[PLAYED] '${file}' on guild ${this.guild.name}`)
+                        if (data.reason === "REPLACED") return;
+                    });
+                }).catch((err) => {
+                    Logger.error('Failed playing file: ' + err);
+                })
 
                 let logline = `\`${getTime()}\` - **${file.split('.')[0]}** - *(${memb.user.tag})*`
                 if (!guildLog[this.guild.id])
@@ -110,7 +151,7 @@ class Player {
     }
 
     stop() {
-        this.con.dispatcher.end()
+        this.player.stop()
     }
 
     random(memb) {
@@ -135,9 +176,9 @@ class Player {
     }
 
     destroy() {
-        this.vc.leave()
+        this.player.destroy()
+        this.manager.leave(this.guild.id)
         players[this.guild.id] = null
-        delete this
     }
 
 }

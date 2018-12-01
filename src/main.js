@@ -2,12 +2,12 @@ const Discord = require('discord.js')
 const colors = require('colors')
 const fs = require('fs')
 const Sqlite = require('sqlite3')
+const EventEmiter = require('events')
+const request = require('request')
 
 const Logger = require('./util/logger')
 const { CrashCollector } = require('./util/crashCollector')
 const { Settings } = require('./core/settings')
-const Websocket = require('./core/websocket')
-const EventEmiter = require('events')
 
 if (!fs.existsSync('./expose')){
     fs.mkdirSync('./expose');
@@ -38,6 +38,11 @@ const DEF_CONF = {
     client: {
         id: "id of the CLIENT (in 'General Information')",
         secret: "secret of the CLIENT (also in 'General Information')"
+    },
+    lavalink: {
+        host: 'localhost',
+        port: 2333,
+        password: 'please_dont_change_this_section_if_you_are_using_the_docker_image'
     },
     cert: {
         certfile: "/etc/certs/certfile.cer",
@@ -108,7 +113,7 @@ require('./util/gameRotator')
 
 Logger.debug('Debug mode enabled')
 
-var ws = new Websocket()
+var ws = new (require('./core/websocket'))()
 
 client.on('error', (e) => Logger.error(e))
 

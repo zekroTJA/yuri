@@ -23,11 +23,11 @@
     "discord.js": "^11.4.2",
     "express": "^4.16.4",
     "express-handlebars": "^3.0.0",
-    "node-opus": "^0.3.1",
     "request": "^2.88.0",
     "sha256": "^0.2.0",
     "socket.io": "^2.1.1",
-    "sqlite3": "^4.0.4"
+    "sqlite3": "^4.0.4",
+    "discord.js-lavalink": "^2.1.3"
   },
   "devDependencies": {}
 }
