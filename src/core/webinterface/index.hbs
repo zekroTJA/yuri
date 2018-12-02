@@ -242,8 +242,15 @@
     socket.on('soundStopped', (data) => {
         btstop.disabled = true
         btstop.classList.add('button_disabled')
-        document.getElementById(`sound_${data.sound}`)
-            .classList.remove('button_sound_playing')
+        if (data.sound) {
+            document.getElementById(`sound_${data.sound}`)
+                .classList.remove('button_sound_playing')
+        } else {
+            let htmlColle = document.getElementsByClassName('button_sound_playing')
+            for (var i = 0; i < htmlColle.length; i++) {
+                htmlColle[i].classList.remove('button_sound_playing')
+            }
+        }
     })
 
     socket.on('userConnected', (data) => {

@@ -32,7 +32,12 @@ function getSound(fileName) {
                 reject(err);
                 return;
             }
-            body = JSON.parse(body);
+            try {
+                body = JSON.parse(body);
+            } catch (jsonerr) {
+                reject(jsonerr)
+                return
+            }
             if (body && body.tracks && body.tracks.length > 0) {
                 resolve(body.tracks[0].track);
             } else (
