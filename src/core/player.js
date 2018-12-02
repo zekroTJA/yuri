@@ -119,8 +119,10 @@ class Player {
                         Logger.debug(`[PLAYED] '${file}' on guild ${this.guild.name}`)
                         if (data.reason === "REPLACED") return;
                     });
+                    resolve(this)
                 }).catch((err) => {
                     Logger.error('Failed playing file: ' + err);
+                    reject(err);
                 })
 
                 let logline = `\`${getTime()}\` - **${file.split('.')[0]}** - *(${memb.user.tag})*`
@@ -140,8 +142,6 @@ class Player {
                         }
                     })
                 }
-
-                resolve(this)
             }
             else {
                 reject('File not found')

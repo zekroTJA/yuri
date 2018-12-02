@@ -771,8 +771,10 @@ class Websocket {
                     session.player = player
                     let sockets = this.io.to(session.guild.id) //.of(session.guild.id)
                     player.play(soundFile, session.member).then(() => {
-                        sockets.emit('soundPlaying', { user, sound: soundFile })
-                        player.player.on('end', () => {
+                        setTimeout(() => {
+                            sockets.emit('soundPlaying', { user, sound: soundFile })
+                        }, 100)
+                        player.player.once('end', () => {
                             sockets.emit('soundStopped', { user, sound: soundFile })
                         })
                     }).catch(e => {
