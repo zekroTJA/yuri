@@ -182,7 +182,7 @@ After logging in, you can play sounds by clicking the tiles, search for sounds, 
 
 ## Hotkey Client
 
-**[Here](https://github.com/zekroTJA/yuri/blob/master/WebApiClient/README.md)** you will find more information about setting up the websocket and getting the hotkey client.
+**[Here](https://github.com/zekroTJA/yuri.hotkeyclient)** you will find more information about setting up the websocket and getting the hotkey client.
 
 ---
 
