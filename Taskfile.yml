@@ -1,0 +1,21 @@
+# https://taskfile.dev
+
+version: "3"
+
+env:
+  YURI_API_ADDRESS: 127.0.0.1:8080
+  YURI_DATABASE_DSN: data/db.sqlite3
+  YURI_LOGGING_LEVEL: debug
+
+tasks:
+  default:
+    cmds:
+      - task: run
+
+  run:
+    cmds:
+      - go run cmd/yuri/main.go
+
+  build:
+    cmds:
+      - go build -o bin/yuri ./cmd/yuri/main.go
