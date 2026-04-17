@@ -11,6 +11,7 @@ type Config struct {
 	Database *Database
 	Logging  *Logging
 	Storage  *Storage
+	Ffmpeg   *Ffmpeg
 }
 
 type Logging struct {
@@ -27,6 +28,10 @@ type Database struct {
 
 type Storage struct {
 	Dir string `default:"data/storage"`
+}
+
+type Ffmpeg struct {
+	Path string `default:""`
 }
 
 func New() (*Config, error) {

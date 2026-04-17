@@ -7,6 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/zekrotja/jwt"
 	"github.com/zekrotja/yuri/pkg/database"
+	"github.com/zekrotja/yuri/pkg/ffmpeg"
+	"github.com/zekrotja/yuri/pkg/storage"
 )
 
 const (
@@ -22,10 +24,12 @@ type sessionClaims struct {
 
 type api struct {
 	db         *database.Database
+	storage    *storage.Storage
+	encoder    *ffmpeg.FFMpeg
 	jwtHandler jwt.Handler[sessionClaims]
 }
 
-func Run(addr string, db *database.Database) error {
+func Run(addr string, storage *storage.Storage, encoder *ffmpeg.FFMpeg, db *database.Database) error {
 	gin.SetMode(gin.ReleaseMode)
 
 	secret := make([]byte, 32)
@@ -35,6 +39,8 @@ func Run(addr string, db *database.Database) error {
 
 	t := &api{
 		db:         db,
+		storage:    storage,
+		encoder:    encoder,
 		jwtHandler: jwt.NewHandler[sessionClaims](jwt.NewHmacSha256(secret)),
 	}
 
@@ -44,6 +50,9 @@ func Run(addr string, db *database.Database) error {
 	apiGroup := router.Group("/api/v1")
 	apiGroup.POST("/auth/register", t.authRegister)
 	apiGroup.POST("/auth/login", t.authLogin)
+
+	authenticated := apiGroup.Group("/", t.requireAuth)
+	authenticated.POST("/sounds", t.soundsUpload)
 
 	return router.Run(addr)
 }

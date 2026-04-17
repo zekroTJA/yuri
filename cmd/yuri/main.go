@@ -9,6 +9,8 @@ import (
 	"github.com/zekrotja/yuri/pkg/api"
 	"github.com/zekrotja/yuri/pkg/config"
 	"github.com/zekrotja/yuri/pkg/database"
+	"github.com/zekrotja/yuri/pkg/ffmpeg"
+	"github.com/zekrotja/yuri/pkg/storage"
 )
 
 func main() {
@@ -31,6 +33,12 @@ func run() error {
 	slog.SetLogLoggerLevel(cfg.Logging.Level)
 	slog.Info("Config parsed")
 
+	enc, err := ffmpeg.New(cfg.Ffmpeg.Path)
+	if err != nil {
+		slog.Error("Failed initializing encoder", "err", err)
+		return err
+	}
+
 	slog.Info("Initializing database ...")
 	db, err := database.New(cfg.Database.Dsn)
 	if err != nil {
@@ -43,8 +51,14 @@ func run() error {
 
 	slog.Info("Initialization finished", "took", time.Since(stared))
 
+	st, err := storage.New(cfg.Storage.Dir)
+	if err != nil {
+		slog.Error("Failed initializing storage", "err", err)
+		return err
+	}
+
 	slog.Info("Web server running and accepting requests ...", "addr", cfg.Api.Address)
-	err = api.Run(":8080", db)
+	err = api.Run(":8080", st, enc, db)
 	if err != nil {
 		slog.Error("Failed starting web server", "err", err)
 		return err
