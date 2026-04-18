@@ -11,8 +11,18 @@ func (t *Database) CreateChannel(name string, ownerID uint) (*Channel, error) {
 
 func (t *Database) GetChannelByID(id uint) (*Channel, error) {
 	var channel Channel
-	res := t.db.Preload("Members").First(&channel, id)
+	res := t.db.Preload("Owner").Preload("Members").First(&channel, id)
 	return &channel, mapError(res.Error)
+}
+
+func (t *Database) ListChannelsByUser(userID uint) ([]*Channel, error) {
+	var channels []*Channel
+	res := t.db.Preload("Owner").Preload("Members").
+		Joins("LEFT JOIN channel_members cm ON cm.channel_id = channels.id").
+		Where("channels.owner_id = ? OR cm.user_id = ?", userID, userID).
+		Group("channels.id").
+		Find(&channels)
+	return channels, mapError(res.Error)
 }
 
 func (t *Database) UpdateChannel(id uint, name string) (*Channel, error) {

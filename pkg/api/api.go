@@ -63,8 +63,9 @@ func Run(addr string, storage *storage.Storage, encoder *ffmpeg.FFMpeg, db *data
 	authenticated.DELETE("/apikeys/:id", t.apiKeysDelete)
 
 	authenticated.POST("/channels", t.channelsCreate)
+	authenticated.GET("/channels", t.channelsList)
 	authenticated.GET("/channels/:id", t.channelsGet)
-	authenticated.PUT("/channels/:id", t.channelsUpdate)
+	authenticated.POST("/channels/:id", t.channelsUpdate)
 	authenticated.DELETE("/channels/:id", t.channelsDelete)
 
 	return router.Run(addr)
