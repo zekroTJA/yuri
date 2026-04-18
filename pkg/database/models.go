@@ -34,4 +34,6 @@ type Channel struct {
 
 	OwnerID uint
 	Owner   *User
+	Sounds  []*Sound
+	Members []*User
 }

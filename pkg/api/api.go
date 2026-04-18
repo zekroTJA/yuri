@@ -54,5 +54,10 @@ func Run(addr string, storage *storage.Storage, encoder *ffmpeg.FFMpeg, db *data
 	authenticated := apiGroup.Group("/", t.requireAuth)
 	authenticated.POST("/sounds", t.soundsUpload)
 
+	authenticated.POST("/channels", t.channelsCreate)
+	authenticated.GET("/channels/:id", t.channelsGet)
+	authenticated.PUT("/channels/:id", t.channelsUpdate)
+	authenticated.DELETE("/channels/:id", t.channelsDelete)
+
 	return router.Run(addr)
 }
