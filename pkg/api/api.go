@@ -12,9 +12,12 @@ import (
 )
 
 const (
-	sessionMaxAge     = 30 * 24 * time.Hour
-	sessionCookieName = "session"
-	userKey           = "user"
+	sessionMaxAge      = 30 * 24 * time.Hour
+	sessionCookieName  = "session"
+	userKey            = "user"
+	apiKeyHintLen      = 6
+	apiKeyCharacterLen = 64
+	apiKeyCharacterSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 )
 
 type sessionClaims struct {
@@ -53,6 +56,11 @@ func Run(addr string, storage *storage.Storage, encoder *ffmpeg.FFMpeg, db *data
 
 	authenticated := apiGroup.Group("/", t.requireAuth)
 	authenticated.POST("/sounds", t.soundsUpload)
+
+	authenticated.POST("/apikeys", t.apiKeysCreate)
+	authenticated.GET("/apikeys", t.apiKeysList)
+	authenticated.POST("/apikeys/:id", t.apiKeysUpdate)
+	authenticated.DELETE("/apikeys/:id", t.apiKeysDelete)
 
 	authenticated.POST("/channels", t.channelsCreate)
 	authenticated.GET("/channels/:id", t.channelsGet)
