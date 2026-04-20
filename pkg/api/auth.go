@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -27,6 +28,7 @@ func (t *api) authRegister(ctx *gin.Context) {
 
 	hash, err := argon2id.CreateHash(req.Password, argon2id.DefaultParams)
 	if err != nil {
+		slog.Error("failed hashing password", "err", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to hash password"})
 		return
 	}
@@ -35,6 +37,7 @@ func (t *api) authRegister(ctx *gin.Context) {
 
 	user, err := t.db.GetUserByHandle(handle)
 	if err != nil {
+		slog.Error("failed checking handle availability", "handle", handle, "err", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to check handle availability"})
 		return
 	}
@@ -45,6 +48,7 @@ func (t *api) authRegister(ctx *gin.Context) {
 
 	user, err = t.db.CreateUser(handle, []byte(hash))
 	if err != nil {
+		slog.Error("failed creating user in database", "handle", handle, "err", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create user"})
 		return
 	}
@@ -82,6 +86,7 @@ func (t *api) authLogin(ctx *gin.Context) {
 
 	token, err := t.jwtHandler.EncodeAndSign(claims)
 	if err != nil {
+		slog.Error("failed creating session token", "err", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create session"})
 		return
 	}

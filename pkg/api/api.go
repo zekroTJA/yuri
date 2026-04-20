@@ -55,16 +55,20 @@ func Run(addr string, storage *storage.Storage, encoder *ffmpeg.FFMpeg, db *data
 	apiGroup.POST("/auth/login", t.authLogin)
 
 	authenticated := apiGroup.Group("/", t.requireAuth)
-	authenticated.POST("/sounds", t.soundsUpload)
 
-	authenticated.POST("/apikeys", t.apiKeysCreate)
 	authenticated.GET("/apikeys", t.apiKeysList)
+	authenticated.POST("/apikeys", t.apiKeysCreate)
 	authenticated.POST("/apikeys/:id", t.apiKeysUpdate)
 	authenticated.DELETE("/apikeys/:id", t.apiKeysDelete)
 
-	authenticated.POST("/channels", t.channelsCreate)
+	authenticated.GET("/sounds", t.soundsList)
+	authenticated.POST("/sounds", t.soundsUpload)
+	authenticated.POST("/sounds/:id", t.soundsUpdate)
+	authenticated.DELETE("/sounds/:id", t.soundsDelete)
+
 	authenticated.GET("/channels", t.channelsList)
 	authenticated.GET("/channels/:id", t.channelsGet)
+	authenticated.POST("/channels", t.channelsCreate)
 	authenticated.POST("/channels/:id", t.channelsUpdate)
 	authenticated.DELETE("/channels/:id", t.channelsDelete)
 

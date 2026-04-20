@@ -2,8 +2,8 @@ package database
 
 func (t *Database) CreateChannel(name string, ownerID uint) (*Channel, error) {
 	channel := &Channel{
-		Name:    name,
-		OwnerID: ownerID,
+		Name:      name,
+		CreatorID: ownerID,
 	}
 	res := t.db.Create(channel)
 	return channel, mapError(res.Error)

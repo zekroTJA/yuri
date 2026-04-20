@@ -30,4 +30,6 @@ go.work.sum
 # Dev runtime files
 /data/
 
+/testdata/
+
 /bin/

@@ -44,8 +44,7 @@ type Sound struct {
 
 	Handle    string
 	StorageId string
-	Tags      string
-	Public    bool
+	Tags      []string `gorm:"serializer:json"`
 
 	OwnerID uint
 	Owner   *User
@@ -56,8 +55,7 @@ type Channel struct {
 
 	Name string
 
-	OwnerID uint
-	Owner   *User
-	Sounds  []*Sound `gorm:"many2many:channel_sounds;"`
-	Members []*User  `gorm:"many2many:channel_members;"`
+	CreatorID uint
+	Creator   *User
+	Members   []*User `gorm:"many2many:channel_members;"`
 }

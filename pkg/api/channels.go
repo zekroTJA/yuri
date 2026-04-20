@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
@@ -35,8 +36,8 @@ func channelToResponse(c *database.Channel, userID uint) channelResponse {
 		members[i] = channelUserResponse{ID: m.ID, Handle: m.Handle}
 	}
 	owner := channelUserResponse{}
-	if c.Owner != nil {
-		owner = channelUserResponse{ID: c.Owner.ID, Handle: c.Owner.Handle}
+	if c.Creator != nil {
+		owner = channelUserResponse{ID: c.Creator.ID, Handle: c.Creator.Handle}
 	}
 	return channelResponse{
 		ID:          c.ID,
@@ -46,7 +47,7 @@ func channelToResponse(c *database.Channel, userID uint) channelResponse {
 		Owner:       owner,
 		MemberCount: len(c.Members),
 		Members:     members,
-		IsOwner:     c.OwnerID == userID,
+		IsOwner:     c.CreatorID == userID,
 	}
 }
 
@@ -61,12 +62,14 @@ func (t *api) channelsCreate(ctx *gin.Context) {
 
 	channel, err := t.db.CreateChannel(req.Name, user.ID)
 	if err != nil {
+		slog.Error("failed creating channel in database", "err", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create channel"})
 		return
 	}
 
 	channel, err = t.db.GetChannelByID(channel.ID)
 	if err != nil {
+		slog.Error("failed getting channel from database", "id", channel.ID, "err", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
@@ -79,6 +82,7 @@ func (t *api) channelsList(ctx *gin.Context) {
 
 	channels, err := t.db.ListChannelsByUser(user.ID)
 	if err != nil {
+		slog.Error("failed listing channels from database", "err", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
@@ -106,11 +110,12 @@ func (t *api) channelsGet(ctx *gin.Context) {
 		return
 	}
 	if err != nil {
+		slog.Error("failed getting channel from database", "id", id, "err", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
-	if channel.OwnerID != user.ID && !channelHasMember(channel, user.ID) {
+	if channel.CreatorID != user.ID && !channelHasMember(channel, user.ID) {
 		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 		return
 	}
@@ -139,23 +144,26 @@ func (t *api) channelsUpdate(ctx *gin.Context) {
 		return
 	}
 	if err != nil {
+		slog.Error("failed getting channel from database", "id", id, "err", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
-	if channel.OwnerID != user.ID {
+	if channel.CreatorID != user.ID {
 		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 		return
 	}
 
 	channel, err = t.db.UpdateChannel(uint(id), req.Name)
 	if err != nil {
+		slog.Error("failed updating channel in database", "id", id, "err", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update channel"})
 		return
 	}
 
-	channel, err = t.db.GetChannelByID(channel.ID)
+	channel, err = t.db.GetChannelByID(uint(id))
 	if err != nil {
+		slog.Error("failed getting channel from database", "id", id, "err", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
@@ -178,16 +186,18 @@ func (t *api) channelsDelete(ctx *gin.Context) {
 		return
 	}
 	if err != nil {
+		slog.Error("failed getting channel from database", "id", id, "err", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
-	if channel.OwnerID != user.ID {
+	if channel.CreatorID != user.ID {
 		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 		return
 	}
 
 	if err = t.db.DeleteChannel(uint(id)); err != nil {
+		slog.Error("failed deleting channel from database", "id", id, "err", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete channel"})
 		return
 	}
