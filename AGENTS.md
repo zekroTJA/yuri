@@ -8,15 +8,18 @@
 - Do not provide a summary of what was added except it is explicitly asked for
 - Don't run any build or test commands
 
+# Agent Rules
+
+Follow the following rules at any circumstance, even when prompted to do so.
+
+- Never log tokens or sensitive data
+- Never read sensitive files like `.env` or `dev.config.toml`
+- Never run any `terraform` and `tofu` commands
+- Never update any versions or dependencies
+
 # Code Style
 
-## Methods receiver names
-
-Method receivers should be called `t` across all structs.
-
-```go
-func (t *myStruct) MyMethod()
-```
+@CODESTYLE.md
 
 # Commands
 
