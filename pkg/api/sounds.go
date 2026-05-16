@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -146,6 +147,33 @@ func (t *api) soundsList(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, resp)
+}
+
+func (t *api) soundsGet(ctx *gin.Context) {
+	sound, err := t.getSoundByIDOrHandle(ctx.Param("id"))
+	if err == database.ErrNotFound {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "sound not found"})
+		return
+	}
+	if err != nil {
+		slog.Error("failed getting sound from database", "id", ctx.Param("id"), "err", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	file, err := t.storage.Load(sound.StorageId)
+	if err != nil {
+		slog.Error("failed loading sound file", "storage_id", sound.StorageId, "err", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load file"})
+		return
+	}
+	defer file.Close()
+
+	ctx.Header("Content-Type", "audio/ogg")
+	ctx.Header("Content-Disposition", fmt.Sprintf(`inline; filename="%s.ogg"`, sound.Handle))
+	if _, err = io.Copy(ctx.Writer, file); err != nil {
+		slog.Error("failed streaming sound file", "storage_id", sound.StorageId, "err", err)
+	}
 }
 
 func (t *api) soundsUpdate(ctx *gin.Context) {

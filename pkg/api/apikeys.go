@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/zekrotja/yuri/pkg/database"
+	"github.com/zekrotja/yuri/pkg/util"
 )
 
 type apiKeyCreateRequest struct {
@@ -62,7 +63,7 @@ func (t *api) apiKeysCreate(ctx *gin.Context) {
 		}
 	}
 
-	rawKey := generateAPIKey()
+	rawKey := util.GenerateRandomString(apiKeyCharacterLen, util.DefaultCharset)
 
 	salt := make([]byte, 16)
 	if _, err := rand.Read(salt); err != nil {
@@ -178,13 +179,4 @@ func (t *api) apiKeysDelete(ctx *gin.Context) {
 	}
 
 	ctx.Status(http.StatusNoContent)
-}
-
-func generateAPIKey() string {
-	src := make([]byte, apiKeyCharacterLen)
-	rand.Read(src)
-	for i := range src {
-		src[i] = apiKeyCharacterSet[src[i]%32]
-	}
-	return string(src)
 }

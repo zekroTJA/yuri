@@ -1,9 +1,9 @@
 package database
 
-func (t *Database) CreateChannel(name string, ownerID uint) (*Channel, error) {
+func (t *Database) CreateChannel(name string, creatorID uint) (*Channel, error) {
 	channel := &Channel{
 		Name:      name,
-		CreatorID: ownerID,
+		CreatorID: creatorID,
 	}
 	res := t.db.Create(channel)
 	return channel, mapError(res.Error)
@@ -11,15 +11,15 @@ func (t *Database) CreateChannel(name string, ownerID uint) (*Channel, error) {
 
 func (t *Database) GetChannelByID(id uint) (*Channel, error) {
 	var channel Channel
-	res := t.db.Preload("Owner").Preload("Members").First(&channel, id)
+	res := t.db.Preload("Creator").Preload("Members").First(&channel, id)
 	return &channel, mapError(res.Error)
 }
 
 func (t *Database) ListChannelsByUser(userID uint) ([]*Channel, error) {
 	var channels []*Channel
-	res := t.db.Preload("Owner").Preload("Members").
+	res := t.db.Preload("Creator").Preload("Members").
 		Joins("LEFT JOIN channel_members cm ON cm.channel_id = channels.id").
-		Where("channels.owner_id = ? OR cm.user_id = ?", userID, userID).
+		Where("channels.creator_id = ? OR cm.user_id = ?", userID, userID).
 		Group("channels.id").
 		Find(&channels)
 	return channels, mapError(res.Error)

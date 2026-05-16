@@ -205,6 +205,28 @@ func (t *api) channelsDelete(ctx *gin.Context) {
 	ctx.Status(http.StatusNoContent)
 }
 
+func (t *api) channelsEvents(ctx *gin.Context) {
+	panic("TODO")
+	// user := ctx.MustGet(userKey).(*database.User)
+
+	// id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	// if err != nil {
+	// 	ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+	// 	return
+	// }
+
+	// channel, err := t.db.GetChannelByID(uint(id))
+	// if err == database.ErrNotFound {
+	// 	ctx.JSON(http.StatusNotFound, gin.H{"error": "channel not found"})
+	// 	return
+	// }
+	// if err != nil {
+	// 	slog.Error("failed getting channel from database", "id", id, "err", err)
+	// 	ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+	// 	return
+	// }
+}
+
 func channelHasMember(channel *database.Channel, userID uint) bool {
 	for _, m := range channel.Members {
 		if m.ID == userID {

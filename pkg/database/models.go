@@ -1,12 +1,17 @@
 package database
 
-import "gorm.io/gorm"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 var models = []any{
 	&User{},
 	&APIKey{},
 	&Sound{},
 	&Channel{},
+	&ChannelInvite{},
 }
 
 type Scope string
@@ -58,4 +63,18 @@ type Channel struct {
 	CreatorID uint
 	Creator   *User
 	Members   []*User `gorm:"many2many:channel_members;"`
+}
+
+type ChannelInvite struct {
+	gorm.Model
+
+	Code           string `gorm:"uniqueIndex"`
+	Activations    uint
+	MaxActivations uint
+	ExpiresAt      *time.Time
+
+	ChannelID uint
+	Channel   *Channel
+	CreatorID uint
+	Creator   *User
 }

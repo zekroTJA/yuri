@@ -17,7 +17,6 @@ const (
 	userKey            = "user"
 	apiKeyHintLen      = 6
 	apiKeyCharacterLen = 64
-	apiKeyCharacterSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 )
 
 type sessionClaims struct {
@@ -63,6 +62,7 @@ func Run(addr string, storage *storage.Storage, encoder *ffmpeg.FFMpeg, db *data
 
 	authenticated.GET("/sounds", t.soundsList)
 	authenticated.POST("/sounds", t.soundsUpload)
+	authenticated.GET("/sounds/:id", t.soundsGet)
 	authenticated.POST("/sounds/:id", t.soundsUpdate)
 	authenticated.DELETE("/sounds/:id", t.soundsDelete)
 
@@ -71,6 +71,11 @@ func Run(addr string, storage *storage.Storage, encoder *ffmpeg.FFMpeg, db *data
 	authenticated.POST("/channels", t.channelsCreate)
 	authenticated.POST("/channels/:id", t.channelsUpdate)
 	authenticated.DELETE("/channels/:id", t.channelsDelete)
+	authenticated.GET("/channels/:id/events", t.channelsEvents)
+	authenticated.GET("/channels/:id/invites", t.channelInvitesList)
+	authenticated.POST("/channels/:id/invites", t.channelInvitesCreate)
+	authenticated.DELETE("/channels/:id/invites/:inviteId", t.channelInvitesDelete)
+	authenticated.POST("/invites/:code", t.channelInvitesRedeem)
 
 	return router.Run(addr)
 }
