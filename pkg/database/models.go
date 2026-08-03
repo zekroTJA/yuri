@@ -65,6 +65,15 @@ type Channel struct {
 	Members   []*User `gorm:"many2many:channel_members;"`
 }
 
+func (t *Channel) AssociatedUserIds() []uint {
+	res := make([]uint, 0, len(t.Members)+1)
+	res = append(res, t.CreatorID)
+	for _, m := range t.Members {
+		res = append(res, m.ID)
+	}
+	return res
+}
+
 type ChannelInvite struct {
 	gorm.Model
 

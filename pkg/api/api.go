@@ -2,6 +2,7 @@ package api
 
 import (
 	"crypto/rand"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -10,6 +11,7 @@ import (
 	"github.com/zekrotja/yuri/pkg/database"
 	"github.com/zekrotja/yuri/pkg/ffmpeg"
 	"github.com/zekrotja/yuri/pkg/storage"
+	"github.com/zekrotja/yuri/pkg/util"
 )
 
 const (
@@ -31,6 +33,9 @@ type api struct {
 	encoder    *ffmpeg.FFMpeg
 	jwtHandler jwt.Handler[sessionClaims]
 	sseManager *sse.Manager
+
+	connectionsMtx sync.RWMutex
+	connections    map[uint]util.Set[uint]
 }
 
 func Run(addr string, storage *storage.Storage, encoder *ffmpeg.FFMpeg, db *database.Database) error {
@@ -42,11 +47,12 @@ func Run(addr string, storage *storage.Storage, encoder *ffmpeg.FFMpeg, db *data
 	}
 
 	t := &api{
-		db:         db,
-		storage:    storage,
-		encoder:    encoder,
-		jwtHandler: jwt.NewHandler[sessionClaims](jwt.NewHmacSha256(secret)),
-		sseManager: sse.NewManager(),
+		db:          db,
+		storage:     storage,
+		encoder:     encoder,
+		jwtHandler:  jwt.NewHandler[sessionClaims](jwt.NewHmacSha256(secret)),
+		sseManager:  sse.NewManager(),
+		connections: make(map[uint]util.Set[uint]),
 	}
 
 	router := gin.New()
@@ -70,12 +76,15 @@ func Run(addr string, storage *storage.Storage, encoder *ffmpeg.FFMpeg, db *data
 	authenticated.POST("/sounds/:id", t.soundsUpdate)
 	authenticated.DELETE("/sounds/:id", t.soundsDelete)
 
+	authenticated.GET("/events", t.eventsStream)
+
 	authenticated.GET("/channels", t.channelsList)
 	authenticated.GET("/channels/:id", t.channelsGet)
 	authenticated.POST("/channels", t.channelsCreate)
 	authenticated.POST("/channels/:id", t.channelsUpdate)
 	authenticated.DELETE("/channels/:id", t.channelsDelete)
-	authenticated.GET("/channels/:id/events", t.channelsEvents)
+	authenticated.POST("/channels/:id/connect", t.channelsConnect)
+	authenticated.POST("/channels/:id/disconnect", t.channelsDisconnect)
 	authenticated.POST("/channels/:id/play/:soundId", t.channelsPlay)
 	authenticated.GET("/channels/:id/invites", t.channelInvitesList)
 	authenticated.POST("/channels/:id/invites", t.channelInvitesCreate)

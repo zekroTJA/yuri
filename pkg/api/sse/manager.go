@@ -2,40 +2,62 @@ package sse
 
 import "sync"
 
+const eventChannelBuffer = 64
+
 type Manager struct {
-	mtx      sync.Mutex
-	channels map[uint]*channel
+	mtx sync.Mutex
+
+	sessions map[uint]chan Event
 }
 
 func NewManager() *Manager {
 	return &Manager{
-		channels: make(map[uint]*channel),
+		sessions: make(map[uint]chan Event),
 	}
 }
 
-func (t *Manager) Events(channelId uint, uid uint) <-chan Event {
-	ch := t.getOrCreateChannel(channelId)
-	return ch.events(uid)
-}
-
-func (t *Manager) CloseEvents(channelId uint, uid uint) {
-	ch := t.getOrCreateChannel(channelId)
-	ch.close(uid)
-}
-
-func (t *Manager) Broadcast(channelId uint, event Event) {
+func (t *Manager) Events(userID uint) <-chan Event {
 	t.mtx.Lock()
 	defer t.mtx.Unlock()
 
-	ch := t.getOrCreateChannel(channelId)
-	ch.broadcast(event)
+	if ch, ok := t.sessions[userID]; ok {
+		return ch
+	}
+
+	ch := make(chan Event, eventChannelBuffer)
+	t.sessions[userID] = ch
+
+	return ch
 }
 
-func (t *Manager) getOrCreateChannel(channelId uint) *channel {
-	ch, ok := t.channels[channelId]
+func (t *Manager) CloseEvents(userID uint) {
+	t.mtx.Lock()
+	defer t.mtx.Unlock()
+
+	ch, ok := t.sessions[userID]
 	if !ok {
-		ch = newChannel()
-		t.channels[channelId] = ch
+		return
 	}
-	return ch
+
+	close(ch)
+	delete(t.sessions, userID)
+}
+
+func (t *Manager) Send(event Event, userIds []uint) {
+	for _, userId := range userIds {
+		ch, ok := t.sessions[userId]
+		if !ok {
+			continue
+		}
+		ch <- event
+	}
+}
+
+func (t *Manager) Broadcast(event Event) {
+	t.mtx.Lock()
+	defer t.mtx.Unlock()
+
+	for _, ch := range t.sessions {
+		ch <- event
+	}
 }

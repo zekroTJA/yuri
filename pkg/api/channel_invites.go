@@ -232,14 +232,18 @@ func (t *api) channelInvitesRedeem(ctx *gin.Context) {
 		return
 	}
 
-	channelResponse := models.ChannelToResponse(channel, user.ID)
+	t.connectionsMtx.RLock()
+	defer t.connectionsMtx.RUnlock()
+	connectedUserIds := t.connections[channel.ID].Collect()
 
-	t.sseManager.Broadcast(channel.ID, sse.Event{
+	channelResponse := models.ChannelToResponse(channel, user.ID, connectedUserIds)
+
+	t.sseManager.Send(sse.Event{
 		Event: sse.EventTypeChannelUpdate,
 		Data: sse.EventDataChannelUpdate{
 			Channel: channelResponse,
 		},
-	})
+	}, connectedUserIds)
 
 	ctx.JSON(http.StatusOK, channelResponse)
 }

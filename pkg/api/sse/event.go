@@ -8,7 +8,9 @@ const (
 	EventTypePlay          = EventType("play")
 	EventTypeChannelUpdate = EventType("channel-update")
 	EventTypeChannelDelete = EventType("channel-delete")
-	EventTypeChannelJoined = EventType("channel-joined")
+	EventTypeSoundCreate   = EventType("sound-create")
+	EventTypeSoundUpdate   = EventType("sound-update")
+	EventTypeSoundDelete   = EventType("sound-delete")
 )
 
 type EventDataPlay struct {
@@ -23,9 +25,16 @@ type EventDataChannelDelete struct {
 	ChannelId uint `json:"channel_id"`
 }
 
-type EventDataChannelJoined struct {
-	ChannelId uint `json:"channel_id"`
-	User      *models.ChannelUserResponse
+type EventDataSoundCreate struct {
+	Sound *models.SoundResponse
+}
+
+type EventDataSoundUpdate struct {
+	Sound *models.SoundResponse
+}
+
+type EventDataSoundDelete struct {
+	SoundId uint `json:"sound_id"`
 }
 
 type Event struct {

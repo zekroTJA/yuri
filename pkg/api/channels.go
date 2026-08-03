@@ -1,8 +1,6 @@
 package api
 
 import (
-	"encoding/json"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -11,6 +9,7 @@ import (
 	"github.com/zekrotja/yuri/pkg/api/models"
 	"github.com/zekrotja/yuri/pkg/api/sse"
 	"github.com/zekrotja/yuri/pkg/database"
+	"github.com/zekrotja/yuri/pkg/util"
 )
 
 func (t *api) channelsCreate(ctx *gin.Context) {
@@ -36,7 +35,7 @@ func (t *api) channelsCreate(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, models.ChannelToResponse(channel, user.ID))
+	ctx.JSON(http.StatusCreated, models.ChannelToResponse(channel, user.ID, nil))
 }
 
 func (t *api) channelsList(ctx *gin.Context) {
@@ -49,9 +48,12 @@ func (t *api) channelsList(ctx *gin.Context) {
 		return
 	}
 
+	t.connectionsMtx.RLock()
+	defer t.connectionsMtx.RUnlock()
+
 	resp := make([]*models.ChannelResponse, len(channels))
 	for i, c := range channels {
-		resp[i] = models.ChannelToResponse(c, user.ID)
+		resp[i] = models.ChannelToResponse(c, user.ID, t.connections[c.ID].Collect())
 	}
 
 	ctx.JSON(http.StatusOK, resp)
@@ -82,7 +84,11 @@ func (t *api) channelsGet(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, models.ChannelToResponse(channel, user.ID))
+	t.connectionsMtx.RUnlock()
+	defer t.connectionsMtx.RUnlock()
+	channelConnections := t.connections[channel.ID].Collect()
+
+	ctx.JSON(http.StatusOK, models.ChannelToResponse(channel, user.ID, channelConnections))
 }
 
 func (t *api) channelsUpdate(ctx *gin.Context) {
@@ -130,14 +136,18 @@ func (t *api) channelsUpdate(ctx *gin.Context) {
 		return
 	}
 
-	channelResponse := models.ChannelToResponse(channel, user.ID)
+	t.connectionsMtx.RLock()
+	defer t.connectionsMtx.RUnlock()
+	connectedUserIds := t.connections[channel.ID].Collect()
 
-	t.sseManager.Broadcast(channel.ID, sse.Event{
+	channelResponse := models.ChannelToResponse(channel, user.ID, connectedUserIds)
+
+	t.sseManager.Send(sse.Event{
 		Event: sse.EventTypeChannelUpdate,
 		Data: sse.EventDataChannelUpdate{
 			Channel: channelResponse,
 		},
-	})
+	}, channel.AssociatedUserIds())
 
 	ctx.JSON(http.StatusOK, channelResponse)
 }
@@ -173,17 +183,22 @@ func (t *api) channelsDelete(ctx *gin.Context) {
 		return
 	}
 
-	t.sseManager.Broadcast(channel.ID, sse.Event{
+	t.connectionsMtx.Lock()
+	defer t.connectionsMtx.Lock()
+
+	delete(t.connections, channel.ID)
+
+	t.sseManager.Send(sse.Event{
 		Event: sse.EventTypeChannelDelete,
 		Data: sse.EventDataChannelDelete{
 			ChannelId: channel.ID,
 		},
-	})
+	}, channel.AssociatedUserIds())
 
 	ctx.Status(http.StatusNoContent)
 }
 
-func (t *api) channelsEvents(ctx *gin.Context) {
+func (t *api) channelsConnect(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
 
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
@@ -203,48 +218,100 @@ func (t *api) channelsEvents(ctx *gin.Context) {
 		return
 	}
 
-	if user.ID != channel.CreatorID && !channelHasMember(channel, user.ID) {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+	if channel.CreatorID != user.ID && !channelHasMember(channel, user.ID) {
+		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 		return
 	}
 
-	eventChan := t.sseManager.Events(channel.ID, user.ID)
-	defer func() {
-		t.sseManager.CloseEvents(channel.ID, user.ID)
-	}()
+	t.connectionsMtx.Lock()
+	defer t.connectionsMtx.Unlock()
 
-	ctx.Header("Content-Type", "text/event-stream")
-	ctx.Header("Cache-Control", "no-cache")
-	ctx.Header("Connection", "keep-alive")
-
-	rc := http.NewResponseController(ctx.Writer)
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case event := <-eventChan:
-			dataBytes, err := json.Marshal(event.Data)
+	var disconnectedId uint
+	for chanId, conns := range t.connections {
+		if chanId != channel.ID && conns.Exists(user.ID) {
+			prevChan, err := t.db.GetChannelByID(chanId)
 			if err != nil {
-				slog.Error("failed encoding event data", "err", err.Error(),
-					"eventData", fmt.Sprintf("%#v", event.Data), "chanId", channel.ID, "userId", user.ID)
-				continue
+				slog.Error("failed getting channel from database", "id", id, "err", err)
+				ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 			}
-			_, err = fmt.Fprintf(ctx.Writer, "event: %s\n", event.Event)
-			if err != nil {
-				slog.Error("failed writing sse event", "err", err.Error(), "chanId", channel.ID, "userId", user.ID)
-				return
-			}
-			_, err = fmt.Fprintf(ctx.Writer, "data: %s\n\n", string(dataBytes))
-			if err != nil {
-				slog.Error("failed writing sse data", "err", err.Error(), "chanId", channel.ID, "userId", user.ID)
-				return
-			}
-			if err = rc.Flush(); err != nil {
-				slog.Error("failed flusing sse writer", "err", err.Error(), "chanId", channel.ID, "userId", user.ID)
-				return
-			}
+			_ = t.connections[channel.ID].Remove(user.ID)
+			channelConnections := conns.Collect()
+			t.sseManager.Send(sse.Event{
+				Event: sse.EventTypeChannelUpdate,
+				Data: sse.EventDataChannelUpdate{
+					Channel: models.ChannelToResponse(prevChan, user.ID, channelConnections),
+				},
+			}, channelConnections)
+			disconnectedId = chanId
+			break
 		}
 	}
+
+	chanConnections, ok := t.connections[channel.ID]
+	if !ok {
+		chanConnections = util.NewSet[uint]()
+		t.connections[channel.ID] = chanConnections
+	}
+
+	ok = chanConnections.Insert(user.ID)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "already connected"})
+		return
+	}
+
+	channelResponse := models.ChannelToResponse(channel, user.ID, chanConnections.Collect())
+	t.sseManager.Send(sse.Event{
+		Event: sse.EventTypeChannelUpdate,
+		Data: sse.EventDataChannelUpdate{
+			Channel: channelResponse,
+		},
+	}, channel.AssociatedUserIds())
+
+	ctx.JSON(http.StatusOK, models.ChannelConnectionResponse{
+		ChannelResponse:       channelResponse,
+		DisconnectedChannelId: disconnectedId,
+	})
+}
+
+func (t *api) channelsDisconnect(ctx *gin.Context) {
+	user := ctx.MustGet(userKey).(*database.User)
+
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+
+	channel, err := t.db.GetChannelByID(uint(id))
+	if err == database.ErrNotFound {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "channel not found"})
+		return
+	}
+	if err != nil {
+		slog.Error("failed getting channel from database", "id", id, "err", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	if channel.CreatorID != user.ID && !channelHasMember(channel, user.ID) {
+		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return
+	}
+
+	t.connectionsMtx.Lock()
+	defer t.connectionsMtx.Unlock()
+
+	t.connections[channel.ID].Remove(user.ID)
+
+	channelResponse := models.ChannelToResponse(channel, user.ID, t.connections[channel.ID].Collect())
+	t.sseManager.Send(sse.Event{
+		Event: sse.EventTypeChannelUpdate,
+		Data: sse.EventDataChannelUpdate{
+			Channel: channelResponse,
+		},
+	}, channel.AssociatedUserIds())
+
+	ctx.Status(http.StatusNoContent)
 }
 
 func (t *api) channelsPlay(ctx *gin.Context) {
@@ -283,10 +350,15 @@ func (t *api) channelsPlay(ctx *gin.Context) {
 		return
 	}
 
-	t.sseManager.Broadcast(channel.ID, sse.Event{
+	t.connectionsMtx.RUnlock()
+	defer t.connectionsMtx.RUnlock()
+
+	channelConnections := t.connections[channel.ID].Collect()
+
+	t.sseManager.Send(sse.Event{
 		Event: sse.EventTypePlay,
 		Data:  sse.EventDataPlay{Sound: sound.ID},
-	})
+	}, channelConnections)
 
 	ctx.Status(http.StatusNoContent)
 }

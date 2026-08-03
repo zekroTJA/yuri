@@ -13,6 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/zekrotja/yuri/pkg/api/models"
+	"github.com/zekrotja/yuri/pkg/api/sse"
 	"github.com/zekrotja/yuri/pkg/database"
 	"github.com/zekrotja/yuri/pkg/ffmpeg"
 )
@@ -96,7 +97,13 @@ func (t *api) soundsUpload(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, sound)
+	soundResponse := models.SoundToResponse(sound)
+	t.sseManager.Broadcast(sse.Event{
+		Event: sse.EventTypeSoundCreate,
+		Data:  sse.EventDataSoundCreate{Sound: soundResponse},
+	})
+
+	ctx.JSON(http.StatusCreated, soundResponse)
 }
 
 func (t *api) soundsList(ctx *gin.Context) {
@@ -187,7 +194,13 @@ func (t *api) soundsUpdate(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, models.SoundToResponse(sound))
+	soundResponse := models.SoundToResponse(sound)
+	t.sseManager.Broadcast(sse.Event{
+		Event: sse.EventTypeSoundUpdate,
+		Data:  sse.EventDataSoundUpdate{Sound: soundResponse},
+	})
+
+	ctx.JSON(http.StatusOK, soundResponse)
 }
 
 func (t *api) soundsDelete(ctx *gin.Context) {
@@ -211,6 +224,11 @@ func (t *api) soundsDelete(ctx *gin.Context) {
 	}
 
 	_ = t.storage.Delete(storageID)
+
+	t.sseManager.Broadcast(sse.Event{
+		Event: sse.EventTypeSoundDelete,
+		Data:  sse.EventDataSoundDelete{SoundId: sound.ID},
+	})
 
 	ctx.Status(http.StatusNoContent)
 }
