@@ -8,6 +8,7 @@ import (
 	"github.com/zekrotja/jwt"
 	"github.com/zekrotja/yuri/pkg/database"
 	"github.com/zekrotja/yuri/pkg/ffmpeg"
+	"github.com/zekrotja/yuri/pkg/sse"
 	"github.com/zekrotja/yuri/pkg/storage"
 )
 
@@ -29,6 +30,7 @@ type api struct {
 	storage    *storage.Storage
 	encoder    *ffmpeg.FFMpeg
 	jwtHandler jwt.Handler[sessionClaims]
+	sseManager *sse.Manager
 }
 
 func Run(addr string, storage *storage.Storage, encoder *ffmpeg.FFMpeg, db *database.Database) error {
@@ -44,6 +46,7 @@ func Run(addr string, storage *storage.Storage, encoder *ffmpeg.FFMpeg, db *data
 		storage:    storage,
 		encoder:    encoder,
 		jwtHandler: jwt.NewHandler[sessionClaims](jwt.NewHmacSha256(secret)),
+		sseManager: sse.NewManager(),
 	}
 
 	router := gin.New()
@@ -72,6 +75,7 @@ func Run(addr string, storage *storage.Storage, encoder *ffmpeg.FFMpeg, db *data
 	authenticated.POST("/channels/:id", t.channelsUpdate)
 	authenticated.DELETE("/channels/:id", t.channelsDelete)
 	authenticated.GET("/channels/:id/events", t.channelsEvents)
+	authenticated.POST("/channels/:id/play/:soundId", t.channelsPlay)
 	authenticated.GET("/channels/:id/invites", t.channelInvitesList)
 	authenticated.POST("/channels/:id/invites", t.channelInvitesCreate)
 	authenticated.DELETE("/channels/:id/invites/:inviteId", t.channelInvitesDelete)

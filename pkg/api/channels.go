@@ -1,6 +1,8 @@
 package api
 
 import (
+	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -8,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/zekrotja/yuri/pkg/database"
+	"github.com/zekrotja/yuri/pkg/sse"
 )
 
 type channelRequest struct {
@@ -206,25 +209,111 @@ func (t *api) channelsDelete(ctx *gin.Context) {
 }
 
 func (t *api) channelsEvents(ctx *gin.Context) {
-	panic("TODO")
-	// user := ctx.MustGet(userKey).(*database.User)
+	user := ctx.MustGet(userKey).(*database.User)
 
-	// id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
-	// if err != nil {
-	// 	ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
-	// 	return
-	// }
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
 
-	// channel, err := t.db.GetChannelByID(uint(id))
-	// if err == database.ErrNotFound {
-	// 	ctx.JSON(http.StatusNotFound, gin.H{"error": "channel not found"})
-	// 	return
-	// }
-	// if err != nil {
-	// 	slog.Error("failed getting channel from database", "id", id, "err", err)
-	// 	ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
-	// 	return
-	// }
+	channel, err := t.db.GetChannelByID(uint(id))
+	if err == database.ErrNotFound {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "channel not found"})
+		return
+	}
+	if err != nil {
+		slog.Error("failed getting channel from database", "id", id, "err", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	if user.ID != channel.CreatorID && !channelHasMember(channel, user.ID) {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+		return
+	}
+
+	eventChan := t.sseManager.Events(channel.ID, user.ID)
+	defer func() {
+		t.sseManager.CloseEvents(channel.ID, user.ID)
+	}()
+
+	ctx.Header("Content-Type", "text/event-stream")
+	ctx.Header("Cache-Control", "no-cache")
+	ctx.Header("Connection", "keep-alive")
+
+	rc := http.NewResponseController(ctx.Writer)
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case event := <-eventChan:
+			dataBytes, err := json.Marshal(event.Data)
+			if err != nil {
+				slog.Error("failed encoding event data", "err", err.Error(),
+					"eventData", fmt.Sprintf("%#v", event.Data), "chanId", channel.ID, "userId", user.ID)
+				continue
+			}
+			_, err = fmt.Fprintf(ctx.Writer, "event: %s\n", event.Event)
+			if err != nil {
+				slog.Error("failed writing sse event", "err", err.Error(), "chanId", channel.ID, "userId", user.ID)
+				return
+			}
+			_, err = fmt.Fprintf(ctx.Writer, "data: %s\n\n", string(dataBytes))
+			if err != nil {
+				slog.Error("failed writing sse data", "err", err.Error(), "chanId", channel.ID, "userId", user.ID)
+				return
+			}
+			if err = rc.Flush(); err != nil {
+				slog.Error("failed flusing sse writer", "err", err.Error(), "chanId", channel.ID, "userId", user.ID)
+				return
+			}
+		}
+	}
+}
+
+func (t *api) channelsPlay(ctx *gin.Context) {
+	user := ctx.MustGet(userKey).(*database.User)
+
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+
+	channel, err := t.db.GetChannelByID(uint(id))
+	if err == database.ErrNotFound {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "channel not found"})
+		return
+	}
+	if err != nil {
+		slog.Error("failed getting channel from database", "id", id, "err", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	if channel.CreatorID != user.ID && !channelHasMember(channel, user.ID) {
+		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return
+	}
+
+	sound, err := t.getSoundByIDOrHandle(ctx.Param("soundId"))
+	if err == database.ErrNotFound {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "sound not found"})
+		return
+	}
+	if err != nil {
+		slog.Error("failed getting sound from database", "id", ctx.Param("soundId"), "err", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	t.sseManager.Broadcast(channel.ID, sse.Event{
+		Event: string(sse.EventTypePlay),
+		Data:  sse.EventDataPlay{Sound: sound.ID},
+	})
+
+	ctx.Status(http.StatusNoContent)
 }
 
 func channelHasMember(channel *database.Channel, userID uint) bool {
