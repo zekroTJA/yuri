@@ -10,46 +10,12 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/zekrotja/yuri/pkg/api/models"
 	"github.com/zekrotja/yuri/pkg/database"
 	"github.com/zekrotja/yuri/pkg/ffmpeg"
 )
-
-type soundUserResponse struct {
-	ID     uint   `json:"id"`
-	Handle string `json:"handle"`
-}
-
-type soundResponse struct {
-	ID        uint              `json:"id"`
-	CreatedAt time.Time         `json:"created_at"`
-	UpdatedAt time.Time         `json:"updated_at"`
-	Handle    string            `json:"handle"`
-	Tags      []string          `json:"tags"`
-	Creator   soundUserResponse `json:"creator"`
-}
-
-type soundUpdateRequest struct {
-	Handle string   `json:"handle" binding:"required"`
-	Tags   []string `json:"tags"`
-}
-
-func soundToResponse(s *database.Sound) soundResponse {
-	creator := soundUserResponse{}
-	if s.Owner != nil {
-		creator = soundUserResponse{ID: s.Owner.ID, Handle: s.Owner.Handle}
-	}
-	return soundResponse{
-		ID:        s.ID,
-		CreatedAt: s.CreatedAt,
-		UpdatedAt: s.UpdatedAt,
-		Handle:    s.Handle,
-		Tags:      s.Tags,
-		Creator:   creator,
-	}
-}
 
 func (t *api) getSoundByIDOrHandle(idOrHandle string) (*database.Sound, error) {
 	if id, err := strconv.ParseUint(idOrHandle, 10, 64); err == nil {
@@ -141,9 +107,9 @@ func (t *api) soundsList(ctx *gin.Context) {
 		return
 	}
 
-	resp := make([]soundResponse, len(sounds))
+	resp := make([]*models.SoundResponse, len(sounds))
 	for i, s := range sounds {
-		resp[i] = soundToResponse(s)
+		resp[i] = models.SoundToResponse(s)
 	}
 
 	ctx.JSON(http.StatusOK, resp)
@@ -188,7 +154,7 @@ func (t *api) soundsUpdate(ctx *gin.Context) {
 		return
 	}
 
-	var req soundUpdateRequest
+	var req models.SoundUpdateRequest
 	if err = ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -221,7 +187,7 @@ func (t *api) soundsUpdate(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, soundToResponse(sound))
+	ctx.JSON(http.StatusOK, models.SoundToResponse(sound))
 }
 
 func (t *api) soundsDelete(ctx *gin.Context) {

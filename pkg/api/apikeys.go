@@ -6,51 +6,17 @@ import (
 	"net/http"
 	"slices"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/zekrotja/yuri/pkg/api/models"
 	"github.com/zekrotja/yuri/pkg/database"
 	"github.com/zekrotja/yuri/pkg/util"
 )
 
-type apiKeyCreateRequest struct {
-	Name   string           `json:"name" binding:"required"`
-	Scopes []database.Scope `json:"scopes" binding:"required"`
-}
-
-type apiKeyUpdateRequest struct {
-	Name string `json:"name" binding:"required"`
-}
-
-type apiKeyResponse struct {
-	ID        uint             `json:"id"`
-	CreatedAt time.Time        `json:"created_at"`
-	UpdatedAt time.Time        `json:"updated_at"`
-	Name      string           `json:"name"`
-	Scopes    []database.Scope `json:"scopes"`
-	OwnerID   uint             `json:"owner_id"`
-}
-
-type apiKeyCreateResponse struct {
-	apiKeyResponse
-	Key string `json:"key"`
-}
-
-func apiKeyToResponse(k *database.APIKey) apiKeyResponse {
-	return apiKeyResponse{
-		ID:        k.ID,
-		CreatedAt: k.CreatedAt,
-		UpdatedAt: k.UpdatedAt,
-		Name:      k.Name,
-		Scopes:    k.Scopes,
-		OwnerID:   k.OwnerID,
-	}
-}
-
 func (t *api) apiKeysCreate(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
 
-	var req apiKeyCreateRequest
+	var req models.APIKeyCreateRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -82,8 +48,8 @@ func (t *api) apiKeysCreate(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, apiKeyCreateResponse{
-		apiKeyResponse: apiKeyToResponse(key),
+	ctx.JSON(http.StatusCreated, models.APIKeyCreateResponse{
+		APIKeyResponse: models.APIKeyToResponse(key),
 		Key:            rawKey,
 	})
 }
@@ -98,9 +64,9 @@ func (t *api) apiKeysList(ctx *gin.Context) {
 		return
 	}
 
-	resp := make([]apiKeyResponse, len(keys))
+	resp := make([]*models.APIKeyResponse, len(keys))
 	for i, k := range keys {
-		resp[i] = apiKeyToResponse(k)
+		resp[i] = models.APIKeyToResponse(k)
 	}
 
 	ctx.JSON(http.StatusOK, resp)
@@ -115,7 +81,7 @@ func (t *api) apiKeysUpdate(ctx *gin.Context) {
 		return
 	}
 
-	var req apiKeyUpdateRequest
+	var req models.APIKeyUpdateRequest
 	if err = ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -144,7 +110,7 @@ func (t *api) apiKeysUpdate(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, apiKeyToResponse(key))
+	ctx.JSON(http.StatusOK, models.APIKeyToResponse(key))
 }
 
 func (t *api) apiKeysDelete(ctx *gin.Context) {

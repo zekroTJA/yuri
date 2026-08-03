@@ -7,10 +7,24 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zekrotja/yuri/pkg/database"
 )
+
+func (t *api) accessLogger(ctx *gin.Context) {
+	start := time.Now()
+
+	ctx.Next()
+
+	slog.Info("request",
+		"method", ctx.Request.Method,
+		"path", ctx.Request.URL.Path,
+		"status", ctx.Writer.Status(),
+		"duration", time.Since(start),
+	)
+}
 
 func (t *api) requireAuth(ctx *gin.Context) {
 	token, err := ctx.Cookie(sessionCookieName)

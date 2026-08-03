@@ -5,7 +5,9 @@ type channel struct {
 }
 
 func newChannel() *channel {
-	return &channel{}
+	return &channel{
+		sessions: make(map[uint]chan Event),
+	}
 }
 
 func (t *channel) events(uid uint) <-chan Event {

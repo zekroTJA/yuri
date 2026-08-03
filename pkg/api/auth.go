@@ -7,15 +7,11 @@ import (
 
 	"github.com/alexedwards/argon2id"
 	"github.com/gin-gonic/gin"
+	"github.com/zekrotja/yuri/pkg/api/models"
 )
 
-type authRequest struct {
-	Handle   string `json:"handle" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
-
 func (t *api) authRegister(ctx *gin.Context) {
-	var req authRequest
+	var req models.AuthRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -57,7 +53,7 @@ func (t *api) authRegister(ctx *gin.Context) {
 }
 
 func (t *api) authLogin(ctx *gin.Context) {
-	var req authRequest
+	var req models.AuthRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

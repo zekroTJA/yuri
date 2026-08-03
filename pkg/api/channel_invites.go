@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/zekrotja/yuri/pkg/api/models"
+	"github.com/zekrotja/yuri/pkg/api/sse"
 	"github.com/zekrotja/yuri/pkg/database"
 	"github.com/zekrotja/yuri/pkg/util"
 )
@@ -14,35 +16,6 @@ import (
 const (
 	channelInviteCodeLen = 16
 )
-
-type channelInviteCreateRequest struct {
-	MaxActivations uint       `json:"max_activations"`
-	ExpiresAt      *time.Time `json:"expires_at,omitempty"`
-}
-
-type channelInviteResponse struct {
-	ID             uint       `json:"id"`
-	CreatedAt      time.Time  `json:"created_at"`
-	Code           string     `json:"code"`
-	Activations    uint       `json:"activations"`
-	MaxActivations uint       `json:"max_activations"`
-	ExpiresAt      *time.Time `json:"expires_at,omitempty"`
-	ChannelID      uint       `json:"channel_id"`
-	CreatorID      uint       `json:"creator_id"`
-}
-
-func channelInviteToResponse(i *database.ChannelInvite) channelInviteResponse {
-	return channelInviteResponse{
-		ID:             i.ID,
-		CreatedAt:      i.CreatedAt,
-		Code:           i.Code,
-		Activations:    i.Activations,
-		MaxActivations: i.MaxActivations,
-		ExpiresAt:      i.ExpiresAt,
-		ChannelID:      i.ChannelID,
-		CreatorID:      i.CreatorID,
-	}
-}
 
 func (t *api) channelInvitesCreate(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
@@ -53,7 +26,7 @@ func (t *api) channelInvitesCreate(ctx *gin.Context) {
 		return
 	}
 
-	var req channelInviteCreateRequest
+	var req models.ChannelInviteCreateRequest
 	if err = ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -89,7 +62,7 @@ func (t *api) channelInvitesCreate(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, channelInviteToResponse(invite))
+	ctx.JSON(http.StatusCreated, models.ChannelInviteToResponse(invite))
 }
 
 func (t *api) channelInvitesList(ctx *gin.Context) {
@@ -124,9 +97,9 @@ func (t *api) channelInvitesList(ctx *gin.Context) {
 		return
 	}
 
-	resp := make([]channelInviteResponse, len(invites))
+	resp := make([]*models.ChannelInviteResponse, len(invites))
 	for i, inv := range invites {
-		resp[i] = channelInviteToResponse(inv)
+		resp[i] = models.ChannelInviteToResponse(inv)
 	}
 
 	ctx.JSON(http.StatusOK, resp)
@@ -216,5 +189,14 @@ func (t *api) channelInvitesRedeem(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, channelToResponse(channel, user.ID))
+	channelResponse := models.ChannelToResponse(channel, user.ID)
+
+	t.sseManager.Broadcast(channel.ID, sse.Event{
+		Event: sse.EventTypeChannelUpdate,
+		Data: sse.EventDataChannelUpdate{
+			Channel: channelResponse,
+		},
+	})
+
+	ctx.JSON(http.StatusOK, channelResponse)
 }

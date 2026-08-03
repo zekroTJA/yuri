@@ -6,58 +6,17 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/zekrotja/yuri/pkg/api/models"
+	"github.com/zekrotja/yuri/pkg/api/sse"
 	"github.com/zekrotja/yuri/pkg/database"
-	"github.com/zekrotja/yuri/pkg/sse"
 )
-
-type channelRequest struct {
-	Name string `json:"name" binding:"required"`
-}
-
-type channelUserResponse struct {
-	ID     uint   `json:"id"`
-	Handle string `json:"handle"`
-}
-
-type channelResponse struct {
-	ID          uint                  `json:"id"`
-	CreatedAt   time.Time             `json:"created_at"`
-	UpdatedAt   time.Time             `json:"updated_at"`
-	Name        string                `json:"name"`
-	Owner       channelUserResponse   `json:"owner"`
-	MemberCount int                   `json:"member_count"`
-	Members     []channelUserResponse `json:"members"`
-	IsOwner     bool                  `json:"is_owner"`
-}
-
-func channelToResponse(c *database.Channel, userID uint) channelResponse {
-	members := make([]channelUserResponse, len(c.Members))
-	for i, m := range c.Members {
-		members[i] = channelUserResponse{ID: m.ID, Handle: m.Handle}
-	}
-	owner := channelUserResponse{}
-	if c.Creator != nil {
-		owner = channelUserResponse{ID: c.Creator.ID, Handle: c.Creator.Handle}
-	}
-	return channelResponse{
-		ID:          c.ID,
-		CreatedAt:   c.CreatedAt,
-		UpdatedAt:   c.UpdatedAt,
-		Name:        c.Name,
-		Owner:       owner,
-		MemberCount: len(c.Members),
-		Members:     members,
-		IsOwner:     c.CreatorID == userID,
-	}
-}
 
 func (t *api) channelsCreate(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
 
-	var req channelRequest
+	var req models.ChannelRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -77,7 +36,7 @@ func (t *api) channelsCreate(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, channelToResponse(channel, user.ID))
+	ctx.JSON(http.StatusCreated, models.ChannelToResponse(channel, user.ID))
 }
 
 func (t *api) channelsList(ctx *gin.Context) {
@@ -90,9 +49,9 @@ func (t *api) channelsList(ctx *gin.Context) {
 		return
 	}
 
-	resp := make([]channelResponse, len(channels))
+	resp := make([]*models.ChannelResponse, len(channels))
 	for i, c := range channels {
-		resp[i] = channelToResponse(c, user.ID)
+		resp[i] = models.ChannelToResponse(c, user.ID)
 	}
 
 	ctx.JSON(http.StatusOK, resp)
@@ -123,7 +82,7 @@ func (t *api) channelsGet(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, channelToResponse(channel, user.ID))
+	ctx.JSON(http.StatusOK, models.ChannelToResponse(channel, user.ID))
 }
 
 func (t *api) channelsUpdate(ctx *gin.Context) {
@@ -135,7 +94,7 @@ func (t *api) channelsUpdate(ctx *gin.Context) {
 		return
 	}
 
-	var req channelRequest
+	var req models.ChannelRequest
 	if err = ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -171,7 +130,16 @@ func (t *api) channelsUpdate(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, channelToResponse(channel, user.ID))
+	channelResponse := models.ChannelToResponse(channel, user.ID)
+
+	t.sseManager.Broadcast(channel.ID, sse.Event{
+		Event: sse.EventTypeChannelUpdate,
+		Data: sse.EventDataChannelUpdate{
+			Channel: channelResponse,
+		},
+	})
+
+	ctx.JSON(http.StatusOK, channelResponse)
 }
 
 func (t *api) channelsDelete(ctx *gin.Context) {
@@ -204,6 +172,13 @@ func (t *api) channelsDelete(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete channel"})
 		return
 	}
+
+	t.sseManager.Broadcast(channel.ID, sse.Event{
+		Event: sse.EventTypeChannelDelete,
+		Data: sse.EventDataChannelDelete{
+			ChannelId: channel.ID,
+		},
+	})
 
 	ctx.Status(http.StatusNoContent)
 }
@@ -293,7 +268,7 @@ func (t *api) channelsPlay(ctx *gin.Context) {
 	}
 
 	if channel.CreatorID != user.ID && !channelHasMember(channel, user.ID) {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "not found"})
 		return
 	}
 
@@ -309,7 +284,7 @@ func (t *api) channelsPlay(ctx *gin.Context) {
 	}
 
 	t.sseManager.Broadcast(channel.ID, sse.Event{
-		Event: string(sse.EventTypePlay),
+		Event: sse.EventTypePlay,
 		Data:  sse.EventDataPlay{Sound: sound.ID},
 	})
 

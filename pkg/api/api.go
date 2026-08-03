@@ -6,9 +6,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/zekrotja/jwt"
+	"github.com/zekrotja/yuri/pkg/api/sse"
 	"github.com/zekrotja/yuri/pkg/database"
 	"github.com/zekrotja/yuri/pkg/ffmpeg"
-	"github.com/zekrotja/yuri/pkg/sse"
 	"github.com/zekrotja/yuri/pkg/storage"
 )
 
@@ -51,6 +51,7 @@ func Run(addr string, storage *storage.Storage, encoder *ffmpeg.FFMpeg, db *data
 
 	router := gin.New()
 	router.Use(gin.Recovery())
+	router.Use(t.accessLogger)
 
 	apiGroup := router.Group("/api/v1")
 	apiGroup.POST("/auth/register", t.authRegister)
