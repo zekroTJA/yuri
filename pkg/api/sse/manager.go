@@ -44,6 +44,9 @@ func (t *Manager) CloseEvents(userID uint) {
 }
 
 func (t *Manager) Send(event Event, userIds []uint) {
+	t.mtx.Lock()
+	defer t.mtx.Unlock()
+
 	for _, userId := range userIds {
 		ch, ok := t.sessions[userId]
 		if !ok {

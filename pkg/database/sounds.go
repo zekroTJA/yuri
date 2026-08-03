@@ -20,7 +20,7 @@ func (t *Database) ListSounds() ([]*Sound, error) {
 	return sounds, mapError(res.Error)
 }
 
-func (t *Database) CreateSound(handle, storageID string, tags []string, ownerID uint) (*Sound, error) {
+func (t *Database) CreateSound(handle string, storageID string, tags []string, ownerID uint) (*Sound, error) {
 	sound := &Sound{
 		Handle:    handle,
 		StorageId: storageID,

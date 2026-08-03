@@ -84,7 +84,7 @@ func (t *api) channelsGet(ctx *gin.Context) {
 		return
 	}
 
-	t.connectionsMtx.RUnlock()
+	t.connectionsMtx.RLock()
 	defer t.connectionsMtx.RUnlock()
 	channelConnections := t.connections[channel.ID].Collect()
 
@@ -184,7 +184,7 @@ func (t *api) channelsDelete(ctx *gin.Context) {
 	}
 
 	t.connectionsMtx.Lock()
-	defer t.connectionsMtx.Lock()
+	defer t.connectionsMtx.Unlock()
 
 	delete(t.connections, channel.ID)
 
@@ -233,8 +233,9 @@ func (t *api) channelsConnect(ctx *gin.Context) {
 			if err != nil {
 				slog.Error("failed getting channel from database", "id", id, "err", err)
 				ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+				return
 			}
-			_ = t.connections[channel.ID].Remove(user.ID)
+			_ = conns.Remove(user.ID)
 			channelConnections := conns.Collect()
 			t.sseManager.Send(sse.Event{
 				Event: sse.EventTypeChannelUpdate,
@@ -350,7 +351,7 @@ func (t *api) channelsPlay(ctx *gin.Context) {
 		return
 	}
 
-	t.connectionsMtx.RUnlock()
+	t.connectionsMtx.RLock()
 	defer t.connectionsMtx.RUnlock()
 
 	channelConnections := t.connections[channel.ID].Collect()

@@ -17,8 +17,8 @@ func New(dir string) (*Storage, error) {
 	return &Storage{dir: dir}, nil
 }
 
-func (s *Storage) Store(name string, r io.Reader) error {
-	f, err := os.Create(filepath.Join(s.dir, name))
+func (t *Storage) Store(name string, r io.Reader) error {
+	f, err := os.Create(filepath.Join(t.dir, name))
 	if err != nil {
 		return err
 	}
@@ -27,10 +27,10 @@ func (s *Storage) Store(name string, r io.Reader) error {
 	return err
 }
 
-func (s *Storage) Load(name string) (io.ReadCloser, error) {
-	return os.Open(filepath.Join(s.dir, name))
+func (t *Storage) Load(name string) (io.ReadCloser, error) {
+	return os.Open(filepath.Join(t.dir, name))
 }
 
-func (s *Storage) Delete(name string) error {
-	return os.Remove(filepath.Join(s.dir, name))
+func (t *Storage) Delete(name string) error {
+	return os.Remove(filepath.Join(t.dir, name))
 }

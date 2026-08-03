@@ -1,8 +1,8 @@
 package api
 
 import (
-	"bytes"
 	"crypto/sha512"
+	"crypto/subtle"
 	"log/slog"
 	"net/http"
 	"slices"
@@ -60,7 +60,11 @@ func (t *api) requireAuth(ctx *gin.Context) {
 			if !slices.Contains(key.Scopes, scopeForMethod) {
 				continue
 			}
-			if bytes.Equal(hashApiKey(token, key.Salt), key.Hash) {
+			if subtle.ConstantTimeCompare(hashApiKey(token, key.Salt), key.Hash) == 1 {
+				if key.Owner == nil {
+					ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+					return
+				}
 				ctx.Set(userKey, key.Owner)
 				ctx.Next()
 				return
@@ -84,6 +88,10 @@ func (t *api) requireAuth(ctx *gin.Context) {
 
 	user, err := t.db.GetUserByID(claims.UserID)
 	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+	if user == nil {
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}

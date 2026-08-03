@@ -58,7 +58,7 @@ func run() error {
 	}
 
 	slog.Info("Web server running and accepting requests ...", "addr", cfg.Api.Address)
-	err = api.Run(":8080", st, enc, db)
+	err = api.Run(cfg.Api.Address, st, enc, db)
 	if err != nil {
 		slog.Error("Failed starting web server", "err", err)
 		return err

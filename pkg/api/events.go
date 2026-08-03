@@ -19,7 +19,7 @@ func (t *api) eventsStream(ctx *gin.Context) {
 	defer func() {
 		t.sseManager.CloseEvents(user.ID)
 		t.connectionsMtx.Lock()
-		defer t.connectionsMtx.RUnlock()
+		defer t.connectionsMtx.Unlock()
 		for chanId, conns := range t.connections {
 			if conns.Remove(user.ID) {
 				channel, err := t.db.GetChannelByID(chanId)

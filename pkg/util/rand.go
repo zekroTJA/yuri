@@ -6,7 +6,9 @@ const DefaultCharset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123
 
 func GenerateRandomString(length int, charset string) string {
 	src := make([]byte, length)
-	rand.Read(src)
+	// err in rand.Read is unreachable and would result in a panic, so this is
+	// totally fine to ignore the returned error here.
+	_, _ = rand.Read(src)
 	for i := range src {
 		src[i] = charset[src[i]%byte(len(charset))]
 	}
