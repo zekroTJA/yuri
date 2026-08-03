@@ -1,0 +1,62 @@
+type: http_request
+model: http_request
+id: rq_5bCg2VJZ5B
+createdAt: 2026-04-18T11:05:44.271201300
+updatedAt: 2026-04-18T11:09:13.392294800
+workspaceId: wk_iBBvJWdZgm
+folderId: fl_xmHVRE7K6D
+authentication: {}
+authenticationType: null
+body:
+  form:
+  - enabled: true
+    file: C:\Users\riho\Downloads\slavory.oga
+    id: G4FcGFUP6T
+    name: file
+  - enabled: true
+    id: K0A4X6Impi
+    name: handle
+    value: slavory
+  - enabled: true
+    id: ShEMbSRUzt
+    name: ''
+    value: ''
+  text: |-
+    {
+      "name": "rwd"
+    }
+bodyType: null
+description: ''
+headers:
+- enabled: true
+  name: ''
+  value: ''
+  id: DYdXdnZRtE
+method: DELETE
+name: delete
+sortPriority: 0.003
+url: ${[ address ]}/api/v1/apikeys/:id
+urlParameters:
+- enabled: true
+  name: :id
+  value: '7'
+  id: aE7MPAaSPm
+- enabled: true
+  name: ''
+  value: ''
+  id: YMqAkxwSiE
+settingSendCookies:
+  enabled: false
+  value: true
+settingStoreCookies:
+  enabled: false
+  value: true
+settingValidateCertificates:
+  enabled: false
+  value: true
+settingFollowRedirects:
+  enabled: false
+  value: true
+settingRequestTimeout:
+  enabled: false
+  value: 0

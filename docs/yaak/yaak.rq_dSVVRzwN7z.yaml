@@ -1,0 +1,66 @@
+type: http_request
+model: http_request
+id: rq_dSVVRzwN7z
+createdAt: 2026-04-14T20:20:47.557847300
+updatedAt: 2026-04-20T09:08:02.923269800
+workspaceId: wk_iBBvJWdZgm
+folderId: fl_ct34PCkmdf
+authentication: {}
+authenticationType: null
+body:
+  form:
+  - enabled: true
+    file: F:\dev\yuri\testdata\bingbong.oga
+    id: G4FcGFUP6T
+    name: file
+  - enabled: true
+    id: K0A4X6Impi
+    name: handle
+    value: bingbong
+  - enabled: true
+    id: YYCpkfqect
+    name: tags
+    value: foo
+  - enabled: true
+    id: naKi8VF7BU
+    name: tags
+    value: bar
+  - enabled: true
+    id: cNz9mgbcrh
+    name: tags
+    value: baz fuz
+  - enabled: true
+    id: BqqgTwrc6t
+    name: ''
+    value: ''
+bodyType: multipart/form-data
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: multipart/form-data
+  id: 2Ee7VEHIbi
+- enabled: true
+  name: ''
+  value: ''
+  id: jVHrGjqYhA
+method: POST
+name: create
+sortPriority: 2333.3333333333335
+url: ${[ address ]}/api/v1/sounds
+urlParameters: []
+settingSendCookies:
+  enabled: false
+  value: true
+settingStoreCookies:
+  enabled: false
+  value: true
+settingValidateCertificates:
+  enabled: false
+  value: true
+settingFollowRedirects:
+  enabled: false
+  value: true
+settingRequestTimeout:
+  enabled: false
+  value: 0

@@ -1,0 +1,26 @@
+type: workspace
+model: workspace
+id: wk_iBBvJWdZgm
+createdAt: 2026-04-12T14:20:32.602964400
+updatedAt: 2026-08-03T17:08:21.891316700
+authentication: {}
+authenticationType: null
+description: ''
+headers:
+- enabled: true
+  name: Authorization
+  value: bearer ${[ apikey ]}
+  id: PUCRwuxFcn
+- enabled: true
+  name: ''
+  value: ''
+  id: VBX9ZNiq37
+name: Yuri
+encryptionKeyChallenge: null
+settingValidateCertificates: true
+settingFollowRedirects: true
+settingRequestTimeout: 0
+settingRequestMessageSize: 67108864
+settingDnsOverrides: []
+settingSendCookies: false
+settingStoreCookies: false

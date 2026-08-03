@@ -1,0 +1,33 @@
+type: http_request
+model: http_request
+id: rq_bbJP9DPJcT
+createdAt: 2026-04-18T11:12:49.557460800
+updatedAt: 2026-05-16T08:48:40.389656700
+workspaceId: wk_iBBvJWdZgm
+folderId: fl_vD2FuUopk7
+authentication: {}
+authenticationType: null
+body: {}
+bodyType: null
+description: ''
+headers: []
+method: GET
+name: list
+sortPriority: 0.0
+url: ${[ address ]}/api/v1/channels
+urlParameters: []
+settingSendCookies:
+  enabled: false
+  value: true
+settingStoreCookies:
+  enabled: false
+  value: true
+settingValidateCertificates:
+  enabled: false
+  value: true
+settingFollowRedirects:
+  enabled: false
+  value: true
+settingRequestTimeout:
+  enabled: false
+  value: 0

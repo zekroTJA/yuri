@@ -1,0 +1,50 @@
+type: http_request
+model: http_request
+id: rq_aN2eDSk2VC
+createdAt: 2026-04-20T08:52:42.514221900
+updatedAt: 2026-04-20T08:53:32.113308400
+workspaceId: wk_iBBvJWdZgm
+folderId: fl_ct34PCkmdf
+authentication: {}
+authenticationType: null
+body:
+  form:
+  - enabled: true
+    file: C:\Users\riho\Downloads\slavory.oga
+    id: G4FcGFUP6T
+    name: file
+  - enabled: true
+    id: K0A4X6Impi
+    name: handle
+    value: slavory
+  - enabled: true
+    id: ShEMbSRUzt
+    name: ''
+    value: ''
+bodyType: null
+description: ''
+headers:
+- enabled: true
+  name: ''
+  value: ''
+  id: jVHrGjqYhA
+method: GET
+name: list
+sortPriority: 0.0
+url: ${[ address ]}/api/v1/sounds
+urlParameters: []
+settingSendCookies:
+  enabled: false
+  value: true
+settingStoreCookies:
+  enabled: false
+  value: true
+settingValidateCertificates:
+  enabled: false
+  value: true
+settingFollowRedirects:
+  enabled: false
+  value: true
+settingRequestTimeout:
+  enabled: false
+  value: 0

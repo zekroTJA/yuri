@@ -1,0 +1,42 @@
+type: http_request
+model: http_request
+id: rq_vtQJD99QpB
+createdAt: 2026-04-12T14:30:18.424288300
+updatedAt: 2026-08-03T17:08:34.133216700
+workspaceId: wk_iBBvJWdZgm
+folderId: fl_ThbD78jMtc
+authentication: {}
+authenticationType: null
+body:
+  text: |-
+    {
+      "handle": "foo",
+      "password": "123456"
+    }
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: URtaasaSnf
+method: POST
+name: login
+sortPriority: 2000.0
+url: ${[ address ]}/api/v1/auth/login
+urlParameters: []
+settingSendCookies:
+  enabled: true
+  value: false
+settingStoreCookies:
+  enabled: true
+  value: true
+settingValidateCertificates:
+  enabled: false
+  value: true
+settingFollowRedirects:
+  enabled: false
+  value: true
+settingRequestTimeout:
+  enabled: false
+  value: 0

@@ -1,0 +1,41 @@
+type: http_request
+model: http_request
+id: rq_MTgxShciU7
+createdAt: 2026-04-18T11:20:30.131299
+updatedAt: 2026-05-16T08:48:40.398371500
+workspaceId: wk_iBBvJWdZgm
+folderId: fl_vD2FuUopk7
+authentication: {}
+authenticationType: null
+body:
+  text: |-
+    {
+      "name": "test"
+    }
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: CxWXabc3Dh
+method: POST
+name: create
+sortPriority: 1000.0
+url: ${[ address ]}/api/v1/channels
+urlParameters: []
+settingSendCookies:
+  enabled: false
+  value: true
+settingStoreCookies:
+  enabled: false
+  value: true
+settingValidateCertificates:
+  enabled: false
+  value: true
+settingFollowRedirects:
+  enabled: false
+  value: true
+settingRequestTimeout:
+  enabled: false
+  value: 0
