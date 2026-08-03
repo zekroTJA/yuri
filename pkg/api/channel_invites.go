@@ -170,7 +170,50 @@ func (t *api) channelInvitesRedeem(ctx *gin.Context) {
 		return
 	}
 
-	channel, err := t.db.RedeemChannelInvite(code, user.ID)
+	var channel *database.Channel
+	err := t.db.Transaction(func(tx *database.Database) error {
+		invite, err := tx.GetChannelInviteByCode(code)
+		if err != nil {
+			return err
+		}
+
+		if invite.ExpiresAt != nil && time.Now().After(*invite.ExpiresAt) {
+			return database.ErrInviteExpired
+		}
+
+		c, err := tx.GetChannelByID(invite.ChannelID)
+		if err != nil {
+			return err
+		}
+
+		alreadyMember := c.CreatorID == user.ID
+		if !alreadyMember {
+			for _, m := range c.Members {
+				if m.ID == user.ID {
+					alreadyMember = true
+					break
+				}
+			}
+		}
+
+		if !alreadyMember {
+			if invite.MaxActivations > 0 && invite.Activations >= invite.MaxActivations {
+				return database.ErrInviteExhausted
+			}
+
+			if err = tx.AddChannelMember(c.ID, user.ID); err != nil {
+				return err
+			}
+
+			invite.Activations++
+			if _, err = tx.UpdateChannelInvite(invite); err != nil {
+				return err
+			}
+		}
+
+		channel, err = tx.GetChannelByID(invite.ChannelID)
+		return err
+	})
 	if err == database.ErrNotFound {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "invite not found"})
 		return

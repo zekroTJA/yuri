@@ -1,5 +1,7 @@
 package database
 
+import "gorm.io/gorm"
+
 func (t *Database) CreateChannel(name string, creatorID uint) (*Channel, error) {
 	channel := &Channel{
 		Name:      name,
@@ -38,4 +40,11 @@ func (t *Database) UpdateChannel(id uint, name string) (*Channel, error) {
 func (t *Database) DeleteChannel(id uint) error {
 	res := t.db.Delete(&Channel{}, id)
 	return mapError(res.Error)
+}
+
+func (t *Database) AddChannelMember(channelID uint, userID uint) error {
+	channel := &Channel{Model: gorm.Model{ID: channelID}}
+	user := &User{Model: gorm.Model{ID: userID}}
+	err := t.db.Model(channel).Association("Members").Append(user)
+	return mapError(err)
 }

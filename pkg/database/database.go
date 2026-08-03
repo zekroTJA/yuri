@@ -28,3 +28,12 @@ func New(dsn string) (*Database, error) {
 
 	return t, nil
 }
+
+// Transaction runs fn within a database transaction, passing it a
+// Database instance scoped to that transaction. If fn returns an
+// error, the transaction is rolled back.
+func (t *Database) Transaction(fn func(tx *Database) error) error {
+	return t.db.Transaction(func(gormTx *gorm.DB) error {
+		return fn(&Database{db: gormTx})
+	})
+}

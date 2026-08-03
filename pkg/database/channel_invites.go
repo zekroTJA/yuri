@@ -1,10 +1,6 @@
 package database
 
-import (
-	"time"
-
-	"gorm.io/gorm"
-)
+import "time"
 
 func (t *Database) CreateChannelInvite(
 	code string,
@@ -47,56 +43,7 @@ func (t *Database) DeleteChannelInvite(id uint) error {
 	return mapError(res.Error)
 }
 
-func (t *Database) RedeemChannelInvite(code string, userID uint) (*Channel, error) {
-	var channel Channel
-	err := t.db.Transaction(func(tx *gorm.DB) error {
-		var invite ChannelInvite
-		if res := tx.Where("code = ?", code).First(&invite); res.Error != nil {
-			return mapError(res.Error)
-		}
-
-		if invite.ExpiresAt != nil && time.Now().After(*invite.ExpiresAt) {
-			return ErrInviteExpired
-		}
-
-		var c Channel
-		if res := tx.Preload("Members").First(&c, invite.ChannelID); res.Error != nil {
-			return mapError(res.Error)
-		}
-
-		alreadyMember := c.CreatorID == userID
-		if !alreadyMember {
-			for _, m := range c.Members {
-				if m.ID == userID {
-					alreadyMember = true
-					break
-				}
-			}
-		}
-
-		if !alreadyMember {
-			if invite.MaxActivations > 0 && invite.Activations >= invite.MaxActivations {
-				return ErrInviteExhausted
-			}
-
-			user := &User{Model: gorm.Model{ID: userID}}
-			if err := tx.Model(&c).Association("Members").Append(user); err != nil {
-				return err
-			}
-
-			invite.Activations++
-			if res := tx.Save(&invite); res.Error != nil {
-				return mapError(res.Error)
-			}
-		}
-
-		if res := tx.Preload("Creator").Preload("Members").First(&channel, invite.ChannelID); res.Error != nil {
-			return mapError(res.Error)
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return &channel, nil
+func (t *Database) UpdateChannelInvite(invite *ChannelInvite) (*ChannelInvite, error) {
+	res := t.db.Save(invite)
+	return invite, mapError(res.Error)
 }
