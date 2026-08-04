@@ -1,0 +1,244 @@
+import { ApiEventStream } from "./events";
+import type {
+  APIKeyCreateRequest,
+  APIKeyCreateResponse,
+  APIKeyResponse,
+  APIKeyUpdateRequest,
+  AuthRequest,
+  ChannelConnectionResponse,
+  ChannelInviteCreateRequest,
+  ChannelInviteResponse,
+  ChannelRequest,
+  ChannelResponse,
+  RegisterResponse,
+  SoundResponse,
+  SoundUpdateRequest,
+  UploadSoundRequest,
+} from "./models";
+
+const apiPrefix = "/api/v1";
+
+export class ApiError extends Error {
+  readonly status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
+export class ApiClient {
+  private readonly baseUrl: string;
+
+  constructor(baseUrl: string) {
+    this.baseUrl = baseUrl;
+  }
+
+  // -- Auth ------------------------------------------------------------
+
+  async register(handle: string, password: string): Promise<RegisterResponse> {
+    return this.request<RegisterResponse>("/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ handle, password } satisfies AuthRequest),
+    });
+  }
+
+  async login(handle: string, password: string): Promise<void> {
+    await this.request<void>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ handle, password } satisfies AuthRequest),
+    });
+  }
+
+  // -- API keys ----------------------------------------------------------
+
+  async listApiKeys(): Promise<APIKeyResponse[]> {
+    return this.request<APIKeyResponse[]>("/apikeys");
+  }
+
+  async createApiKey(req: APIKeyCreateRequest): Promise<APIKeyCreateResponse> {
+    return this.request<APIKeyCreateResponse>("/apikeys", {
+      method: "POST",
+      body: JSON.stringify(req),
+    });
+  }
+
+  async updateApiKey(id: number, req: APIKeyUpdateRequest): Promise<APIKeyResponse> {
+    return this.request<APIKeyResponse>(`/apikeys/${id}`, {
+      method: "POST",
+      body: JSON.stringify(req),
+    });
+  }
+
+  async deleteApiKey(id: number): Promise<void> {
+    await this.request<void>(`/apikeys/${id}`, { method: "DELETE" });
+  }
+
+  // -- Sounds --------------------------------------------------------------
+
+  async listSounds(): Promise<SoundResponse[]> {
+    return this.request<SoundResponse[]>("/sounds");
+  }
+
+  async uploadSound(req: UploadSoundRequest): Promise<SoundResponse> {
+    const form = new FormData();
+    form.append("handle", req.handle);
+    form.append("file", req.file);
+    for (const tag of req.tags ?? []) {
+      form.append("tags", tag);
+    }
+    for (const filter of req.filters ?? []) {
+      form.append("filters", filter);
+    }
+
+    return this.request<SoundResponse>("/sounds", { method: "POST", body: form });
+  }
+
+  async getSound(idOrHandle: number | string): Promise<Blob> {
+    const response = await fetch(this.url(`/sounds/${idOrHandle}`), {
+      credentials: "include",
+    });
+    if (!response.ok) {
+      throw await this.toError(response);
+    }
+    return response.blob();
+  }
+
+  // Absolute URL to the raw sound file, suitable for use as an <audio> src.
+  getSoundUrl(idOrHandle: number | string): string {
+    return this.url(`/sounds/${idOrHandle}`);
+  }
+
+  async updateSound(idOrHandle: number | string, req: SoundUpdateRequest): Promise<SoundResponse> {
+    return this.request<SoundResponse>(`/sounds/${idOrHandle}`, {
+      method: "POST",
+      body: JSON.stringify(req),
+    });
+  }
+
+  async deleteSound(idOrHandle: number | string): Promise<void> {
+    await this.request<void>(`/sounds/${idOrHandle}`, { method: "DELETE" });
+  }
+
+  // -- Channels --------------------------------------------------------------
+
+  async listChannels(): Promise<ChannelResponse[]> {
+    return this.request<ChannelResponse[]>("/channels");
+  }
+
+  async getChannel(id: number): Promise<ChannelResponse> {
+    return this.request<ChannelResponse>(`/channels/${id}`);
+  }
+
+  async createChannel(req: ChannelRequest): Promise<ChannelResponse> {
+    return this.request<ChannelResponse>("/channels", {
+      method: "POST",
+      body: JSON.stringify(req),
+    });
+  }
+
+  async updateChannel(id: number, req: ChannelRequest): Promise<ChannelResponse> {
+    return this.request<ChannelResponse>(`/channels/${id}`, {
+      method: "POST",
+      body: JSON.stringify(req),
+    });
+  }
+
+  async deleteChannel(id: number): Promise<void> {
+    await this.request<void>(`/channels/${id}`, { method: "DELETE" });
+  }
+
+  async connectChannel(id: number): Promise<ChannelConnectionResponse> {
+    return this.request<ChannelConnectionResponse>(`/channels/${id}/connect`, {
+      method: "POST",
+    });
+  }
+
+  async disconnectChannel(id: number): Promise<void> {
+    await this.request<void>(`/channels/${id}/disconnect`, { method: "POST" });
+  }
+
+  async playSound(channelId: number, soundId: number | string): Promise<void> {
+    await this.request<void>(`/channels/${channelId}/play/${soundId}`, {
+      method: "POST",
+    });
+  }
+
+  // -- Channel invites -------------------------------------------------------
+
+  async listChannelInvites(channelId: number): Promise<ChannelInviteResponse[]> {
+    return this.request<ChannelInviteResponse[]>(`/channels/${channelId}/invites`);
+  }
+
+  async createChannelInvite(
+    channelId: number,
+    req: ChannelInviteCreateRequest,
+  ): Promise<ChannelInviteResponse> {
+    return this.request<ChannelInviteResponse>(`/channels/${channelId}/invites`, {
+      method: "POST",
+      body: JSON.stringify(req),
+    });
+  }
+
+  async deleteChannelInvite(channelId: number, inviteId: number): Promise<void> {
+    await this.request<void>(`/channels/${channelId}/invites/${inviteId}`, {
+      method: "DELETE",
+    });
+  }
+
+  async redeemInvite(code: string): Promise<ChannelResponse> {
+    return this.request<ChannelResponse>(`/invites/${code}`, { method: "POST" });
+  }
+
+  // -- Events (SSE) ------------------------------------------------------
+
+  // Opens the /events SSE stream. Register handlers per event type on the
+  // returned stream and call close() (e.g. in a useEffect cleanup) when done.
+  connectEvents(): ApiEventStream {
+    return new ApiEventStream(this.url("/events"));
+  }
+
+  // -- Internals -------------------------------------------------------
+
+  private url(path: string): string {
+    const base = this.baseUrl.endsWith("/") ? this.baseUrl.slice(0, -1) : this.baseUrl;
+    return `${base}${apiPrefix}${path}`;
+  }
+
+  private async request<T>(path: string, init?: RequestInit): Promise<T> {
+    const isFormBody = init?.body instanceof FormData;
+
+    const response = await fetch(this.url(path), {
+      ...init,
+      credentials: "include",
+      headers: {
+        ...(isFormBody ? {} : { "Content-Type": "application/json" }),
+        ...init?.headers,
+      },
+    });
+
+    if (!response.ok) {
+      throw await this.toError(response);
+    }
+
+    if (response.status === 204) {
+      return undefined as T;
+    }
+
+    return (await response.json()) as T;
+  }
+
+  private async toError(response: Response): Promise<ApiError> {
+    let message = response.statusText;
+    try {
+      const body = (await response.json()) as { error?: string };
+      if (body.error) {
+        message = body.error;
+      }
+    } catch {
+      // Response body was not JSON, fall back to the status text.
+    }
+    return new ApiError(response.status, message);
+  }
+}

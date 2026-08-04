@@ -6,16 +6,39 @@ env:
   YURI_API_ADDRESS: 127.0.0.1:8080
   YURI_DATABASE_DSN: data/db.sqlite3
   YURI_LOGGING_LEVEL: debug
+  YURI_API_WEBAPPPATH: web/dist
+  VITE_API_URL: http://localhost:8080
 
 tasks:
   default:
     cmds:
-      - task: run
+      - task: be:run
 
-  run:
+  build:
+    deps:
+      - fe:build
+      - be:build
+
+  be:run:
+    aliases:
+      - run
     cmds:
       - go run cmd/yuri/main.go
 
-  build:
+  be:build:
     cmds:
       - go build -o bin/yuri ./cmd/yuri/main.go
+
+  fe:build:
+    aliases:
+      - web:build
+    dir: web
+    cmds:
+      - bun run build
+
+  fe:run:
+    aliases:
+      - web:run
+    dir: web
+    cmds:
+      - bun run dev

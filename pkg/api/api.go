@@ -38,7 +38,7 @@ type api struct {
 	connections    map[uint]util.Set[uint]
 }
 
-func Run(addr string, storage *storage.Storage, encoder *ffmpeg.FFMpeg, db *database.Database) error {
+func Run(addr string, webAppPath string, storage *storage.Storage, encoder *ffmpeg.FFMpeg, db *database.Database) error {
 	gin.SetMode(gin.ReleaseMode)
 
 	secret := make([]byte, 32)
@@ -90,6 +90,10 @@ func Run(addr string, storage *storage.Storage, encoder *ffmpeg.FFMpeg, db *data
 	authenticated.POST("/channels/:id/invites", t.channelInvitesCreate)
 	authenticated.DELETE("/channels/:id/invites/:inviteId", t.channelInvitesDelete)
 	authenticated.POST("/invites/:code", t.channelInvitesRedeem)
+
+	if webAppPath != "" {
+		registerWebApp(router, webAppPath)
+	}
 
 	return router.Run(addr)
 }

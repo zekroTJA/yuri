@@ -1,0 +1,14 @@
+.container {
+    display: flex;
+    border: solid 2px var(--accent-border);
+    width: fit-content;
+    border-radius: 5px;
+    padding: 0.2em;
+
+    button {
+        border: none;
+        background-color: transparent;
+        font-size: 1rem;
+        padding: 0.2em 0.8em;
+    }
+}
