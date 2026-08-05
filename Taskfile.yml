@@ -7,6 +7,7 @@ env:
   YURI_DATABASE_DSN: data/db.sqlite3
   YURI_LOGGING_LEVEL: debug
   YURI_API_WEBAPPPATH: web/dist
+  YURI_API_CORSORIGIN: http://localhost:5173
   VITE_API_URL: http://localhost:8080
 
 tasks:

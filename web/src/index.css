@@ -3,7 +3,7 @@
     --bg: #383642;
     --accent: #7c68d9;
     --accent-bg: #3c2f78;
-    --accent-border: #7c68d9;
+    --accent-border: #5d49b8;
     --shadow:
         rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 
@@ -24,4 +24,8 @@
     @media (max-width: 1024px) {
         font-size: 16px;
     }
+}
+
+* {
+    box-sizing: border-box;
 }

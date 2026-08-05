@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_hqcHNV9i5g
 createdAt: 2026-04-18T11:03:51.000012800
-updatedAt: 2026-04-18T11:09:05.753702400
+updatedAt: 2026-08-05T11:10:00.068904
 workspaceId: wk_iBBvJWdZgm
 folderId: fl_xmHVRE7K6D
 authentication: {}
@@ -43,7 +43,7 @@ sortPriority: 0.001
 url: ${[ address ]}/api/v1/apikeys
 urlParameters: []
 settingSendCookies:
-  enabled: false
+  enabled: true
   value: true
 settingStoreCookies:
   enabled: false

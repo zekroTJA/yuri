@@ -4,10 +4,15 @@ import type React from "react";
 
 export type Variant = "default" | "primary";
 
-export type Props = React.PropsWithChildren & {
-  variant?: Variant;
-};
+export type Props = React.PropsWithChildren &
+  React.ButtonHTMLAttributes<HTMLButtonElement> & {
+    variant?: Variant;
+  };
 
-export default function Button({ children }: Props) {
-  return <button className={styles.button}>{children}</button>;
+export default function Button({ children, variant, ...props }: Props) {
+  return (
+    <button className={`${styles.button} ${styles[variant]}`} {...props}>
+      {children}
+    </button>
+  );
 }

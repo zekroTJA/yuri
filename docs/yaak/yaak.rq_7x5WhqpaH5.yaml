@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_7x5WhqpaH5
 createdAt: 2026-04-20T08:52:58.027219400
-updatedAt: 2026-05-15T11:07:41.799297800
+updatedAt: 2026-08-05T11:12:31.793380
 workspaceId: wk_iBBvJWdZgm
 folderId: fl_ct34PCkmdf
 authentication: {}
@@ -35,12 +35,12 @@ url: ${[ address ]}/api/v1/sounds/:id
 urlParameters:
 - enabled: true
   name: :id
-  value: bingbong
+  value: dropdown
   id: YwAZb7yFNs
 - enabled: true
   name: ''
   value: ''
-  id: cKacHMUXvk
+  id: 8qjUzStRAR
 settingSendCookies:
   enabled: false
   value: true

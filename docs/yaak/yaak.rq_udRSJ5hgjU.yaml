@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_udRSJ5hgjU
 createdAt: 2026-08-03T16:19:53.034944800
-updatedAt: 2026-08-03T16:20:07.062760300
+updatedAt: 2026-08-05T11:11:27.067163
 workspaceId: wk_iBBvJWdZgm
 folderId: fl_vD2FuUopk7
 authentication: {}
@@ -18,16 +18,12 @@ url: ${[ address ]}/api/v1/channels/:id/connect
 urlParameters:
 - enabled: true
   name: :id
-  value: '4'
+  value: '1'
   id: uxV8qNznBP
-- enabled: true
-  name: :soundId
-  value: bingbong
-  id: FiNfHYzvCU
 - enabled: true
   name: ''
   value: ''
-  id: kdP3YW4aSz
+  id: HFDFErEzvW
 settingSendCookies:
   enabled: false
   value: true

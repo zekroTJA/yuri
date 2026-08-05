@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_2nswVL9yzt
 createdAt: 2026-08-03T10:13:46.690625800
-updatedAt: 2026-08-03T10:25:40.795143300
+updatedAt: 2026-08-05T11:12:09.327084
 workspaceId: wk_iBBvJWdZgm
 folderId: fl_vD2FuUopk7
 authentication: {}
@@ -18,16 +18,16 @@ url: ${[ address ]}/api/v1/channels/:id/play/:soundId
 urlParameters:
 - enabled: true
   name: :id
-  value: '4'
+  value: '1'
   id: uxV8qNznBP
 - enabled: true
   name: :soundId
-  value: bingbong
+  value: dropdown
   id: FiNfHYzvCU
 - enabled: true
   name: ''
   value: ''
-  id: kdP3YW4aSz
+  id: iDakSfgdeU
 settingSendCookies:
   enabled: false
   value: true

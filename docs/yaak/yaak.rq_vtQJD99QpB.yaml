@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_vtQJD99QpB
 createdAt: 2026-04-12T14:30:18.424288300
-updatedAt: 2026-08-03T17:08:34.133216700
+updatedAt: 2026-08-05T11:09:28.025255
 workspaceId: wk_iBBvJWdZgm
 folderId: fl_ThbD78jMtc
 authentication: {}
@@ -11,7 +11,7 @@ body:
   text: |-
     {
       "handle": "foo",
-      "password": "123456"
+      "password": "foobar"
     }
 bodyType: application/json
 description: ''
