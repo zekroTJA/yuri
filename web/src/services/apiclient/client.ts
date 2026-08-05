@@ -28,11 +28,21 @@ export class ApiError extends Error {
   }
 }
 
+type UnauthorizedHandler = () => void;
+
 export class ApiClient {
   private readonly baseUrl: string;
 
+  private unauthorizedHandler: UnauthorizedHandler | null = null;
+
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
+  }
+
+  // Registers a callback invoked whenever any request fails with 401
+  // Unauthorized, e.g. to redirect the user to the login page.
+  onUnauthorized(handler: UnauthorizedHandler): void {
+    this.unauthorizedHandler = handler;
   }
 
   // -- Auth ------------------------------------------------------------
@@ -239,6 +249,11 @@ export class ApiClient {
     } catch {
       // Response body was not JSON, fall back to the status text.
     }
+
+    if (response.status === 401) {
+      this.unauthorizedHandler?.();
+    }
+
     return new ApiError(response.status, message);
   }
 }

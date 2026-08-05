@@ -12,20 +12,8 @@ const tabs = [
 ];
 
 export default function Login() {
-  const [selectedTab, setSelectedTab] = useState("login");
-
-  return (
-    <div className={styles.outer}>
-      <section className={styles.container}>
-        <TabBar options={tabs} onSelect={(id) => setSelectedTab(id)} />
-        <TabContent id={selectedTab} />
-      </section>
-    </div>
-  );
-}
-
-function TabContent({ id }: { id: string }) {
   const navigate = useNavigate();
+  const [selectedTab, setSelectedTab] = useState("login");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [passwordRepeat, setPasswordRepeat] = useState("");
@@ -35,6 +23,53 @@ function TabContent({ id }: { id: string }) {
     navigate("/");
   };
 
+  return (
+    <div className={styles.outer}>
+      <section className={styles.container}>
+        <TabBar options={tabs} onSelect={(id) => setSelectedTab(id)} />
+        <ErrorTile message="lorem ipsum" />
+        <TabContent
+          id={selectedTab}
+          username={username}
+          password={password}
+          passwordRepeat={passwordRepeat}
+          onUsernameChange={(v) => setUsername(v.currentTarget.value)}
+          onPasswordChange={(v) => setPassword(v.currentTarget.value)}
+          onPasswordRepeatChange={(v) =>
+            setPasswordRepeat(v.currentTarget.value)
+          }
+          onLogin={onLogin}
+        />
+      </section>
+    </div>
+  );
+}
+
+type InputChangeEventHandler = (
+  event: React.FormEvent<HTMLInputElement>,
+) => void;
+
+type TabContentProps = {
+  id: string;
+  username: string;
+  password: string;
+  passwordRepeat: string;
+  onUsernameChange: InputChangeEventHandler;
+  onPasswordChange: InputChangeEventHandler;
+  onPasswordRepeatChange: InputChangeEventHandler;
+  onLogin: () => void;
+};
+
+function TabContent({
+  id,
+  username,
+  password,
+  passwordRepeat,
+  onUsernameChange,
+  onPasswordChange,
+  onPasswordRepeatChange,
+  onLogin,
+}: TabContentProps) {
   switch (id) {
     case "login":
       return (
@@ -42,13 +77,13 @@ function TabContent({ id }: { id: string }) {
           <Input
             placeholder="Username"
             value={username}
-            onInput={(v) => setUsername(v.currentTarget.value)}
+            onInput={onUsernameChange}
           />
           <Input
             placeholder="Password"
             type="password"
             value={password}
-            onInput={(v) => setPassword(v.currentTarget.value)}
+            onInput={onPasswordChange}
           />
           <Button
             disabled={!username || !password}
@@ -65,19 +100,19 @@ function TabContent({ id }: { id: string }) {
           <Input
             placeholder="Username"
             value={username}
-            onInput={(v) => setUsername(v.currentTarget.value)}
+            onInput={onUsernameChange}
           />
           <Input
             placeholder="Password"
             type="password"
             value={password}
-            onInput={(v) => setPassword(v.currentTarget.value)}
+            onInput={onPasswordChange}
           />
           <Input
             placeholder="Password Repeat"
             type="password"
             value={passwordRepeat}
-            onInput={(v) => setPasswordRepeat(v.currentTarget.value)}
+            onInput={onPasswordRepeatChange}
           />
           <Button
             disabled={!username || !password || password != passwordRepeat}
@@ -88,4 +123,13 @@ function TabContent({ id }: { id: string }) {
         </>
       );
   }
+}
+
+function ErrorTile({ message }: { message: string }) {
+  return (
+    <div className={styles.errortile}>
+      <img src="/assets/alert.svg" />
+      {message}
+    </div>
+  );
 }
