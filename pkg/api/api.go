@@ -62,9 +62,9 @@ func Run(cfg *config.Api, storage *storage.Storage, encoder *ffmpeg.FFMpeg, db *
 	router := gin.New()
 	router.Use(gin.Recovery())
 	router.Use(t.accessLogger)
-	router.Use(t.corsMiddleware)
 
-	if corsOrigin != "" {
+	if cfg.CORSOrigin != "" {
+		router.Use(t.corsMiddleware)
 		router.OPTIONS("/*any", func(ctx *gin.Context) {})
 	}
 
