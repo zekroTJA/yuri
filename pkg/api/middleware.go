@@ -26,6 +26,25 @@ func (t *api) accessLogger(ctx *gin.Context) {
 	)
 }
 
+func (t *api) corsMiddleware(ctx *gin.Context) {
+	if t.corsOrigin == "" {
+		ctx.Next()
+		return
+	}
+
+	ctx.Header("Access-Control-Allow-Origin", t.corsOrigin)
+	ctx.Header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
+	ctx.Header("Access-Control-Allow-Headers", "Authorization, Content-Type")
+	ctx.Header("Access-Control-Allow-Credentials", "true")
+
+	if ctx.Request.Method == http.MethodOptions {
+		ctx.AbortWithStatus(http.StatusNoContent)
+		return
+	}
+
+	ctx.Next()
+}
+
 func (t *api) requireAuth(ctx *gin.Context) {
 	token, err := ctx.Cookie(sessionCookieName)
 	if err == http.ErrNoCookie {

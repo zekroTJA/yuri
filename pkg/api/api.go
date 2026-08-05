@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/zekrotja/jwt"
 	"github.com/zekrotja/yuri/pkg/api/sse"
+	"github.com/zekrotja/yuri/pkg/config"
 	"github.com/zekrotja/yuri/pkg/database"
 	"github.com/zekrotja/yuri/pkg/ffmpeg"
 	"github.com/zekrotja/yuri/pkg/storage"
@@ -36,9 +37,11 @@ type api struct {
 
 	connectionsMtx sync.RWMutex
 	connections    map[uint]util.Set[uint]
+
+	corsOrigin string
 }
 
-func Run(addr string, webAppPath string, storage *storage.Storage, encoder *ffmpeg.FFMpeg, db *database.Database) error {
+func Run(cfg *config.Api, storage *storage.Storage, encoder *ffmpeg.FFMpeg, db *database.Database) error {
 	gin.SetMode(gin.ReleaseMode)
 
 	secret := make([]byte, 32)
@@ -53,11 +56,17 @@ func Run(addr string, webAppPath string, storage *storage.Storage, encoder *ffmp
 		jwtHandler:  jwt.NewHandler[sessionClaims](jwt.NewHmacSha256(secret)),
 		sseManager:  sse.NewManager(),
 		connections: make(map[uint]util.Set[uint]),
+		corsOrigin:  cfg.CORSOrigin,
 	}
 
 	router := gin.New()
 	router.Use(gin.Recovery())
 	router.Use(t.accessLogger)
+	router.Use(t.corsMiddleware)
+
+	if corsOrigin != "" {
+		router.OPTIONS("/*any", func(ctx *gin.Context) {})
+	}
 
 	apiGroup := router.Group("/api/v1")
 	apiGroup.POST("/auth/register", t.authRegister)
@@ -91,9 +100,9 @@ func Run(addr string, webAppPath string, storage *storage.Storage, encoder *ffmp
 	authenticated.DELETE("/channels/:id/invites/:inviteId", t.channelInvitesDelete)
 	authenticated.POST("/invites/:code", t.channelInvitesRedeem)
 
-	if webAppPath != "" {
-		registerWebApp(router, webAppPath)
+	if cfg.WebAppPath != "" {
+		registerWebApp(router, cfg.WebAppPath)
 	}
 
-	return router.Run(addr)
+	return router.Run(cfg.Address)
 }
