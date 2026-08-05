@@ -17,6 +17,8 @@ coverage.*
 *.coverprofile
 profile.cov
 
+.DS_Store
+
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
