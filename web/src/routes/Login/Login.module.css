@@ -1,6 +1,7 @@
 .outer {
     display: flex;
     width: 100%;
+    padding: 0 1rem;
 }
 
 .container {
@@ -8,10 +9,20 @@
     display: flex;
     flex-direction: column;
     gap: 1em;
+    max-width: 20rem;
+    width: 100%;
 }
 
 .errortile {
-    img {
-        color: red;
+    display: flex;
+    gap: 0.5em;
+    align-items: center;
+    color: var(--error);
+    border: solid 2px var(--error);
+    background-color: color(from var(--error) srgb r g b / 10%);
+    padding: 0.4em 0.8em;
+    border-radius: 5px;
+    svg {
+        height: 1.5em;
     }
 }

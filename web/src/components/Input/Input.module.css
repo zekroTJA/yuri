@@ -9,3 +9,12 @@
         outline: solid 2px var(--accent);
     }
 }
+
+.error {
+    border-color: var(--error);
+    color: var(--error);
+
+    &:focus {
+        outline-color: var(--error);
+    }
+}

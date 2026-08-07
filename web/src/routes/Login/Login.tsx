@@ -3,8 +3,9 @@ import Button from "../../components/Button/Button";
 import TabBar from "../../components/TabBar/TabBar";
 import { useState } from "react";
 import Input from "../../components/Input/Input";
-import { API_CLIENT } from "../../services/apiclient";
+import { API_CLIENT, ApiError } from "../../services/apiclient";
 import { useNavigate } from "react-router";
+import AlertIcon from "../../assets/alert.svg?react";
 
 const tabs = [
   { id: "login", element: "Login" },
@@ -17,17 +18,44 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [passwordRepeat, setPasswordRepeat] = useState("");
+  const [error, setError] = useState<string | undefined>();
 
   const onLogin = async () => {
-    await API_CLIENT.login(username, password);
-    navigate("/");
+    if (!username || !password) return;
+    try {
+      await API_CLIENT.login(username, password);
+      navigate("/");
+    } catch (e) {
+      if (e instanceof ApiError && e.status < 500) {
+        setError(e.message);
+      } else {
+        console.error(e);
+        setError("An unexpected error occured");
+      }
+    }
+  };
+
+  const onRegister = async () => {
+    if (!username || !password) return;
+    try {
+      await API_CLIENT.register(username, password);
+      await API_CLIENT.login(username, password);
+      navigate("/");
+    } catch (e) {
+      if (e instanceof ApiError && e.status < 500) {
+        setError(e.message);
+      } else {
+        console.error(e);
+        setError("An unexpected error occured");
+      }
+    }
   };
 
   return (
     <div className={styles.outer}>
       <section className={styles.container}>
         <TabBar options={tabs} onSelect={(id) => setSelectedTab(id)} />
-        <ErrorTile message="lorem ipsum" />
+        {!!error && <ErrorTile message={error} />}
         <TabContent
           id={selectedTab}
           username={username}
@@ -39,6 +67,7 @@ export default function Login() {
             setPasswordRepeat(v.currentTarget.value)
           }
           onLogin={onLogin}
+          onRegister={onRegister}
         />
       </section>
     </div>
@@ -58,6 +87,7 @@ type TabContentProps = {
   onPasswordChange: InputChangeEventHandler;
   onPasswordRepeatChange: InputChangeEventHandler;
   onLogin: () => void;
+  onRegister: () => void;
 };
 
 function TabContent({
@@ -69,6 +99,7 @@ function TabContent({
   onPasswordChange,
   onPasswordRepeatChange,
   onLogin,
+  onRegister,
 }: TabContentProps) {
   switch (id) {
     case "login":
@@ -113,10 +144,12 @@ function TabContent({
             type="password"
             value={passwordRepeat}
             onInput={onPasswordRepeatChange}
+            isError={!!passwordRepeat && password != passwordRepeat}
           />
           <Button
             disabled={!username || !password || password != passwordRepeat}
             variant="primary"
+            onClick={onRegister}
           >
             Register
           </Button>
@@ -128,8 +161,8 @@ function TabContent({
 function ErrorTile({ message }: { message: string }) {
   return (
     <div className={styles.errortile}>
-      <img src="/assets/alert.svg" />
-      {message}
+      <AlertIcon />
+      <span>{message}</span>
     </div>
   );
 }

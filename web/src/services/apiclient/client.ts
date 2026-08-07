@@ -20,10 +20,12 @@ const apiPrefix = "/api/v1";
 
 export class ApiError extends Error {
   readonly status: number;
+  readonly code: string;
 
-  constructor(status: number, message: string) {
+  constructor(status: number, code: string, message: string) {
     super(message);
     this.name = "ApiError";
+    this.code = code;
     this.status = status;
   }
 }
@@ -74,7 +76,10 @@ export class ApiClient {
     });
   }
 
-  async updateApiKey(id: number, req: APIKeyUpdateRequest): Promise<APIKeyResponse> {
+  async updateApiKey(
+    id: number,
+    req: APIKeyUpdateRequest,
+  ): Promise<APIKeyResponse> {
     return this.request<APIKeyResponse>(`/apikeys/${id}`, {
       method: "POST",
       body: JSON.stringify(req),
@@ -102,7 +107,10 @@ export class ApiClient {
       form.append("filters", filter);
     }
 
-    return this.request<SoundResponse>("/sounds", { method: "POST", body: form });
+    return this.request<SoundResponse>("/sounds", {
+      method: "POST",
+      body: form,
+    });
   }
 
   async getSound(idOrHandle: number | string): Promise<Blob> {
@@ -120,7 +128,10 @@ export class ApiClient {
     return this.url(`/sounds/${idOrHandle}`);
   }
 
-  async updateSound(idOrHandle: number | string, req: SoundUpdateRequest): Promise<SoundResponse> {
+  async updateSound(
+    idOrHandle: number | string,
+    req: SoundUpdateRequest,
+  ): Promise<SoundResponse> {
     return this.request<SoundResponse>(`/sounds/${idOrHandle}`, {
       method: "POST",
       body: JSON.stringify(req),
@@ -148,7 +159,10 @@ export class ApiClient {
     });
   }
 
-  async updateChannel(id: number, req: ChannelRequest): Promise<ChannelResponse> {
+  async updateChannel(
+    id: number,
+    req: ChannelRequest,
+  ): Promise<ChannelResponse> {
     return this.request<ChannelResponse>(`/channels/${id}`, {
       method: "POST",
       body: JSON.stringify(req),
@@ -177,28 +191,40 @@ export class ApiClient {
 
   // -- Channel invites -------------------------------------------------------
 
-  async listChannelInvites(channelId: number): Promise<ChannelInviteResponse[]> {
-    return this.request<ChannelInviteResponse[]>(`/channels/${channelId}/invites`);
+  async listChannelInvites(
+    channelId: number,
+  ): Promise<ChannelInviteResponse[]> {
+    return this.request<ChannelInviteResponse[]>(
+      `/channels/${channelId}/invites`,
+    );
   }
 
   async createChannelInvite(
     channelId: number,
     req: ChannelInviteCreateRequest,
   ): Promise<ChannelInviteResponse> {
-    return this.request<ChannelInviteResponse>(`/channels/${channelId}/invites`, {
-      method: "POST",
-      body: JSON.stringify(req),
-    });
+    return this.request<ChannelInviteResponse>(
+      `/channels/${channelId}/invites`,
+      {
+        method: "POST",
+        body: JSON.stringify(req),
+      },
+    );
   }
 
-  async deleteChannelInvite(channelId: number, inviteId: number): Promise<void> {
+  async deleteChannelInvite(
+    channelId: number,
+    inviteId: number,
+  ): Promise<void> {
     await this.request<void>(`/channels/${channelId}/invites/${inviteId}`, {
       method: "DELETE",
     });
   }
 
   async redeemInvite(code: string): Promise<ChannelResponse> {
-    return this.request<ChannelResponse>(`/invites/${code}`, { method: "POST" });
+    return this.request<ChannelResponse>(`/invites/${code}`, {
+      method: "POST",
+    });
   }
 
   // -- Events (SSE) ------------------------------------------------------
@@ -212,7 +238,9 @@ export class ApiClient {
   // -- Internals -------------------------------------------------------
 
   private url(path: string): string {
-    const base = this.baseUrl.endsWith("/") ? this.baseUrl.slice(0, -1) : this.baseUrl;
+    const base = this.baseUrl.endsWith("/")
+      ? this.baseUrl.slice(0, -1)
+      : this.baseUrl;
     return `${base}${apiPrefix}${path}`;
   }
 
@@ -241,11 +269,11 @@ export class ApiClient {
 
   private async toError(response: Response): Promise<ApiError> {
     let message = response.statusText;
+    let code = "internal";
     try {
-      const body = (await response.json()) as { error?: string };
-      if (body.error) {
-        message = body.error;
-      }
+      const body = (await response.json()) as { code: string; message: string };
+      message = body.message;
+      code = body.code;
     } catch {
       // Response body was not JSON, fall back to the status text.
     }
@@ -254,6 +282,6 @@ export class ApiClient {
       this.unauthorizedHandler?.();
     }
 
-    return new ApiError(response.status, message);
+    return new ApiError(response.status, code, message);
   }
 }
