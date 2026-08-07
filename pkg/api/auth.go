@@ -13,19 +13,19 @@ import (
 func (t *api) authRegister(ctx *gin.Context) {
 	var req models.AuthRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, ErrInvalidRequestBody)
 		return
 	}
 
 	if len(req.Password) < 6 {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "password must be at least 6 characters"})
+		ctx.JSON(http.StatusBadRequest, ErrPasswordTooShort)
 		return
 	}
 
 	hash, err := argon2id.CreateHash(req.Password, argon2id.DefaultParams)
 	if err != nil {
 		slog.Error("failed hashing password", "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to hash password"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
@@ -34,18 +34,18 @@ func (t *api) authRegister(ctx *gin.Context) {
 	user, err := t.db.GetUserByHandle(handle)
 	if err != nil {
 		slog.Error("failed checking handle availability", "handle", handle, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to check handle availability"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 	if user != nil {
-		ctx.JSON(http.StatusConflict, gin.H{"error": "handle already in use"})
+		ctx.JSON(http.StatusConflict, ErrHandleConflict)
 		return
 	}
 
 	user, err = t.db.CreateUser(handle, []byte(hash))
 	if err != nil {
 		slog.Error("failed creating user in database", "handle", handle, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create user"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
@@ -55,23 +55,23 @@ func (t *api) authRegister(ctx *gin.Context) {
 func (t *api) authLogin(ctx *gin.Context) {
 	var req models.AuthRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, ErrInvalidRequestBody)
 		return
 	}
 
 	user, err := t.db.GetUserByHandle(req.Handle)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+		ctx.JSON(http.StatusUnauthorized, ErrInvalidCredentials)
 		return
 	}
 	if user == nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+		ctx.JSON(http.StatusUnauthorized, ErrInvalidCredentials)
 		return
 	}
 
 	match, err := argon2id.ComparePasswordAndHash(req.Password, string(user.PasswordHash))
 	if err != nil || !match {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+		ctx.JSON(http.StatusUnauthorized, ErrInvalidCredentials)
 		return
 	}
 
@@ -83,7 +83,7 @@ func (t *api) authLogin(ctx *gin.Context) {
 	token, err := t.jwtHandler.EncodeAndSign(claims)
 	if err != nil {
 		slog.Error("failed creating session token", "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create session"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 

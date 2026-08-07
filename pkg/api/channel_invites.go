@@ -22,34 +22,34 @@ func (t *api) channelInvitesCreate(ctx *gin.Context) {
 
 	channelID, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		ctx.JSON(http.StatusBadRequest, ErrInvalidID)
 		return
 	}
 
 	var req models.ChannelInviteCreateRequest
 	if err = ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, ErrInvalidRequestBody)
 		return
 	}
 
 	if req.ExpiresAt != nil && req.ExpiresAt.Before(time.Now()) {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "expires_at must be in the future"})
+		ctx.JSON(http.StatusBadRequest, ErrInvalidExpiresAt)
 		return
 	}
 
 	channel, err := t.db.GetChannelByID(uint(channelID))
 	if err == database.ErrNotFound {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "channel not found"})
+		ctx.JSON(http.StatusNotFound, ErrChannelNotFound)
 		return
 	}
 	if err != nil {
 		slog.Error("failed getting channel from database", "id", channelID, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
 	if channel.CreatorID != user.ID {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		ctx.JSON(http.StatusForbidden, ErrForbidden)
 		return
 	}
 
@@ -58,7 +58,7 @@ func (t *api) channelInvitesCreate(ctx *gin.Context) {
 	invite, err := t.db.CreateChannelInvite(code, channel.ID, user.ID, req.MaxActivations, req.ExpiresAt)
 	if err != nil {
 		slog.Error("failed creating channel invite in database", "channel_id", channel.ID, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create channel invite"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
@@ -70,30 +70,30 @@ func (t *api) channelInvitesList(ctx *gin.Context) {
 
 	channelID, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		ctx.JSON(http.StatusBadRequest, ErrInvalidID)
 		return
 	}
 
 	channel, err := t.db.GetChannelByID(uint(channelID))
 	if err == database.ErrNotFound {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "channel not found"})
+		ctx.JSON(http.StatusNotFound, ErrChannelNotFound)
 		return
 	}
 	if err != nil {
 		slog.Error("failed getting channel from database", "id", channelID, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
 	if channel.CreatorID != user.ID {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		ctx.JSON(http.StatusForbidden, ErrForbidden)
 		return
 	}
 
 	invites, err := t.db.ListChannelInvitesByChannel(channel.ID)
 	if err != nil {
 		slog.Error("failed listing channel invites from database", "channel_id", channel.ID, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
@@ -110,51 +110,51 @@ func (t *api) channelInvitesDelete(ctx *gin.Context) {
 
 	channelID, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		ctx.JSON(http.StatusBadRequest, ErrInvalidID)
 		return
 	}
 
 	inviteID, err := strconv.ParseUint(ctx.Param("inviteId"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid invite id"})
+		ctx.JSON(http.StatusBadRequest, ErrInvalidInviteID)
 		return
 	}
 
 	channel, err := t.db.GetChannelByID(uint(channelID))
 	if err == database.ErrNotFound {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "channel not found"})
+		ctx.JSON(http.StatusNotFound, ErrChannelNotFound)
 		return
 	}
 	if err != nil {
 		slog.Error("failed getting channel from database", "id", channelID, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
 	if channel.CreatorID != user.ID {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		ctx.JSON(http.StatusForbidden, ErrForbidden)
 		return
 	}
 
 	invite, err := t.db.GetChannelInviteByID(uint(inviteID))
 	if err == database.ErrNotFound {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "invite not found"})
+		ctx.JSON(http.StatusNotFound, ErrInviteNotFound)
 		return
 	}
 	if err != nil {
 		slog.Error("failed getting channel invite from database", "id", inviteID, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
 	if invite.ChannelID != channel.ID {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "invite not found"})
+		ctx.JSON(http.StatusNotFound, ErrInviteNotFound)
 		return
 	}
 
 	if err = t.db.DeleteChannelInvite(invite.ID); err != nil {
 		slog.Error("failed deleting channel invite from database", "id", invite.ID, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete channel invite"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
@@ -166,7 +166,7 @@ func (t *api) channelInvitesRedeem(ctx *gin.Context) {
 
 	code := ctx.Param("code")
 	if code == "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid code"})
+		ctx.JSON(http.StatusBadRequest, ErrInvalidCode)
 		return
 	}
 
@@ -215,20 +215,20 @@ func (t *api) channelInvitesRedeem(ctx *gin.Context) {
 		return err
 	})
 	if err == database.ErrNotFound {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "invite not found"})
+		ctx.JSON(http.StatusNotFound, ErrInviteNotFound)
 		return
 	}
 	if err == database.ErrInviteExpired {
-		ctx.JSON(http.StatusGone, gin.H{"error": "invite expired"})
+		ctx.JSON(http.StatusGone, ErrInviteExpired)
 		return
 	}
 	if err == database.ErrInviteExhausted {
-		ctx.JSON(http.StatusGone, gin.H{"error": "invite has no remaining activations"})
+		ctx.JSON(http.StatusGone, ErrInviteExhausted)
 		return
 	}
 	if err != nil {
 		slog.Error("failed redeeming channel invite", "code", code, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 

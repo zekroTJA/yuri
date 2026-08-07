@@ -18,13 +18,13 @@ func (t *api) apiKeysCreate(ctx *gin.Context) {
 
 	var req models.APIKeyCreateRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, ErrInvalidRequestBody)
 		return
 	}
 
 	for _, scope := range req.Scopes {
 		if !slices.Contains(database.Scopes, scope) {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid scope"})
+			ctx.JSON(http.StatusBadRequest, ErrInvalidScope)
 			return
 		}
 	}
@@ -34,7 +34,7 @@ func (t *api) apiKeysCreate(ctx *gin.Context) {
 	salt := make([]byte, 16)
 	if _, err := rand.Read(salt); err != nil {
 		slog.Error("failed generating random bytes", "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
@@ -44,7 +44,7 @@ func (t *api) apiKeysCreate(ctx *gin.Context) {
 	key, err := t.db.CreateAPIKey(req.Name, hash, salt, hint, req.Scopes, user.ID)
 	if err != nil {
 		slog.Error("failed creating api key in database", "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create api key"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
@@ -60,7 +60,7 @@ func (t *api) apiKeysList(ctx *gin.Context) {
 	keys, err := t.db.ListAPIKeysByOwner(user.ID)
 	if err != nil {
 		slog.Error("failed listing api keys from database", "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
@@ -77,36 +77,36 @@ func (t *api) apiKeysUpdate(ctx *gin.Context) {
 
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		ctx.JSON(http.StatusBadRequest, ErrInvalidID)
 		return
 	}
 
 	var req models.APIKeyUpdateRequest
 	if err = ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, ErrInvalidRequestBody)
 		return
 	}
 
 	key, err := t.db.GetAPIKeyByID(uint(id))
 	if err == database.ErrNotFound {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "api key not found"})
+		ctx.JSON(http.StatusNotFound, ErrAPIKeyNotFound)
 		return
 	}
 	if err != nil {
 		slog.Error("failed getting api key from database", "id", id, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
 	if key.OwnerID != user.ID {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		ctx.JSON(http.StatusForbidden, ErrForbidden)
 		return
 	}
 
 	key, err = t.db.UpdateAPIKey(uint(id), req.Name)
 	if err != nil {
 		slog.Error("failed updating api key in database", "id", id, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update api key"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
@@ -118,29 +118,29 @@ func (t *api) apiKeysDelete(ctx *gin.Context) {
 
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		ctx.JSON(http.StatusBadRequest, ErrInvalidID)
 		return
 	}
 
 	key, err := t.db.GetAPIKeyByID(uint(id))
 	if err == database.ErrNotFound {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "api key not found"})
+		ctx.JSON(http.StatusNotFound, ErrAPIKeyNotFound)
 		return
 	}
 	if err != nil {
 		slog.Error("failed getting api key from database", "id", id, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
 	if key.OwnerID != user.ID {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		ctx.JSON(http.StatusForbidden, ErrForbidden)
 		return
 	}
 
 	if err = t.db.DeleteAPIKey(uint(id)); err != nil {
 		slog.Error("failed deleting api key from database", "id", id, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete api key"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 

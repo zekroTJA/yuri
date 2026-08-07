@@ -35,18 +35,18 @@ func (t *api) soundsUpload(ctx *gin.Context) {
 
 	handle := ctx.PostForm("handle")
 	if handle == "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "handle is required"})
+		ctx.JSON(http.StatusBadRequest, ErrHandleRequired)
 		return
 	}
 
 	sound, err := t.db.GetSoundByHandle(handle)
 	if err == nil {
-		ctx.JSON(http.StatusConflict, gin.H{"error": "handle already in use"})
+		ctx.JSON(http.StatusConflict, ErrHandleConflict)
 		return
 	}
 	if err != nil && err != database.ErrNotFound {
 		slog.Error("failed checking sound handle availability", "handle", handle, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
@@ -54,7 +54,7 @@ func (t *api) soundsUpload(ctx *gin.Context) {
 	for _, name := range ctx.PostFormArray("filters") {
 		f, ok := filterMap[name]
 		if !ok {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("unknown filter: %s", name)})
+			ctx.JSON(http.StatusBadRequest, ErrInvalidFilter)
 			return
 		}
 		filters = append(filters, f)
@@ -62,7 +62,7 @@ func (t *api) soundsUpload(ctx *gin.Context) {
 
 	file, _, err := ctx.Request.FormFile("file")
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "file is required"})
+		ctx.JSON(http.StatusBadRequest, ErrFileRequired)
 		return
 	}
 	defer file.Close()
@@ -72,20 +72,21 @@ func (t *api) soundsUpload(ctx *gin.Context) {
 	randBytes := make([]byte, 8)
 	if _, err = rand.Read(randBytes); err != nil {
 		slog.Error("failed generating random bytes", "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 	storageID := strings.ToLower(handle) + "-" + hex.EncodeToString(randBytes)
 
 	var encoded bytes.Buffer
 	if err = t.encoder.Format(file, &encoded, filters...); err != nil {
-		ctx.JSON(http.StatusUnprocessableEntity, gin.H{"error": "failed to encode file: " + err.Error()})
+		slog.Error("failed encoding sound file", "handle", handle, "err", err)
+		ctx.JSON(http.StatusUnprocessableEntity, ErrSoundEncodeFailed)
 		return
 	}
 
 	if err = t.storage.Store(storageID, &encoded); err != nil {
 		slog.Error("failed storing sound file", "storage_id", storageID, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to store file"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
@@ -93,7 +94,7 @@ func (t *api) soundsUpload(ctx *gin.Context) {
 	if err != nil {
 		_ = t.storage.Delete(storageID)
 		slog.Error("failed creating sound in database", "handle", handle, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create sound"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
@@ -110,7 +111,7 @@ func (t *api) soundsList(ctx *gin.Context) {
 	sounds, err := t.db.ListSounds()
 	if err != nil {
 		slog.Error("failed listing sounds from database", "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
@@ -125,19 +126,19 @@ func (t *api) soundsList(ctx *gin.Context) {
 func (t *api) soundsGet(ctx *gin.Context) {
 	sound, err := t.getSoundByIDOrHandle(ctx.Param("id"))
 	if err == database.ErrNotFound {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "sound not found"})
+		ctx.JSON(http.StatusNotFound, ErrSoundNotFound)
 		return
 	}
 	if err != nil {
 		slog.Error("failed getting sound from database", "id", ctx.Param("id"), "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
 	file, err := t.storage.Load(sound.StorageId)
 	if err != nil {
 		slog.Error("failed loading sound file", "storage_id", sound.StorageId, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load file"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 	defer file.Close()
@@ -152,30 +153,30 @@ func (t *api) soundsGet(ctx *gin.Context) {
 func (t *api) soundsUpdate(ctx *gin.Context) {
 	sound, err := t.getSoundByIDOrHandle(ctx.Param("id"))
 	if err == database.ErrNotFound {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "sound not found"})
+		ctx.JSON(http.StatusNotFound, ErrSoundNotFound)
 		return
 	}
 	if err != nil {
 		slog.Error("failed getting sound from database", "id", ctx.Param("id"), "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
 	var req models.SoundUpdateRequest
 	if err = ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, ErrInvalidRequestBody)
 		return
 	}
 
 	if req.Handle != sound.Handle {
 		_, err = t.db.GetSoundByHandle(req.Handle)
 		if err == nil {
-			ctx.JSON(http.StatusConflict, gin.H{"error": "handle already in use"})
+			ctx.JSON(http.StatusConflict, ErrHandleConflict)
 			return
 		}
 		if err != database.ErrNotFound {
 			slog.Error("failed checking sound handle availability", "handle", req.Handle, "err", err)
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			ctx.JSON(http.StatusInternalServerError, ErrInternal)
 			return
 		}
 	}
@@ -183,14 +184,14 @@ func (t *api) soundsUpdate(ctx *gin.Context) {
 	soundID := sound.ID
 	if _, err = t.db.UpdateSound(soundID, req.Handle, req.Tags); err != nil {
 		slog.Error("failed updating sound in database", "id", soundID, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update sound"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
 	sound, err = t.db.GetSoundByID(soundID)
 	if err != nil {
 		slog.Error("failed getting sound from database", "id", soundID, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
@@ -206,12 +207,12 @@ func (t *api) soundsUpdate(ctx *gin.Context) {
 func (t *api) soundsDelete(ctx *gin.Context) {
 	sound, err := t.getSoundByIDOrHandle(ctx.Param("id"))
 	if err == database.ErrNotFound {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "sound not found"})
+		ctx.JSON(http.StatusNotFound, ErrSoundNotFound)
 		return
 	}
 	if err != nil {
 		slog.Error("failed getting sound from database", "id", ctx.Param("id"), "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
@@ -219,7 +220,7 @@ func (t *api) soundsDelete(ctx *gin.Context) {
 
 	if err = t.db.DeleteSound(sound.ID); err != nil {
 		slog.Error("failed deleting sound from database", "id", sound.ID, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete sound"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 

@@ -51,25 +51,25 @@ func (t *api) requireAuth(ctx *gin.Context) {
 		// No Cookie, check API Token
 		tokenSplit := strings.Fields(ctx.GetHeader("Authorization"))
 		if len(tokenSplit) != 2 || !strings.EqualFold(tokenSplit[0], "bearer") {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, ErrUnauthorized)
 			return
 		}
 
 		token := tokenSplit[1]
 		if len(token) < apiKeyHintLen {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, ErrUnauthorized)
 			return
 		}
 
 		hint := token[:apiKeyHintLen]
 		keys, err := t.db.ListAPIKeysByHint(hint)
 		if err == database.ErrNotFound {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, ErrUnauthorized)
 			return
 		}
 		if err != nil {
 			slog.Error("failed getting API token from database", "hint", hint, "err", err)
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrInternal)
 			return
 		}
 
@@ -81,7 +81,7 @@ func (t *api) requireAuth(ctx *gin.Context) {
 			}
 			if subtle.ConstantTimeCompare(hashApiKey(token, key.Salt), key.Hash) == 1 {
 				if key.Owner == nil {
-					ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+					ctx.AbortWithStatusJSON(http.StatusUnauthorized, ErrUnauthorized)
 					return
 				}
 				ctx.Set(userKey, key.Owner)
@@ -90,28 +90,28 @@ func (t *api) requireAuth(ctx *gin.Context) {
 			}
 		}
 
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, ErrUnauthorized)
 		return
 	}
 
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, ErrUnauthorized)
 		return
 	}
 
 	claims, err := t.jwtHandler.DecodeAndValidate(token)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, ErrUnauthorized)
 		return
 	}
 
 	user, err := t.db.GetUserByID(claims.UserID)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, ErrUnauthorized)
 		return
 	}
 	if user == nil {
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, ErrUnauthorized)
 		return
 	}
 

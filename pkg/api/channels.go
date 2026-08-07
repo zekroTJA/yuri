@@ -17,21 +17,21 @@ func (t *api) channelsCreate(ctx *gin.Context) {
 
 	var req models.ChannelRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, ErrInvalidRequestBody)
 		return
 	}
 
 	channel, err := t.db.CreateChannel(req.Name, user.ID)
 	if err != nil {
 		slog.Error("failed creating channel in database", "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create channel"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
 	channel, err = t.db.GetChannelByID(channel.ID)
 	if err != nil {
 		slog.Error("failed getting channel from database", "id", channel.ID, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
@@ -44,7 +44,7 @@ func (t *api) channelsList(ctx *gin.Context) {
 	channels, err := t.db.ListChannelsByUser(user.ID)
 	if err != nil {
 		slog.Error("failed listing channels from database", "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
@@ -64,23 +64,23 @@ func (t *api) channelsGet(ctx *gin.Context) {
 
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		ctx.JSON(http.StatusBadRequest, ErrInvalidID)
 		return
 	}
 
 	channel, err := t.db.GetChannelByID(uint(id))
 	if err == database.ErrNotFound {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "channel not found"})
+		ctx.JSON(http.StatusNotFound, ErrChannelNotFound)
 		return
 	}
 	if err != nil {
 		slog.Error("failed getting channel from database", "id", id, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
 	if channel.CreatorID != user.ID && !channelHasMember(channel, user.ID) {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		ctx.JSON(http.StatusForbidden, ErrForbidden)
 		return
 	}
 
@@ -96,43 +96,43 @@ func (t *api) channelsUpdate(ctx *gin.Context) {
 
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		ctx.JSON(http.StatusBadRequest, ErrInvalidID)
 		return
 	}
 
 	var req models.ChannelRequest
 	if err = ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, ErrInvalidRequestBody)
 		return
 	}
 
 	channel, err := t.db.GetChannelByID(uint(id))
 	if err == database.ErrNotFound {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "channel not found"})
+		ctx.JSON(http.StatusNotFound, ErrChannelNotFound)
 		return
 	}
 	if err != nil {
 		slog.Error("failed getting channel from database", "id", id, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
 	if channel.CreatorID != user.ID {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		ctx.JSON(http.StatusForbidden, ErrForbidden)
 		return
 	}
 
 	channel, err = t.db.UpdateChannel(uint(id), req.Name)
 	if err != nil {
 		slog.Error("failed updating channel in database", "id", id, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update channel"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
 	channel, err = t.db.GetChannelByID(uint(id))
 	if err != nil {
 		slog.Error("failed getting channel from database", "id", id, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
@@ -157,29 +157,29 @@ func (t *api) channelsDelete(ctx *gin.Context) {
 
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		ctx.JSON(http.StatusBadRequest, ErrInvalidID)
 		return
 	}
 
 	channel, err := t.db.GetChannelByID(uint(id))
 	if err == database.ErrNotFound {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "channel not found"})
+		ctx.JSON(http.StatusNotFound, ErrChannelNotFound)
 		return
 	}
 	if err != nil {
 		slog.Error("failed getting channel from database", "id", id, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
 	if channel.CreatorID != user.ID {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		ctx.JSON(http.StatusForbidden, ErrForbidden)
 		return
 	}
 
 	if err = t.db.DeleteChannel(uint(id)); err != nil {
 		slog.Error("failed deleting channel from database", "id", id, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete channel"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
@@ -203,23 +203,23 @@ func (t *api) channelsConnect(ctx *gin.Context) {
 
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		ctx.JSON(http.StatusBadRequest, ErrInvalidID)
 		return
 	}
 
 	channel, err := t.db.GetChannelByID(uint(id))
 	if err == database.ErrNotFound {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "channel not found"})
+		ctx.JSON(http.StatusNotFound, ErrChannelNotFound)
 		return
 	}
 	if err != nil {
 		slog.Error("failed getting channel from database", "id", id, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
 	if channel.CreatorID != user.ID && !channelHasMember(channel, user.ID) {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		ctx.JSON(http.StatusForbidden, ErrForbidden)
 		return
 	}
 
@@ -232,7 +232,7 @@ func (t *api) channelsConnect(ctx *gin.Context) {
 			prevChan, err := t.db.GetChannelByID(chanId)
 			if err != nil {
 				slog.Error("failed getting channel from database", "id", id, "err", err)
-				ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+				ctx.JSON(http.StatusInternalServerError, ErrInternal)
 				return
 			}
 			_ = conns.Remove(user.ID)
@@ -256,7 +256,7 @@ func (t *api) channelsConnect(ctx *gin.Context) {
 
 	ok = chanConnections.Insert(user.ID)
 	if !ok {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "already connected"})
+		ctx.JSON(http.StatusBadRequest, ErrAlreadyConnected)
 		return
 	}
 
@@ -279,23 +279,23 @@ func (t *api) channelsDisconnect(ctx *gin.Context) {
 
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		ctx.JSON(http.StatusBadRequest, ErrInvalidID)
 		return
 	}
 
 	channel, err := t.db.GetChannelByID(uint(id))
 	if err == database.ErrNotFound {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "channel not found"})
+		ctx.JSON(http.StatusNotFound, ErrChannelNotFound)
 		return
 	}
 	if err != nil {
 		slog.Error("failed getting channel from database", "id", id, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
 	if channel.CreatorID != user.ID && !channelHasMember(channel, user.ID) {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		ctx.JSON(http.StatusForbidden, ErrForbidden)
 		return
 	}
 
@@ -320,34 +320,34 @@ func (t *api) channelsPlay(ctx *gin.Context) {
 
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		ctx.JSON(http.StatusBadRequest, ErrInvalidID)
 		return
 	}
 
 	channel, err := t.db.GetChannelByID(uint(id))
 	if err == database.ErrNotFound {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "channel not found"})
+		ctx.JSON(http.StatusNotFound, ErrChannelNotFound)
 		return
 	}
 	if err != nil {
 		slog.Error("failed getting channel from database", "id", id, "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
 	if channel.CreatorID != user.ID && !channelHasMember(channel, user.ID) {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+		ctx.JSON(http.StatusNotFound, ErrNotFound)
 		return
 	}
 
 	sound, err := t.getSoundByIDOrHandle(ctx.Param("soundId"))
 	if err == database.ErrNotFound {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "sound not found"})
+		ctx.JSON(http.StatusNotFound, ErrSoundNotFound)
 		return
 	}
 	if err != nil {
 		slog.Error("failed getting sound from database", "id", ctx.Param("soundId"), "err", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 
