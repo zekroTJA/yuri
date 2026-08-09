@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_aMgRYAWR68
 createdAt: 2026-08-03T16:20:48.788372700
-updatedAt: 2026-08-03T16:20:57.308327300
+updatedAt: 2026-08-08T12:26:15.082338
 workspaceId: wk_iBBvJWdZgm
 folderId: fl_vD2FuUopk7
 authentication: {}
@@ -14,7 +14,7 @@ headers: []
 method: POST
 name: disconnect
 sortPriority: 3111.1121111111115
-url: ${[ address ]}/api/v1/channels/:id/disconnect
+url: ${[ address ]}/api/v1/channels/disconnect
 urlParameters:
 - enabled: true
   name: :id

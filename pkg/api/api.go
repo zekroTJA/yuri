@@ -84,6 +84,7 @@ func Run(cfg *config.Api, storage *storage.Storage, encoder *ffmpeg.FFMpeg, db *
 	authenticated.GET("/sounds/:id", t.soundsGet)
 	authenticated.POST("/sounds/:id", t.soundsUpdate)
 	authenticated.DELETE("/sounds/:id", t.soundsDelete)
+	authenticated.POST("/sounds/:id/play", t.soundsPlay)
 
 	authenticated.GET("/events", t.eventsStream)
 
@@ -93,8 +94,7 @@ func Run(cfg *config.Api, storage *storage.Storage, encoder *ffmpeg.FFMpeg, db *
 	authenticated.POST("/channels/:id", t.channelsUpdate)
 	authenticated.DELETE("/channels/:id", t.channelsDelete)
 	authenticated.POST("/channels/:id/connect", t.channelsConnect)
-	authenticated.POST("/channels/:id/disconnect", t.channelsDisconnect)
-	authenticated.POST("/channels/:id/play/:soundId", t.channelsPlay)
+	authenticated.POST("/channels/disconnect", t.channelsDisconnect)
 	authenticated.GET("/channels/:id/invites", t.channelInvitesList)
 	authenticated.POST("/channels/:id/invites", t.channelInvitesCreate)
 	authenticated.DELETE("/channels/:id/invites/:inviteId", t.channelInvitesDelete)

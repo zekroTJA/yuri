@@ -37,4 +37,5 @@ var (
 	ErrSoundNotFound     = ErrorResponse{Code: "sound_not_found", Message: "Sound not found"}
 
 	ErrAlreadyConnected = ErrorResponse{Code: "already_connected", Message: "Already connected"}
+	ErrNotConnected     = ErrorResponse{Code: "not_connected", Message: "You need to be connected to a channel to perform this action"}
 )

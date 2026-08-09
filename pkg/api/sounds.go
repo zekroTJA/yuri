@@ -8,7 +8,6 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -17,18 +16,6 @@ import (
 	"github.com/zekrotja/yuri/pkg/database"
 	"github.com/zekrotja/yuri/pkg/ffmpeg"
 )
-
-func (t *api) getSoundByIDOrHandle(idOrHandle string) (*database.Sound, error) {
-	if id, err := strconv.ParseUint(idOrHandle, 10, 64); err == nil {
-		return t.db.GetSoundByID(uint(id))
-	}
-	return t.db.GetSoundByHandle(idOrHandle)
-}
-
-var filterMap = map[string]ffmpeg.Filter{
-	"normalize": ffmpeg.FilterNormalize,
-	"overdrive": ffmpeg.FilterOverdrive,
-}
 
 func (t *api) soundsUpload(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
@@ -230,6 +217,50 @@ func (t *api) soundsDelete(ctx *gin.Context) {
 		Event: sse.EventTypeSoundDelete,
 		Data:  sse.EventDataSoundDelete{SoundId: sound.ID},
 	})
+
+	ctx.Status(http.StatusNoContent)
+}
+
+func (t *api) soundsPlay(ctx *gin.Context) {
+	user := ctx.MustGet(userKey).(*database.User)
+
+	t.connectionsMtx.RLock()
+	defer t.connectionsMtx.RUnlock()
+
+	chanId, ok := t.findUserInChannel(user.ID)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, ErrNotConnected)
+		return
+	}
+
+	channel, err := t.db.GetChannelByID(chanId)
+	if err == database.ErrNotFound {
+		ctx.JSON(http.StatusNotFound, ErrChannelNotFound)
+		return
+	}
+	if err != nil {
+		slog.Error("failed getting channel from database", "id", chanId, "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return
+	}
+
+	sound, err := t.getSoundByIDOrHandle(ctx.Param("id"))
+	if err == database.ErrNotFound {
+		ctx.JSON(http.StatusNotFound, ErrSoundNotFound)
+		return
+	}
+	if err != nil {
+		slog.Error("failed getting sound from database", "id", ctx.Param("soundId"), "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return
+	}
+
+	channelConnections := t.connections[channel.ID].Collect()
+
+	t.sseManager.Send(sse.Event{
+		Event: sse.EventTypePlay,
+		Data:  sse.EventDataPlay{Sound: sound.ID},
+	}, channelConnections)
 
 	ctx.Status(http.StatusNoContent)
 }

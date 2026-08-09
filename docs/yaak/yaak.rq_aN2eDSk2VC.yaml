@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_aN2eDSk2VC
 createdAt: 2026-04-20T08:52:42.514221900
-updatedAt: 2026-04-20T08:53:32.113308400
+updatedAt: 2026-08-08T12:04:01.679938
 workspaceId: wk_iBBvJWdZgm
 folderId: fl_ct34PCkmdf
 authentication: {}
@@ -30,7 +30,7 @@ headers:
   id: jVHrGjqYhA
 method: GET
 name: list
-sortPriority: 0.0
+sortPriority: 1000.0
 url: ${[ address ]}/api/v1/sounds
 urlParameters: []
 settingSendCookies:

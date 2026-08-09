@@ -2,9 +2,9 @@ type: http_request
 model: http_request
 id: rq_2nswVL9yzt
 createdAt: 2026-08-03T10:13:46.690625800
-updatedAt: 2026-08-05T11:12:09.327084
+updatedAt: 2026-08-08T12:04:13.834413
 workspaceId: wk_iBBvJWdZgm
-folderId: fl_vD2FuUopk7
+folderId: fl_ct34PCkmdf
 authentication: {}
 authenticationType: null
 body: {}
@@ -13,8 +13,8 @@ description: ''
 headers: []
 method: POST
 name: play
-sortPriority: 3333.3333333333335
-url: ${[ address ]}/api/v1/channels/:id/play/:soundId
+sortPriority: 0.0
+url: ${[ address ]}/api/v1/sounds/:id/play
 urlParameters:
 - enabled: true
   name: :id

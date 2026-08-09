@@ -277,30 +277,25 @@ func (t *api) channelsConnect(ctx *gin.Context) {
 func (t *api) channelsDisconnect(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
 
-	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, ErrInvalidID)
+	t.connectionsMtx.Lock()
+	defer t.connectionsMtx.Unlock()
+
+	chanId, ok := t.findUserInChannel(user.ID)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, ErrNotConnected)
 		return
 	}
 
-	channel, err := t.db.GetChannelByID(uint(id))
+	channel, err := t.db.GetChannelByID(chanId)
 	if err == database.ErrNotFound {
 		ctx.JSON(http.StatusNotFound, ErrChannelNotFound)
 		return
 	}
 	if err != nil {
-		slog.Error("failed getting channel from database", "id", id, "err", err)
+		slog.Error("failed getting channel from database", "id", chanId, "err", err)
 		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
-
-	if channel.CreatorID != user.ID && !channelHasMember(channel, user.ID) {
-		ctx.JSON(http.StatusForbidden, ErrForbidden)
-		return
-	}
-
-	t.connectionsMtx.Lock()
-	defer t.connectionsMtx.Unlock()
 
 	t.connections[channel.ID].Remove(user.ID)
 
@@ -313,62 +308,4 @@ func (t *api) channelsDisconnect(ctx *gin.Context) {
 	}, channel.AssociatedUserIds())
 
 	ctx.Status(http.StatusNoContent)
-}
-
-func (t *api) channelsPlay(ctx *gin.Context) {
-	user := ctx.MustGet(userKey).(*database.User)
-
-	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, ErrInvalidID)
-		return
-	}
-
-	channel, err := t.db.GetChannelByID(uint(id))
-	if err == database.ErrNotFound {
-		ctx.JSON(http.StatusNotFound, ErrChannelNotFound)
-		return
-	}
-	if err != nil {
-		slog.Error("failed getting channel from database", "id", id, "err", err)
-		ctx.JSON(http.StatusInternalServerError, ErrInternal)
-		return
-	}
-
-	if channel.CreatorID != user.ID && !channelHasMember(channel, user.ID) {
-		ctx.JSON(http.StatusNotFound, ErrNotFound)
-		return
-	}
-
-	sound, err := t.getSoundByIDOrHandle(ctx.Param("soundId"))
-	if err == database.ErrNotFound {
-		ctx.JSON(http.StatusNotFound, ErrSoundNotFound)
-		return
-	}
-	if err != nil {
-		slog.Error("failed getting sound from database", "id", ctx.Param("soundId"), "err", err)
-		ctx.JSON(http.StatusInternalServerError, ErrInternal)
-		return
-	}
-
-	t.connectionsMtx.RLock()
-	defer t.connectionsMtx.RUnlock()
-
-	channelConnections := t.connections[channel.ID].Collect()
-
-	t.sseManager.Send(sse.Event{
-		Event: sse.EventTypePlay,
-		Data:  sse.EventDataPlay{Sound: sound.ID},
-	}, channelConnections)
-
-	ctx.Status(http.StatusNoContent)
-}
-
-func channelHasMember(channel *database.Channel, userID uint) bool {
-	for _, m := range channel.Members {
-		if m.ID == userID {
-			return true
-		}
-	}
-	return false
 }
