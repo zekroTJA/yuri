@@ -142,6 +142,10 @@ export class ApiClient {
     await this.request<void>(`/sounds/${idOrHandle}`, { method: "DELETE" });
   }
 
+  async playSound(idOrHandle: number | string): Promise<void> {
+    await this.request<void>(`/sounds/${idOrHandle}/play`, { method: "POST" });
+  }
+
   // -- Channels --------------------------------------------------------------
 
   async listChannels(): Promise<ChannelResponse[]> {
@@ -179,14 +183,8 @@ export class ApiClient {
     });
   }
 
-  async disconnectChannel(id: number): Promise<void> {
-    await this.request<void>(`/channels/${id}/disconnect`, { method: "POST" });
-  }
-
-  async playSound(channelId: number, soundId: number | string): Promise<void> {
-    await this.request<void>(`/channels/${channelId}/play/${soundId}`, {
-      method: "POST",
-    });
+  async disconnectChannel(): Promise<void> {
+    await this.request<void>("/channels/disconnect", { method: "POST" });
   }
 
   // -- Channel invites -------------------------------------------------------
