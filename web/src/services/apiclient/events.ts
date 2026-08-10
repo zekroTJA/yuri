@@ -18,6 +18,7 @@ export class ApiEventStream {
     const listener = (ev: Event) => {
       const messageEvent = ev as MessageEvent<string>;
       const data = JSON.parse(messageEvent.data) as EventPayloadMap[K];
+      console.debug("received event:", type, data);
       handler(data);
     };
 

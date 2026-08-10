@@ -48,7 +48,10 @@ func (t *api) eventsStream(ctx *gin.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case event := <-eventChan:
+		case event, ok := <-eventChan:
+			if !ok {
+				return
+			}
 			dataBytes, err := json.Marshal(event.Data)
 			if err != nil {
 				slog.Error("failed encoding event data", "err", err.Error(),
