@@ -15,9 +15,12 @@ import (
 func (t *api) eventsStream(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
 
-	eventChan := t.sseManager.Events(user.ID)
+	session := t.sseManager.Subscribe(user.ID)
 	defer func() {
-		t.sseManager.CloseEvents(user.ID)
+		if !session.Close() {
+			return
+		}
+
 		t.connectionsMtx.Lock()
 		defer t.connectionsMtx.Unlock()
 		for chanId, conns := range t.connections {
@@ -46,9 +49,9 @@ func (t *api) eventsStream(ctx *gin.Context) {
 	rc := http.NewResponseController(ctx.Writer)
 	for {
 		select {
-		case <-ctx.Done():
+		case <-ctx.Request.Context().Done():
 			return
-		case event, ok := <-eventChan:
+		case event, ok := <-session.Channel():
 			if !ok {
 				return
 			}

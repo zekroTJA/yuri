@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_udRSJ5hgjU
 createdAt: 2026-08-03T16:19:53.034944800
-updatedAt: 2026-08-05T11:11:27.067163
+updatedAt: 2026-08-10T09:05:31.429471
 workspaceId: wk_iBBvJWdZgm
 folderId: fl_vD2FuUopk7
 authentication: {}
@@ -18,12 +18,12 @@ url: ${[ address ]}/api/v1/channels/:id/connect
 urlParameters:
 - enabled: true
   name: :id
-  value: '1'
+  value: '4'
   id: uxV8qNznBP
 - enabled: true
   name: ''
   value: ''
-  id: HFDFErEzvW
+  id: DMFDWZ4wB8
 settingSendCookies:
   enabled: false
   value: true
