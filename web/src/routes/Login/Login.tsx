@@ -1,7 +1,7 @@
 import styles from "./Login.module.css";
 import Button from "../../components/Button/Button";
 import TabBar from "../../components/TabBar/TabBar";
-import { useState } from "react";
+import { useState, type KeyboardEvent } from "react";
 import Input from "../../components/Input/Input";
 import { API_CLIENT, ApiError } from "../../services/apiclient";
 import { useNavigate } from "react-router";
@@ -36,7 +36,7 @@ export default function Login() {
   };
 
   const onRegister = async () => {
-    if (!username || !password) return;
+    if (!username || !password || password != passwordRepeat) return;
     try {
       await API_CLIENT.register(username, password);
       await API_CLIENT.login(username, password);
@@ -101,6 +101,12 @@ function TabContent({
   onLogin,
   onRegister,
 }: TabContentProps) {
+  const onSubmit = (fn: () => void) => {
+    return (e: KeyboardEvent<HTMLInputElement>) => {
+      if (e.key == "Enter") fn();
+    };
+  };
+
   switch (id) {
     case "login":
       return (
@@ -109,12 +115,14 @@ function TabContent({
             placeholder="Username"
             value={username}
             onInput={onUsernameChange}
+            onKeyUp={onSubmit(onLogin)}
           />
           <Input
             placeholder="Password"
             type="password"
             value={password}
             onInput={onPasswordChange}
+            onKeyUp={onSubmit(onLogin)}
           />
           <Button
             disabled={!username || !password}
@@ -132,12 +140,14 @@ function TabContent({
             placeholder="Username"
             value={username}
             onInput={onUsernameChange}
+            onKeyUp={onSubmit(onRegister)}
           />
           <Input
             placeholder="Password"
             type="password"
             value={password}
             onInput={onPasswordChange}
+            onKeyUp={onSubmit(onRegister)}
           />
           <Input
             placeholder="Password Repeat"
@@ -145,6 +155,7 @@ function TabContent({
             value={passwordRepeat}
             onInput={onPasswordRepeatChange}
             isError={!!passwordRepeat && password != passwordRepeat}
+            onKeyUp={onSubmit(onRegister)}
           />
           <Button
             disabled={!username || !password || password != passwordRepeat}
