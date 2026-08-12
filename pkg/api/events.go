@@ -30,13 +30,12 @@ func (t *api) eventsStream(ctx *gin.Context) {
 					slog.Error("failed getting channel", "err", err.Error(), "id", chanId)
 					return
 				}
-				connectedIds := conns.Collect()
 				t.sseManager.Send(sse.Event{
 					Event: sse.EventTypeChannelUpdate,
 					Data: sse.EventDataChannelUpdate{
-						Channel: models.ChannelToResponse(channel, user.ID, connectedIds),
+						Channel: models.ChannelToResponse(channel, user.ID, conns.Collect()),
 					},
-				}, connectedIds)
+				}, channel.AssociatedUserIds())
 				return
 			}
 		}
