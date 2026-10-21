@@ -3,9 +3,10 @@ import Button from "../../components/Button/Button";
 import TabBar from "../../components/TabBar/TabBar";
 import { useState, type KeyboardEvent } from "react";
 import Input from "../../components/Input/Input";
-import { API_CLIENT, ApiError } from "../../services/apiclient";
+import { API_CLIENT } from "../../services/apiclient";
 import { useNavigate } from "react-router";
-import AlertIcon from "../../assets/alert.svg?react";
+import ErrorTile from "../../components/ErrorTile/ErrorTile";
+import { errorMessage } from "../../utils/errors";
 
 const tabs = [
   { id: "login", element: "Login" },
@@ -26,12 +27,7 @@ export default function Login() {
       await API_CLIENT.login(username, password);
       navigate("/");
     } catch (e) {
-      if (e instanceof ApiError && e.status < 500) {
-        setError(e.message);
-      } else {
-        console.error(e);
-        setError("An unexpected error occured");
-      }
+      setError(errorMessage(e));
     }
   };
 
@@ -42,12 +38,7 @@ export default function Login() {
       await API_CLIENT.login(username, password);
       navigate("/");
     } catch (e) {
-      if (e instanceof ApiError && e.status < 500) {
-        setError(e.message);
-      } else {
-        console.error(e);
-        setError("An unexpected error occured");
-      }
+      setError(errorMessage(e));
     }
   };
 
@@ -167,13 +158,4 @@ function TabContent({
         </>
       );
   }
-}
-
-function ErrorTile({ message }: { message: string }) {
-  return (
-    <div className={styles.errortile}>
-      <AlertIcon />
-      <span>{message}</span>
-    </div>
-  );
 }

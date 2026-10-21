@@ -3,6 +3,8 @@ import { useEffect } from "react";
 import { Route, Routes, useLocation, useNavigate } from "react-router";
 import Main from "./routes/Main/Main";
 import Login from "./routes/Login/Login";
+import SoundBoard from "./routes/SoundBoard/SoundBoard";
+import Settings from "./routes/Settings/Settings";
 import { API_CLIENT } from "./services/apiclient";
 
 function App() {
@@ -20,7 +22,10 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route path="/" element={<Main />} />
+      <Route element={<Main />}>
+        <Route index element={<SoundBoard />} />
+        <Route path="settings" element={<Settings />} />
+      </Route>
     </Routes>
   );
 }

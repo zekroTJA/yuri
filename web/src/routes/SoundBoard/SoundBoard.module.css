@@ -1,0 +1,126 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    padding: 1em;
+}
+
+.header {
+    display: flex;
+    gap: 0.8em;
+}
+
+.search {
+    flex-grow: 1;
+    max-width: 24rem;
+}
+
+.buttonContent {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+
+    svg {
+        height: 1.1em;
+        width: 1.1em;
+    }
+}
+
+.hint {
+    padding: 0.4em 0.8em;
+    border: solid 2px var(--accent-border);
+    border-radius: 5px;
+    background-color: var(--accent-bg);
+}
+
+.empty {
+    margin-top: 2em;
+    text-align: center;
+    opacity: 0.6;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+    gap: 0.8em;
+}
+
+.sound {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4em;
+    min-height: 5.5rem;
+    padding: 0.8em;
+    border: solid 2px transparent;
+    border-radius: 8px;
+    background-color: rgba(0 0 0 / 20%);
+    box-shadow: var(--shadow);
+    color: var(--text);
+    font-size: 1rem;
+    cursor: pointer;
+    transition:
+        background-color 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.1s ease;
+
+    &:hover:not(:disabled) {
+        border-color: var(--accent-border);
+    }
+
+    &:active:not(:disabled) {
+        transform: scale(0.97);
+    }
+
+    &:disabled {
+        border: solid 2px rgba(255 255 255 / 15%);
+        background-color: transparent;
+        box-shadow: none;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+}
+
+.playing {
+    border-color: var(--accent);
+    background-color: var(--accent-bg);
+    animation: pulse 1.2s ease-in-out infinite;
+
+    &:disabled {
+        border-color: var(--accent);
+        background-color: var(--accent-bg);
+    }
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 color(from var(--accent) srgb r g b / 60%);
+    }
+    50% {
+        box-shadow: 0 0 0 0.4em color(from var(--accent) srgb r g b / 0%);
+    }
+}
+
+.soundHandle {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 600;
+}
+
+.soundTags {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.3em;
+}
+
+.tag {
+    padding: 0 0.5em;
+    border-radius: 5px;
+    background-color: rgba(255 255 255 / 10%);
+    font-size: 0.7rem;
+}
