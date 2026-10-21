@@ -9,7 +9,11 @@ export type Props = React.PropsWithChildren &
     variant?: Variant;
   };
 
-export default function Button({ children, variant, ...props }: Props) {
+export default function Button({
+  children,
+  variant = "default",
+  ...props
+}: Props) {
   return (
     <button className={`${styles.button} ${styles[variant]}`} {...props}>
       {children}
