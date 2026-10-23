@@ -65,3 +65,5 @@ Sets up a Gin router in release mode. All handlers are methods on the unexported
 **Audio pipeline (`pkg/ffmpeg`):** Uploaded sounds are piped through `ffmpeg` via stdin/stdout (no temp files) and transcoded to Ogg. Input mimetype/container is sniffed from the uploaded bytes (`gabriel-vasile/mimetype`); optional filters (currently only loudness normalization — `FilterOverdrive` is a stub) are appended as extra `-af` args.
 
 **Storage (`pkg/storage`):** Flat-file store — sounds are saved on disk under the configured directory keyed by `Sound.StorageId`, not in the database.
+
+**Sound archives (`pkg/soundarchive`):** Reads/writes the `.tar.gz` format used by `GET /sounds/export` and `POST /sounds/import` (`sounds_archive.go`): a `meta.json` list of sound metadata plus `sounds/<name>.oga` files. Import reads the uploaded archive twice (meta first, then sounds), skips existing handles, and stores Ogg files as-is without re-encoding.

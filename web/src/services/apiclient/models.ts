@@ -68,6 +68,16 @@ export interface UploadSoundRequest {
   filters?: SoundFilter[];
 }
 
+export interface SoundImportSkipped {
+  name: string;
+  reason: string;
+}
+
+export interface SoundImportResponse {
+  imported: SoundResponse[];
+  skipped: SoundImportSkipped[];
+}
+
 // -- Channels --------------------------------------------------------------
 
 export interface ChannelRequest {

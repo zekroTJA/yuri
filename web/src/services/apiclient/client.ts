@@ -11,6 +11,7 @@ import type {
   ChannelRequest,
   ChannelResponse,
   RegisterResponse,
+  SoundImportResponse,
   SoundResponse,
   SoundUpdateRequest,
   UploadSoundRequest,
@@ -108,6 +109,30 @@ export class ApiClient {
     }
 
     return this.request<SoundResponse>("/sounds", {
+      method: "POST",
+      body: form,
+    });
+  }
+
+  // Downloads all sounds as a .tar.gz archive containing a meta.json and
+  // the sound files in the sounds/ directory.
+  async exportSounds(): Promise<Blob> {
+    const response = await fetch(this.url("/sounds/export"), {
+      credentials: "include",
+    });
+    if (!response.ok) {
+      throw await this.toError(response);
+    }
+    return response.blob();
+  }
+
+  // Imports all sounds from an archive created by exportSounds. Sounds with
+  // names which already exist are skipped.
+  async importSounds(archive: File | Blob): Promise<SoundImportResponse> {
+    const form = new FormData();
+    form.append("file", archive);
+
+    return this.request<SoundImportResponse>("/sounds/import", {
       method: "POST",
       body: form,
     });

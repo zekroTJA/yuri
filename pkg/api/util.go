@@ -2,6 +2,7 @@ package api
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/zekrotja/yuri/pkg/database"
 	"github.com/zekrotja/yuri/pkg/ffmpeg"
@@ -10,6 +11,12 @@ import (
 var filterMap = map[string]ffmpeg.Filter{
 	"normalize": ffmpeg.FilterNormalize,
 	"overdrive": ffmpeg.FilterOverdrive,
+}
+
+// isValidSoundHandle reports whether the given handle can safely be used as
+// part of file names, i.e. in the storage ID or in sound archives.
+func isValidSoundHandle(handle string) bool {
+	return handle != "" && !strings.ContainsAny(handle, `/\`)
 }
 
 func (t *api) getSoundByIDOrHandle(idOrHandle string) (*database.Sound, error) {

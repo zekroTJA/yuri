@@ -15,6 +15,10 @@
     max-width: 24rem;
 }
 
+.fileInput {
+    display: none;
+}
+
 .buttonContent {
     display: flex;
     align-items: center;
@@ -31,6 +35,34 @@
     border: solid 2px var(--accent-border);
     border-radius: 5px;
     background-color: var(--accent-bg);
+}
+
+.importResult {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4em;
+    padding: 0.4em 0.4em 0.4em 0.8em;
+    border: solid 2px var(--accent-border);
+    border-radius: 5px;
+    background-color: var(--accent-bg);
+}
+
+.importResultHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5em;
+}
+
+.skipped {
+    margin: 0;
+    padding: 0 0 0.4em 1.2em;
+    font-size: 0.85rem;
+    opacity: 0.85;
+}
+
+.skippedName {
+    font-family: var(--mono);
 }
 
 .empty {

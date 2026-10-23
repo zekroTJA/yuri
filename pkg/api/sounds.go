@@ -25,6 +25,10 @@ func (t *api) soundsUpload(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, ErrHandleRequired)
 		return
 	}
+	if !isValidSoundHandle(handle) {
+		ctx.JSON(http.StatusBadRequest, ErrInvalidHandle)
+		return
+	}
 
 	sound, err := t.db.GetSoundByHandle(handle)
 	if err == nil {
@@ -152,6 +156,11 @@ func (t *api) soundsUpdate(ctx *gin.Context) {
 	var req models.SoundUpdateRequest
 	if err = ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, ErrInvalidRequestBody)
+		return
+	}
+
+	if !isValidSoundHandle(req.Handle) {
+		ctx.JSON(http.StatusBadRequest, ErrInvalidHandle)
 		return
 	}
 

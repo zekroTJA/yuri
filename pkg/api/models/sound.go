@@ -39,3 +39,13 @@ func SoundToResponse(s *database.Sound) *SoundResponse {
 		Creator:   creator,
 	}
 }
+
+type SoundImportSkipped struct {
+	Name   string `json:"name"`
+	Reason string `json:"reason"`
+}
+
+type SoundImportResponse struct {
+	Imported []*SoundResponse     `json:"imported"`
+	Skipped  []SoundImportSkipped `json:"skipped"`
+}

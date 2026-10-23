@@ -35,6 +35,8 @@ var (
 	ErrFileRequired      = ErrorResponse{Code: "file_required", Message: "File is required"}
 	ErrSoundEncodeFailed = ErrorResponse{Code: "sound_encode_failed", Message: "Failed to encode file"}
 	ErrSoundNotFound     = ErrorResponse{Code: "sound_not_found", Message: "Sound not found"}
+	ErrInvalidHandle     = ErrorResponse{Code: "invalid_handle", Message: "Handle must not contain path separators"}
+	ErrInvalidArchive    = ErrorResponse{Code: "invalid_archive", Message: "Invalid sound archive"}
 
 	ErrAlreadyConnected = ErrorResponse{Code: "already_connected", Message: "Already connected"}
 	ErrNotConnected     = ErrorResponse{Code: "not_connected", Message: "You need to be connected to a channel to perform this action"}

@@ -81,6 +81,8 @@ func Run(cfg *config.Api, storage *storage.Storage, encoder *ffmpeg.FFMpeg, db *
 
 	authenticated.GET("/sounds", t.soundsList)
 	authenticated.POST("/sounds", t.soundsUpload)
+	authenticated.GET("/sounds/export", t.soundsExport)
+	authenticated.POST("/sounds/import", t.soundsImport)
 	authenticated.GET("/sounds/:id", t.soundsGet)
 	authenticated.POST("/sounds/:id", t.soundsUpdate)
 	authenticated.DELETE("/sounds/:id", t.soundsDelete)

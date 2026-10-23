@@ -1,20 +1,48 @@
-import { useContext, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import styles from "./SoundBoard.module.css";
 import { ChannelContext, SoundContext } from "../../contexts";
-import { API_CLIENT, type SoundResponse } from "../../services/apiclient";
+import {
+  API_CLIENT,
+  type SoundImportResponse,
+  type SoundResponse,
+} from "../../services/apiclient";
 import { errorMessage } from "../../utils/errors";
 import Input from "../../components/Input/Input";
 import Button from "../../components/Button/Button";
 import ErrorTile from "../../components/ErrorTile/ErrorTile";
 import UploadForm from "../../components/UploadForm/UploadForm";
+import IconButton from "../../components/IconButton/IconButton";
 import UploadIcon from "../../assets/upload.svg?react";
+import DownloadIcon from "../../assets/download.svg?react";
+import PackageIcon from "../../assets/package.svg?react";
+import CloseIcon from "../../assets/close.svg?react";
+
+function downloadBlob(blob: Blob, fileName: string) {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = fileName;
+  anchor.click();
+  // Revoking synchronously may cancel the download in some browsers.
+  setTimeout(() => URL.revokeObjectURL(url));
+}
+
+function exportFileName(): string {
+  return `yuri-sounds-${new Date().toISOString().slice(0, 10)}.tar.gz`;
+}
 
 export default function SoundBoard() {
   const channelState = useContext(ChannelContext);
   const soundState = useContext(SoundContext);
   const [filter, setFilter] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importResult, setImportResult] = useState<
+    SoundImportResponse | undefined
+  >();
   const [error, setError] = useState<string | undefined>();
+  const importInput = useRef<HTMLInputElement>(null);
 
   const isConnected = channelState.connected !== undefined;
 
@@ -37,6 +65,35 @@ export default function SoundBoard() {
     }
   };
 
+  const onExport = async () => {
+    setError(undefined);
+    setIsExporting(true);
+    try {
+      downloadBlob(await API_CLIENT.exportSounds(), exportFileName());
+    } catch (e) {
+      setError(errorMessage(e));
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const onImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const archive = e.currentTarget.files?.[0];
+    // Reset the input so that the same file can be selected again.
+    e.currentTarget.value = "";
+    if (!archive) return;
+    setError(undefined);
+    setImportResult(undefined);
+    setIsImporting(true);
+    try {
+      setImportResult(await API_CLIENT.importSounds(archive));
+    } catch (e) {
+      setError(errorMessage(e));
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -55,6 +112,33 @@ export default function SoundBoard() {
             {isUploading ? "Cancel" : "Upload"}
           </span>
         </Button>
+        <input
+          ref={importInput}
+          className={styles.fileInput}
+          type="file"
+          accept=".tar.gz,.tgz,application/gzip"
+          onChange={onImport}
+        />
+        <Button
+          disabled={isImporting}
+          title="Import sounds from a .tar.gz archive"
+          onClick={() => importInput.current?.click()}
+        >
+          <span className={styles.buttonContent}>
+            <PackageIcon />
+            {isImporting ? "Importing..." : "Import"}
+          </span>
+        </Button>
+        <Button
+          disabled={isExporting || soundState.sounds.length == 0}
+          title="Export all sounds as a .tar.gz archive"
+          onClick={onExport}
+        >
+          <span className={styles.buttonContent}>
+            <DownloadIcon />
+            {isExporting ? "Exporting..." : "Export"}
+          </span>
+        </Button>
       </header>
 
       {isUploading && <UploadForm onUploaded={() => setIsUploading(false)} />}
@@ -66,6 +150,13 @@ export default function SoundBoard() {
       )}
 
       {!!error && <ErrorTile message={error} />}
+
+      {!!importResult && (
+        <ImportResult
+          result={importResult}
+          onClose={() => setImportResult(undefined)}
+        />
+      )}
 
       {sounds.length > 0 ? (
         <div className={styles.grid}>
@@ -120,5 +211,36 @@ function SoundButton({ sound, isPlaying, disabled, onPlay }: SoundButtonProps) {
         </span>
       )}
     </button>
+  );
+}
+
+type ImportResultProps = {
+  result: SoundImportResponse;
+  onClose: () => void;
+};
+
+function ImportResult({ result, onClose }: ImportResultProps) {
+  return (
+    <div className={styles.importResult}>
+      <div className={styles.importResultHeader}>
+        <span>
+          Imported {result.imported.length}{" "}
+          {result.imported.length == 1 ? "sound" : "sounds"}
+          {result.skipped.length > 0 && `, skipped ${result.skipped.length}`}
+        </span>
+        <IconButton title="Close" onClick={onClose}>
+          <CloseIcon />
+        </IconButton>
+      </div>
+      {result.skipped.length > 0 && (
+        <ul className={styles.skipped}>
+          {result.skipped.map((s) => (
+            <li key={s.name}>
+              <span className={styles.skippedName}>{s.name}</span>: {s.reason}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
