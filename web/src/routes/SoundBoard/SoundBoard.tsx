@@ -66,7 +66,7 @@ export default function SoundBoard() {
       {!!error && <ErrorTile message={error} />}
 
       {sounds.length > 0 ? (
-        <div className={styles.grid}>
+        <div className={styles.sounds}>
           {sounds.map((s) => (
             <SoundButton
               key={s.id}
@@ -107,16 +107,7 @@ function SoundButton({ sound, isPlaying, disabled, onPlay }: SoundButtonProps) {
       }
       onClick={onPlay}
     >
-      <span className={styles.soundHandle}>{sound.handle}</span>
-      {!!sound.tags?.length && (
-        <span className={styles.soundTags}>
-          {sound.tags.map((t) => (
-            <span key={t} className={styles.tag}>
-              {t}
-            </span>
-          ))}
-        </span>
-      )}
+      {sound.handle}
     </button>
   );
 }
