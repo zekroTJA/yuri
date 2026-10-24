@@ -1,0 +1,10 @@
+.git
+.claude
+bin
+data
+docs
+testdata
+.env
+*.toml
+web/node_modules
+web/dist
