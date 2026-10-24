@@ -176,3 +176,52 @@
     background-color: rgba(255 255 255 / 10%);
     font-size: 0.8rem;
 }
+
+.archiveActions {
+    display: flex;
+    gap: 0.8em;
+}
+
+.fileInput {
+    display: none;
+}
+
+.buttonContent {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+
+    svg {
+        height: 1.1em;
+        width: 1.1em;
+    }
+}
+
+.importResult {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4em;
+    padding: 0.4em 0.4em 0.4em 0.8em;
+    border: solid 2px var(--accent-border);
+    border-radius: 5px;
+    background-color: var(--accent-bg);
+}
+
+.importResultHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5em;
+    font-size: 0.9rem;
+}
+
+.skipped {
+    margin: 0;
+    padding: 0 0 0.4em 1.2em;
+    font-size: 0.85rem;
+    opacity: 0.85;
+}
+
+.skippedName {
+    font-family: var(--mono);
+}

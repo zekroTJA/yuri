@@ -1,11 +1,20 @@
-import { useEffect, useState, type KeyboardEvent } from "react";
+import {
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type KeyboardEvent,
+} from "react";
 import { useNavigate } from "react-router";
 import styles from "./Settings.module.css";
+import { SoundContext } from "../../contexts";
 import {
   API_CLIENT,
   type APIKeyCreateResponse,
   type APIKeyResponse,
   type Scope,
+  type SoundImportResponse,
 } from "../../services/apiclient";
 import { errorMessage } from "../../utils/errors";
 import Input from "../../components/Input/Input";
@@ -16,8 +25,24 @@ import BackIcon from "../../assets/back.svg?react";
 import TrashIcon from "../../assets/trash.svg?react";
 import CopyIcon from "../../assets/copy.svg?react";
 import CloseIcon from "../../assets/close.svg?react";
+import DownloadIcon from "../../assets/download.svg?react";
+import PackageIcon from "../../assets/package.svg?react";
 
 const allScopes: Scope[] = ["read", "write", "delete"];
+
+function downloadBlob(blob: Blob, fileName: string) {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = fileName;
+  anchor.click();
+  // Revoking synchronously may cancel the download in some browsers.
+  setTimeout(() => URL.revokeObjectURL(url));
+}
+
+function exportFileName(): string {
+  return `yuri-sounds-${new Date().toISOString().slice(0, 10)}.tar.gz`;
+}
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -30,7 +55,130 @@ export default function Settings() {
         </IconButton>
         <h1 className={styles.title}>Settings</h1>
       </header>
+      <SoundArchive />
       <ApiKeys />
+    </div>
+  );
+}
+
+function SoundArchive() {
+  const soundState = useContext(SoundContext);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importResult, setImportResult] = useState<
+    SoundImportResponse | undefined
+  >();
+  const [error, setError] = useState<string | undefined>();
+  const importInput = useRef<HTMLInputElement>(null);
+
+  const onExport = async () => {
+    setError(undefined);
+    setIsExporting(true);
+    try {
+      downloadBlob(await API_CLIENT.exportSounds(), exportFileName());
+    } catch (e) {
+      setError(errorMessage(e));
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const onImport = async (e: ChangeEvent<HTMLInputElement>) => {
+    const archive = e.currentTarget.files?.[0];
+    // Reset the input so that the same file can be selected again.
+    e.currentTarget.value = "";
+    if (!archive) return;
+    setError(undefined);
+    setImportResult(undefined);
+    setIsImporting(true);
+    try {
+      setImportResult(await API_CLIENT.importSounds(archive));
+    } catch (e) {
+      setError(errorMessage(e));
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  return (
+    <section className={styles.section}>
+      <h2 className={styles.sectionTitle}>Sounds</h2>
+      <p className={styles.description}>
+        Export all sounds as a <code>.tar.gz</code> archive or import sounds
+        from a previously exported archive. Sounds with an already existing
+        handle are skipped on import.
+      </p>
+
+      {!!error && <ErrorTile message={error} />}
+
+      <div className={styles.archiveActions}>
+        <input
+          ref={importInput}
+          className={styles.fileInput}
+          type="file"
+          accept=".tar.gz,.tgz,application/gzip"
+          onChange={onImport}
+        />
+        <Button
+          disabled={isImporting}
+          title="Import sounds from a .tar.gz archive"
+          onClick={() => importInput.current?.click()}
+        >
+          <span className={styles.buttonContent}>
+            <PackageIcon />
+            {isImporting ? "Importing..." : "Import"}
+          </span>
+        </Button>
+        <Button
+          disabled={isExporting || soundState.sounds.length == 0}
+          title="Export all sounds as a .tar.gz archive"
+          onClick={onExport}
+        >
+          <span className={styles.buttonContent}>
+            <DownloadIcon />
+            {isExporting ? "Exporting..." : "Export"}
+          </span>
+        </Button>
+      </div>
+
+      {!!importResult && (
+        <ImportResult
+          result={importResult}
+          onClose={() => setImportResult(undefined)}
+        />
+      )}
+    </section>
+  );
+}
+
+function ImportResult({
+  result,
+  onClose,
+}: {
+  result: SoundImportResponse;
+  onClose: () => void;
+}) {
+  return (
+    <div className={styles.importResult}>
+      <div className={styles.importResultHeader}>
+        <span>
+          Imported {result.imported.length}{" "}
+          {result.imported.length == 1 ? "sound" : "sounds"}
+          {result.skipped.length > 0 && `, skipped ${result.skipped.length}`}
+        </span>
+        <IconButton title="Close" onClick={onClose}>
+          <CloseIcon />
+        </IconButton>
+      </div>
+      {result.skipped.length > 0 && (
+        <ul className={styles.skipped}>
+          {result.skipped.map((s) => (
+            <li key={s.name}>
+              <span className={styles.skippedName}>{s.name}</span>: {s.reason}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
