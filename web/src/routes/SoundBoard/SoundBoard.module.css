@@ -64,15 +64,15 @@
         border-color 0.15s ease,
         transform 0.1s ease;
 
-    &:hover:not(:disabled) {
+    &:hover:not([aria-disabled="true"]) {
         border-color: var(--accent-border);
     }
 
-    &:active:not(:disabled) {
+    &:active:not([aria-disabled="true"]) {
         transform: scale(0.97);
     }
 
-    &:disabled {
+    &[aria-disabled="true"] {
         border: solid 2px rgba(255 255 255 / 15%);
         background-color: transparent;
         box-shadow: none;
@@ -86,7 +86,7 @@
     background-color: var(--accent-bg);
     animation: pulse 1.2s ease-in-out infinite;
 
-    &:disabled {
+    &[aria-disabled="true"] {
         border-color: var(--accent);
         background-color: var(--accent-bg);
     }

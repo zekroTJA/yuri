@@ -17,6 +17,7 @@ import {
   type SoundImportResponse,
 } from "../../services/apiclient";
 import { errorMessage } from "../../utils/errors";
+import { downloadBlob } from "../../utils/download";
 import Input from "../../components/Input/Input";
 import Button from "../../components/Button/Button";
 import IconButton from "../../components/IconButton/IconButton";
@@ -29,16 +30,6 @@ import DownloadIcon from "../../assets/download.svg?react";
 import PackageIcon from "../../assets/package.svg?react";
 
 const allScopes: Scope[] = ["read", "write", "delete"];
-
-function downloadBlob(blob: Blob, fileName: string) {
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = fileName;
-  anchor.click();
-  // Revoking synchronously may cancel the download in some browsers.
-  setTimeout(() => URL.revokeObjectURL(url));
-}
 
 function exportFileName(): string {
   return `yuri-sounds-${new Date().toISOString().slice(0, 10)}.tar.gz`;

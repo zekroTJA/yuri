@@ -1,20 +1,36 @@
-import { useContext, useState } from "react";
+import { useCallback, useContext, useState } from "react";
+import { useNavigate } from "react-router";
 import styles from "./SoundBoard.module.css";
 import { ChannelContext, SoundContext } from "../../contexts";
 import { API_CLIENT, type SoundResponse } from "../../services/apiclient";
 import { errorMessage } from "../../utils/errors";
+import { downloadBlob } from "../../utils/download";
 import Input from "../../components/Input/Input";
 import Button from "../../components/Button/Button";
 import ErrorTile from "../../components/ErrorTile/ErrorTile";
 import UploadForm from "../../components/UploadForm/UploadForm";
+import ContextMenu from "../../components/ContextMenu/ContextMenu";
 import UploadIcon from "../../assets/upload.svg?react";
+import EditIcon from "../../assets/edit.svg?react";
+import DownloadIcon from "../../assets/download.svg?react";
+import TrashIcon from "../../assets/trash.svg?react";
+
+type SoundContextMenu = {
+  sound: SoundResponse;
+  x: number;
+  y: number;
+};
 
 export default function SoundBoard() {
+  const navigate = useNavigate();
   const channelState = useContext(ChannelContext);
   const soundState = useContext(SoundContext);
   const [filter, setFilter] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | undefined>();
+  const [contextMenu, setContextMenu] = useState<
+    SoundContextMenu | undefined
+  >();
 
   const isConnected = channelState.connected !== undefined;
 
@@ -36,6 +52,39 @@ export default function SoundBoard() {
       setError(errorMessage(e));
     }
   };
+
+  const onDownload = async (sound: SoundResponse) => {
+    setError(undefined);
+    try {
+      downloadBlob(await API_CLIENT.getSound(sound.id), `${sound.handle}.oga`);
+    } catch (e) {
+      setError(errorMessage(e));
+    }
+  };
+
+  const onDelete = async (sound: SoundResponse) => {
+    if (
+      !window.confirm(
+        `Do you really want to delete the sound "${sound.handle}"?`,
+      )
+    ) {
+      return;
+    }
+    setError(undefined);
+    try {
+      // The sound is removed from the list by the resulting sound-delete event.
+      await API_CLIENT.deleteSound(sound.id);
+    } catch (e) {
+      setError(errorMessage(e));
+    }
+  };
+
+  const onOpenContextMenu = (sound: SoundResponse, e: React.MouseEvent) => {
+    e.preventDefault();
+    setContextMenu({ sound, x: e.clientX, y: e.clientY });
+  };
+
+  const onCloseContextMenu = useCallback(() => setContextMenu(undefined), []);
 
   return (
     <div className={styles.container}>
@@ -74,6 +123,7 @@ export default function SoundBoard() {
               isPlaying={!!soundState.playing[s.id]}
               disabled={!isConnected}
               onPlay={() => onPlay(s)}
+              onContextMenu={(e) => onOpenContextMenu(s, e)}
             />
           ))}
         </div>
@@ -84,6 +134,32 @@ export default function SoundBoard() {
             : "No sounds match your search."}
         </div>
       )}
+
+      {!!contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          onClose={onCloseContextMenu}
+          items={[
+            {
+              label: "Edit",
+              icon: <EditIcon />,
+              onClick: () => navigate(`/sounds/${contextMenu.sound.id}/edit`),
+            },
+            {
+              label: "Download",
+              icon: <DownloadIcon />,
+              onClick: () => onDownload(contextMenu.sound),
+            },
+            {
+              label: "Delete",
+              icon: <TrashIcon />,
+              isDanger: true,
+              onClick: () => onDelete(contextMenu.sound),
+            },
+          ]}
+        />
+      )}
     </div>
   );
 }
@@ -93,19 +169,29 @@ type SoundButtonProps = {
   isPlaying: boolean;
   disabled: boolean;
   onPlay: () => void;
+  onContextMenu: (e: React.MouseEvent) => void;
 };
 
-function SoundButton({ sound, isPlaying, disabled, onPlay }: SoundButtonProps) {
+function SoundButton({
+  sound,
+  isPlaying,
+  disabled,
+  onPlay,
+  onContextMenu,
+}: SoundButtonProps) {
   return (
     <button
       className={`${styles.sound} ${isPlaying ? styles.playing : ""}`}
-      disabled={disabled}
+      // aria-disabled is used instead of disabled because disabled buttons do
+      // not receive the contextmenu event in all browsers.
+      aria-disabled={disabled}
       title={
         sound.creator.handle
           ? `${sound.handle} (uploaded by ${sound.creator.handle})`
           : sound.handle
       }
-      onClick={onPlay}
+      onClick={() => !disabled && onPlay()}
+      onContextMenu={onContextMenu}
     >
       {sound.handle}
     </button>
