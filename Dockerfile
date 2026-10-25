@@ -16,7 +16,7 @@ COPY pkg/ pkg/
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags="-s -w" -o /yuri ./cmd/yuri
 
 FROM alpine:3
-RUN apk add --no-cache ffmpeg ca-certificates \
+RUN apk add --no-cache ffmpeg yt-dlp ca-certificates \
     && adduser --disabled-password --no-create-home --uid 1000 yuri \
     && mkdir --parents /data/storage \
     && chown --recursive yuri:yuri /data

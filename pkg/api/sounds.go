@@ -2,20 +2,26 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zekrotja/yuri/pkg/api/models"
 	"github.com/zekrotja/yuri/pkg/api/sse"
 	"github.com/zekrotja/yuri/pkg/database"
 	"github.com/zekrotja/yuri/pkg/ffmpeg"
+	"github.com/zekrotja/yuri/pkg/ytdlp"
 )
+
+const downloadTimeout = 5 * time.Minute
 
 func (t *api) soundsUpload(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
@@ -51,12 +57,44 @@ func (t *api) soundsUpload(ctx *gin.Context) {
 		filters = append(filters, f)
 	}
 
+	var source io.Reader
 	file, _, err := ctx.Request.FormFile("file")
-	if err != nil {
+	hasFile := err == nil
+	if hasFile {
+		defer file.Close()
+		source = file
+	}
+
+	mediaURL := strings.TrimSpace(ctx.PostForm("url"))
+	switch {
+	case hasFile && mediaURL != "":
+		ctx.JSON(http.StatusBadRequest, ErrFileAndURL)
+		return
+	case !hasFile && mediaURL == "":
 		ctx.JSON(http.StatusBadRequest, ErrFileRequired)
 		return
+	case mediaURL != "":
+		if !isValidMediaURL(mediaURL) {
+			ctx.JSON(http.StatusBadRequest, ErrInvalidURL)
+			return
+		}
+
+		downloadCtx, cancel := context.WithTimeout(ctx.Request.Context(), downloadTimeout)
+		defer cancel()
+
+		var downloaded bytes.Buffer
+		err = t.downloader.Download(downloadCtx, mediaURL, &downloaded)
+		if errors.Is(err, ytdlp.ErrNotInstalled) {
+			ctx.JSON(http.StatusNotImplemented, ErrYtdlpNotInstalled)
+			return
+		}
+		if err != nil {
+			slog.Error("failed downloading media", "url", mediaURL, "err", err)
+			ctx.JSON(http.StatusUnprocessableEntity, ErrDownloadFailed)
+			return
+		}
+		source = &downloaded
 	}
-	defer file.Close()
 
 	tags := ctx.PostFormArray("tags")
 
@@ -69,7 +107,7 @@ func (t *api) soundsUpload(ctx *gin.Context) {
 	storageID := strings.ToLower(handle) + "-" + hex.EncodeToString(randBytes)
 
 	var encoded bytes.Buffer
-	if err = t.encoder.Format(file, &encoded, filters...); err != nil {
+	if err = t.encoder.Format(source, &encoded, filters...); err != nil {
 		slog.Error("failed encoding sound file", "handle", handle, "err", err)
 		ctx.JSON(http.StatusUnprocessableEntity, ErrSoundEncodeFailed)
 		return

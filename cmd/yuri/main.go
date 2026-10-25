@@ -11,6 +11,7 @@ import (
 	"github.com/zekrotja/yuri/pkg/database"
 	"github.com/zekrotja/yuri/pkg/ffmpeg"
 	"github.com/zekrotja/yuri/pkg/storage"
+	"github.com/zekrotja/yuri/pkg/ytdlp"
 )
 
 func main() {
@@ -39,6 +40,8 @@ func run() error {
 		return err
 	}
 
+	downloader := ytdlp.New(cfg.Ytdlp.Path)
+
 	slog.Info("Initializing database ...")
 	db, err := database.New(cfg.Database.Dsn)
 	if err != nil {
@@ -58,7 +61,7 @@ func run() error {
 	}
 
 	slog.Info("Web server running and accepting requests ...", "addr", cfg.Api.Address)
-	err = api.Run(cfg.Api, st, enc, db)
+	err = api.Run(cfg.Api, st, enc, downloader, db)
 	if err != nil {
 		slog.Error("Failed starting web server", "err", err)
 		return err

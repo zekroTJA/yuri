@@ -32,7 +32,11 @@ var (
 
 	ErrHandleRequired    = ErrorResponse{Code: "handle_required", Message: "Handle is required"}
 	ErrInvalidFilter     = ErrorResponse{Code: "invalid_filter", Message: "Invalid filter"}
-	ErrFileRequired      = ErrorResponse{Code: "file_required", Message: "File is required"}
+	ErrFileRequired      = ErrorResponse{Code: "file_required", Message: "File or URL is required"}
+	ErrFileAndURL        = ErrorResponse{Code: "file_and_url", Message: "Only one of file or URL must be provided"}
+	ErrInvalidURL        = ErrorResponse{Code: "invalid_url", Message: "URL must be a valid http or https URL"}
+	ErrDownloadFailed    = ErrorResponse{Code: "download_failed", Message: "Failed to download media from URL"}
+	ErrYtdlpNotInstalled = ErrorResponse{Code: "ytdlp_not_installed", Message: "Downloading from URLs is not available because yt-dlp is not installed"}
 	ErrSoundEncodeFailed = ErrorResponse{Code: "sound_encode_failed", Message: "Failed to encode file"}
 	ErrSoundNotFound     = ErrorResponse{Code: "sound_not_found", Message: "Sound not found"}
 	ErrInvalidHandle     = ErrorResponse{Code: "invalid_handle", Message: "Handle must not contain path separators"}

@@ -100,7 +100,12 @@ export class ApiClient {
   async uploadSound(req: UploadSoundRequest): Promise<SoundResponse> {
     const form = new FormData();
     form.append("handle", req.handle);
-    form.append("file", req.file);
+    if (req.file) {
+      form.append("file", req.file);
+    }
+    if (req.url) {
+      form.append("url", req.url);
+    }
     for (const tag of req.tags ?? []) {
       form.append("tags", tag);
     }

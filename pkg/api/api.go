@@ -13,6 +13,7 @@ import (
 	"github.com/zekrotja/yuri/pkg/ffmpeg"
 	"github.com/zekrotja/yuri/pkg/storage"
 	"github.com/zekrotja/yuri/pkg/util"
+	"github.com/zekrotja/yuri/pkg/ytdlp"
 )
 
 const (
@@ -32,6 +33,7 @@ type api struct {
 	db         *database.Database
 	storage    *storage.Storage
 	encoder    *ffmpeg.FFMpeg
+	downloader *ytdlp.YtDlp
 	jwtHandler jwt.Handler[sessionClaims]
 	sseManager *sse.Manager
 
@@ -41,7 +43,13 @@ type api struct {
 	corsOrigin string
 }
 
-func Run(cfg *config.Api, storage *storage.Storage, encoder *ffmpeg.FFMpeg, db *database.Database) error {
+func Run(
+	cfg *config.Api,
+	storage *storage.Storage,
+	encoder *ffmpeg.FFMpeg,
+	downloader *ytdlp.YtDlp,
+	db *database.Database,
+) error {
 	gin.SetMode(gin.ReleaseMode)
 
 	var secret []byte
@@ -58,6 +66,7 @@ func Run(cfg *config.Api, storage *storage.Storage, encoder *ffmpeg.FFMpeg, db *
 		db:          db,
 		storage:     storage,
 		encoder:     encoder,
+		downloader:  downloader,
 		jwtHandler:  jwt.NewHandler[sessionClaims](jwt.NewHmacSha256(secret)),
 		sseManager:  sse.NewManager(),
 		connections: make(map[uint]util.Set[uint]),

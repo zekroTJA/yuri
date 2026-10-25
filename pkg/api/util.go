@@ -1,6 +1,7 @@
 package api
 
 import (
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -17,6 +18,16 @@ var filterMap = map[string]ffmpeg.Filter{
 // part of file names, i.e. in the storage ID or in sound archives.
 func isValidSoundHandle(handle string) bool {
 	return handle != "" && !strings.ContainsAny(handle, `/\`)
+}
+
+// isValidMediaURL reports whether the given URL is an absolute http or https
+// URL which can be passed to the media downloader.
+func isValidMediaURL(rawURL string) bool {
+	parsed, err := url.Parse(rawURL)
+	if err != nil {
+		return false
+	}
+	return (parsed.Scheme == "http" || parsed.Scheme == "https") && parsed.Host != ""
 }
 
 func (t *api) getSoundByIDOrHandle(idOrHandle string) (*database.Sound, error) {

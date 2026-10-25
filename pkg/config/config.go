@@ -12,6 +12,7 @@ type Config struct {
 	Logging  *Logging
 	Storage  *Storage
 	Ffmpeg   *Ffmpeg
+	Ytdlp    *Ytdlp
 }
 
 type Logging struct {
@@ -34,6 +35,10 @@ type Storage struct {
 }
 
 type Ffmpeg struct {
+	Path string `default:""`
+}
+
+type Ytdlp struct {
 	Path string `default:""`
 }
 

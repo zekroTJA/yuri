@@ -7,6 +7,7 @@ import Input from "../../components/Input/Input";
 import Button from "../../components/Button/Button";
 import IconButton from "../../components/IconButton/IconButton";
 import ErrorTile from "../../components/ErrorTile/ErrorTile";
+import TabBar from "../../components/TabBar/TabBar";
 import BackIcon from "../../assets/back.svg?react";
 
 // Derives a sound handle from the given file name by dropping the extension
@@ -18,6 +19,8 @@ function handleFromFileName(fileName: string): string {
     .replace(/[^a-z0-9_-]+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
+
+type SourceType = "file" | "url";
 
 export default function SoundUpload() {
   const navigate = useNavigate();
@@ -37,7 +40,9 @@ export default function SoundUpload() {
 
 function SoundUploadForm({ onUploaded }: { onUploaded: () => void }) {
   const fileInput = useRef<HTMLInputElement>(null);
+  const [sourceType, setSourceType] = useState<SourceType>("file");
   const [file, setFile] = useState<File | undefined>();
+  const [url, setUrl] = useState("");
   const [handle, setHandle] = useState("");
   const [tags, setTags] = useState("");
   const [normalize, setNormalize] = useState(true);
@@ -52,14 +57,17 @@ function SoundUploadForm({ onUploaded }: { onUploaded: () => void }) {
     }
   };
 
+  const hasSource = sourceType === "file" ? !!file : !!url.trim();
+
   const onUpload = async () => {
-    if (!file || !handle || isPending) return;
+    if (!hasSource || !handle || isPending) return;
     setError(undefined);
     setIsPending(true);
     try {
       await API_CLIENT.uploadSound({
         handle,
-        file,
+        file: sourceType === "file" ? file : undefined,
+        url: sourceType === "url" ? url.trim() : undefined,
         tags: tags
           .split(",")
           .map((t) => t.trim())
@@ -81,24 +89,44 @@ function SoundUploadForm({ onUploaded }: { onUploaded: () => void }) {
   return (
     <section className={styles.form}>
       {!!error && <ErrorTile message={error} />}
-      <div className={styles.field}>
-        <span className={styles.label}>File</span>
-        <div className={styles.fileRow}>
-          <input
-            ref={fileInput}
-            className={styles.fileInput}
-            type="file"
-            accept="audio/*,video/*"
-            onChange={onFileChange}
+      <TabBar
+        options={[
+          { id: "file", element: "File" },
+          { id: "url", element: "URL" },
+        ]}
+        onSelect={(id) => setSourceType(id as SourceType)}
+      />
+      {sourceType === "url" ? (
+        <label className={styles.field}>
+          <span className={styles.label}>Video URL</span>
+          <Input
+            type="url"
+            placeholder="https://www.youtube.com/watch?v=..."
+            value={url}
+            onInput={(e) => setUrl(e.currentTarget.value)}
+            onKeyUp={onKeyUp}
           />
-          <Button onClick={() => fileInput.current?.click()}>
-            Choose file
-          </Button>
-          <span className={styles.fileName}>
-            {file ? file.name : "No file selected"}
-          </span>
+        </label>
+      ) : (
+        <div className={styles.field}>
+          <span className={styles.label}>File</span>
+          <div className={styles.fileRow}>
+            <input
+              ref={fileInput}
+              className={styles.fileInput}
+              type="file"
+              accept="audio/*,video/*"
+              onChange={onFileChange}
+            />
+            <Button onClick={() => fileInput.current?.click()}>
+              Choose file
+            </Button>
+            <span className={styles.fileName}>
+              {file ? file.name : "No file selected"}
+            </span>
+          </div>
         </div>
-      </div>
+      )}
       <label className={styles.field}>
         <span className={styles.label}>Handle</span>
         <Input
@@ -126,10 +154,14 @@ function SoundUploadForm({ onUploaded }: { onUploaded: () => void }) {
       <div className={styles.actions}>
         <Button
           variant="primary"
-          disabled={!file || !handle || isPending}
+          disabled={!hasSource || !handle || isPending}
           onClick={onUpload}
         >
-          {isPending ? "Uploading..." : "Upload"}
+          {isPending
+            ? sourceType === "url"
+              ? "Downloading..."
+              : "Uploading..."
+            : "Upload"}
         </Button>
       </div>
     </section>

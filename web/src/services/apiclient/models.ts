@@ -63,7 +63,10 @@ export interface SoundUpdateRequest {
 
 export interface UploadSoundRequest {
   handle: string;
-  file: File | Blob;
+  // Either file or url must be set. When url is set, the media behind the
+  // URL is downloaded by the server and its audio is extracted.
+  file?: File | Blob;
+  url?: string;
   tags?: string[];
   filters?: SoundFilter[];
 }
