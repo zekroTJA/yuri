@@ -52,6 +52,7 @@
     width: 1.8rem;
     height: 1.8rem;
     object-fit: contain;
+    cursor: pointer;
 }
 
 .title {

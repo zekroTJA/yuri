@@ -127,7 +127,12 @@ export default function SideBar() {
       style={width !== undefined ? { width } : undefined}
     >
       <header className={styles.header}>
-        <img className={styles.logo} src={yuriIcon} alt="Yuri" />
+        <img
+          className={styles.logo}
+          src={yuriIcon}
+          alt="Yuri"
+          onClick={() => navigate("/")}
+        />
         <span className={styles.title}>Channels</span>
         <IconButton
           title={isAddingChannel ? "Cancel" : "Add channel"}
