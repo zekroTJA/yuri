@@ -4,9 +4,15 @@ import { API_CLIENT } from "../apiclient";
 // repeatedly played sounds are only fetched once.
 const objectUrls = new Map<number, Promise<string>>();
 
-// Currently playing audio elements, so that volume changes also apply to
-// sounds which are already playing.
-const playingAudios = new Set<HTMLAudioElement>();
+type Playback = {
+  audio?: HTMLAudioElement;
+  stop: () => void;
+};
+
+// The currently active playback. Only one sound is played at a time, so
+// starting a new sound stops the current one. It is also used to apply volume
+// changes to the sound which is already playing.
+let currentPlayback: Playback | undefined;
 
 const volumeStorageKey = "volume";
 const defaultVolume = 0.5;
@@ -32,7 +38,7 @@ export function getVolume(): number {
 export function setVolume(newVolume: number): void {
   volume = Math.min(Math.max(newVolume, 0), 1);
   localStorage.setItem(volumeStorageKey, String(volume));
-  playingAudios.forEach((audio) => (audio.volume = volume));
+  if (currentPlayback?.audio) currentPlayback.audio.volume = volume;
 }
 
 function getObjectUrl(soundId: number): Promise<string> {
@@ -47,21 +53,43 @@ function getObjectUrl(soundId: number): Promise<string> {
   return objectUrl;
 }
 
-// Plays the sound with the given ID. The returned promise resolves when the
-// playback has finished or could not be started.
+// Plays the sound with the given ID and stops the currently playing sound, if
+// any. The returned promise resolves when the playback has finished, has been
+// stopped by another sound or could not be started.
 export async function playSound(soundId: number): Promise<void> {
-  const audio = new Audio(await getObjectUrl(soundId));
-  audio.volume = volume;
-  playingAudios.add(audio);
-  await new Promise<void>((resolve) => {
-    audio.addEventListener("ended", () => resolve());
-    audio.addEventListener("error", () => resolve());
-    audio.play().catch((e) => {
-      console.error("failed playing sound", soundId, e);
-      resolve();
+  let stopped = false;
+  let resolvePlayback: () => void = () => {};
+  const playback: Playback = {
+    stop: () => {
+      stopped = true;
+      playback.audio?.pause();
+      resolvePlayback();
+    },
+  };
+
+  currentPlayback?.stop();
+  currentPlayback = playback;
+
+  try {
+    const objectUrl = await getObjectUrl(soundId);
+    // Another sound might have been started while the file was downloaded.
+    if (stopped) return;
+
+    const audio = new Audio(objectUrl);
+    audio.volume = volume;
+    playback.audio = audio;
+    await new Promise<void>((resolve) => {
+      resolvePlayback = resolve;
+      audio.addEventListener("ended", () => resolve());
+      audio.addEventListener("error", () => resolve());
+      audio.play().catch((e) => {
+        if (!stopped) console.error("failed playing sound", soundId, e);
+        resolve();
+      });
     });
-  });
-  playingAudios.delete(audio);
+  } finally {
+    if (currentPlayback === playback) currentPlayback = undefined;
+  }
 }
 
 // Drops the cached file of the given sound, e.g. after it has been deleted.
