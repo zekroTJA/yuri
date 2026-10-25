@@ -396,3 +396,86 @@ func (t *api) soundsTrim(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, soundResponse)
 }
+
+func (t *api) soundsCopy(ctx *gin.Context) {
+	user := ctx.MustGet(userKey).(*database.User)
+
+	sound, err := t.getSoundByIDOrHandle(ctx.Param("id"))
+	if err == database.ErrNotFound {
+		ctx.JSON(http.StatusNotFound, ErrSoundNotFound)
+		return
+	}
+	if err != nil {
+		slog.Error("failed getting sound from database", "id", ctx.Param("id"), "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return
+	}
+
+	var req models.SoundCopyRequest
+	if err = ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, ErrInvalidRequestBody)
+		return
+	}
+
+	if !isValidSoundHandle(req.Handle) {
+		ctx.JSON(http.StatusBadRequest, ErrInvalidHandle)
+		return
+	}
+
+	_, err = t.db.GetSoundByHandle(req.Handle)
+	if err == nil {
+		ctx.JSON(http.StatusConflict, ErrHandleConflict)
+		return
+	}
+	if err != database.ErrNotFound {
+		slog.Error("failed checking sound handle availability", "handle", req.Handle, "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return
+	}
+
+	file, err := t.storage.Load(sound.StorageId)
+	if err != nil {
+		slog.Error("failed loading sound file", "storage_id", sound.StorageId, "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return
+	}
+	defer file.Close()
+
+	storageID, err := newStorageID(req.Handle)
+	if err != nil {
+		slog.Error("failed generating storage ID", "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return
+	}
+
+	// The stored file is already encoded, so it is copied as-is.
+	if err = t.storage.Store(storageID, file); err != nil {
+		_ = t.storage.Delete(storageID)
+		slog.Error("failed storing sound file", "storage_id", storageID, "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return
+	}
+
+	created, err := t.db.CreateSound(req.Handle, storageID, req.Tags, user.ID)
+	if err != nil {
+		_ = t.storage.Delete(storageID)
+		slog.Error("failed creating sound in database", "handle", req.Handle, "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return
+	}
+
+	created, err = t.db.GetSoundByID(created.ID)
+	if err != nil {
+		slog.Error("failed getting sound from database", "handle", req.Handle, "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return
+	}
+
+	soundResponse := models.SoundToResponse(created)
+	t.sseManager.Broadcast(sse.Event{
+		Event: sse.EventTypeSoundCreate,
+		Data:  sse.EventDataSoundCreate{Sound: soundResponse},
+	})
+
+	ctx.JSON(http.StatusCreated, soundResponse)
+}

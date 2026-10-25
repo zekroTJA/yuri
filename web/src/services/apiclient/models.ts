@@ -61,6 +61,11 @@ export interface SoundUpdateRequest {
   tags?: string[];
 }
 
+export interface SoundCopyRequest {
+  handle: string;
+  tags?: string[];
+}
+
 // Range of the sound to keep in seconds.
 export interface SoundTrimRequest {
   start: number;

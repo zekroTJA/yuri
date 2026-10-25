@@ -53,20 +53,28 @@ function SoundEditForm({
   const [handle, setHandle] = useState(sound.handle);
   const [tags, setTags] = useState(sound.tags?.join(", ") ?? "");
   const [trimRange, setTrimRange] = useState<TrimRange | undefined>();
-  const [isPending, setIsPending] = useState(false);
+  const [pendingAction, setPendingAction] = useState<
+    "save" | "saveAsNew" | undefined
+  >();
   const [error, setError] = useState<string | undefined>();
+
+  const isPending = pendingAction !== undefined;
+  const isHandleChanged = handle != sound.handle;
+
+  const parsedTags = () =>
+    tags
+      .split(",")
+      .map((t) => t.trim())
+      .filter((t) => !!t);
 
   const onSave = async () => {
     if (!handle) return;
     setError(undefined);
-    setIsPending(true);
+    setPendingAction("save");
     try {
       await API_CLIENT.updateSound(sound.id, {
         handle,
-        tags: tags
-          .split(",")
-          .map((t) => t.trim())
-          .filter((t) => !!t),
+        tags: parsedTags(),
       });
       if (trimRange) {
         await API_CLIENT.trimSound(sound.id, trimRange);
@@ -75,7 +83,29 @@ function SoundEditForm({
     } catch (e) {
       setError(errorMessage(e));
     } finally {
-      setIsPending(false);
+      setPendingAction(undefined);
+    }
+  };
+
+  // Creates a new sound from the entered data and leaves the edited sound
+  // untouched.
+  const onSaveAsNew = async () => {
+    if (!handle || !isHandleChanged) return;
+    setError(undefined);
+    setPendingAction("saveAsNew");
+    try {
+      const created = await API_CLIENT.copySound(sound.id, {
+        handle,
+        tags: parsedTags(),
+      });
+      if (trimRange) {
+        await API_CLIENT.trimSound(created.id, trimRange);
+      }
+      onSaved();
+    } catch (e) {
+      setError(errorMessage(e));
+    } finally {
+      setPendingAction(undefined);
     }
   };
 
@@ -107,12 +137,28 @@ function SoundEditForm({
         <SoundTrimmer soundId={sound.id} onChange={setTrimRange} />
       </div>
       <div className={styles.actions}>
+        {/* The hint is set on a wrapper because disabled buttons do not
+            receive pointer events in all browsers. */}
+        <span
+          title={
+            isHandleChanged
+              ? undefined
+              : "Only available when using a different handle"
+          }
+        >
+          <Button
+            disabled={!handle || !isHandleChanged || isPending}
+            onClick={onSaveAsNew}
+          >
+            {pendingAction == "saveAsNew" ? "Saving..." : "Save as new sound"}
+          </Button>
+        </span>
         <Button
           variant="primary"
           disabled={!handle || isPending}
           onClick={onSave}
         >
-          {isPending ? "Saving..." : "Save"}
+          {pendingAction == "save" ? "Saving..." : "Save"}
         </Button>
       </div>
     </section>

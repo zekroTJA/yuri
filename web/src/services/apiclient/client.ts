@@ -11,6 +11,7 @@ import type {
   ChannelRequest,
   ChannelResponse,
   RegisterResponse,
+  SoundCopyRequest,
   SoundImportResponse,
   SoundResponse,
   SoundTrimRequest,
@@ -164,6 +165,18 @@ export class ApiClient {
     req: SoundUpdateRequest,
   ): Promise<SoundResponse> {
     return this.request<SoundResponse>(`/sounds/${idOrHandle}`, {
+      method: "POST",
+      body: JSON.stringify(req),
+    });
+  }
+
+  // Creates a new sound with the given handle and tags using a copy of the
+  // file of the given sound.
+  async copySound(
+    idOrHandle: number | string,
+    req: SoundCopyRequest,
+  ): Promise<SoundResponse> {
+    return this.request<SoundResponse>(`/sounds/${idOrHandle}/copy`, {
       method: "POST",
       body: JSON.stringify(req),
     });

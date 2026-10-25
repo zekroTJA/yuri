@@ -25,6 +25,11 @@ type SoundUpdateRequest struct {
 	Tags   []string `json:"tags"`
 }
 
+type SoundCopyRequest struct {
+	Handle string   `json:"handle" binding:"required"`
+	Tags   []string `json:"tags"`
+}
+
 // SoundTrimRequest defines the range of the sound to keep in seconds.
 type SoundTrimRequest struct {
 	Start float64 `json:"start"`
