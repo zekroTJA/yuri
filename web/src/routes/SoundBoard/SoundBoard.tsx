@@ -8,7 +8,6 @@ import { downloadBlob } from "../../utils/download";
 import Input from "../../components/Input/Input";
 import Button from "../../components/Button/Button";
 import ErrorTile from "../../components/ErrorTile/ErrorTile";
-import UploadForm from "../../components/UploadForm/UploadForm";
 import ContextMenu from "../../components/ContextMenu/ContextMenu";
 import UploadIcon from "../../assets/upload.svg?react";
 import EditIcon from "../../assets/edit.svg?react";
@@ -26,7 +25,6 @@ export default function SoundBoard() {
   const channelState = useContext(ChannelContext);
   const soundState = useContext(SoundContext);
   const [filter, setFilter] = useState("");
-  const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const [contextMenu, setContextMenu] = useState<
     SoundContextMenu | undefined
@@ -95,18 +93,13 @@ export default function SoundBoard() {
           value={filter}
           onInput={(e) => setFilter(e.currentTarget.value)}
         />
-        <Button
-          variant={isUploading ? "default" : "primary"}
-          onClick={() => setIsUploading(!isUploading)}
-        >
+        <Button variant="primary" onClick={() => navigate("/sounds/upload")}>
           <span className={styles.buttonContent}>
             <UploadIcon />
-            {isUploading ? "Cancel" : "Upload"}
+            Upload
           </span>
         </Button>
       </header>
-
-      {isUploading && <UploadForm onUploaded={() => setIsUploading(false)} />}
 
       {!isConnected && (
         <div className={styles.hint}>Join a channel to play sounds.</div>

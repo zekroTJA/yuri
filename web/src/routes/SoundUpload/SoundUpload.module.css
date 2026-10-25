@@ -1,0 +1,73 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5em;
+    max-width: 50rem;
+    padding: 1em;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.title {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8em;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3em;
+}
+
+.label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.6;
+}
+
+.fileRow {
+    display: flex;
+    align-items: center;
+    gap: 0.8em;
+}
+
+.fileInput {
+    display: none;
+}
+
+.fileName {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    opacity: 0.75;
+}
+
+.checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    cursor: pointer;
+
+    input {
+        width: 1.1em;
+        height: 1.1em;
+        accent-color: var(--accent);
+    }
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+}

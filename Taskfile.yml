@@ -21,6 +21,8 @@ tasks:
       - be:build
 
   be:run:
+    deps:
+      - fe:build
     aliases:
       - run
     cmds:
