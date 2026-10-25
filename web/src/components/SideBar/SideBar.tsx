@@ -1,4 +1,10 @@
-import { useContext, useState, type KeyboardEvent } from "react";
+import {
+  useContext,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type PointerEvent,
+} from "react";
 import { useNavigate } from "react-router";
 import styles from "./SideBar.module.css";
 import { ChannelActionsContext, ChannelContext } from "../../contexts";
@@ -24,6 +30,13 @@ import CloseIcon from "../../assets/close.svg?react";
 const inviteMaxActivations = 1;
 const inviteLifetimeMs = 7 * 24 * 60 * 60 * 1000;
 
+const widthStorageKey = "sidebar-width";
+
+function loadWidth(): number | undefined {
+  const width = Number(localStorage.getItem(widthStorageKey));
+  return width > 0 ? width : undefined;
+}
+
 function inviteExpiresAt(): string {
   return new Date(Date.now() + inviteLifetimeMs).toISOString();
 }
@@ -40,6 +53,11 @@ export default function SideBar() {
   const [isAddingChannel, setIsAddingChannel] = useState(false);
   const [invite, setInvite] = useState<Invite | undefined>();
   const [error, setError] = useState<string | undefined>();
+  const container = useRef<HTMLElement>(null);
+  // Undefined means that the default width from the stylesheet is used. The
+  // minimum and maximum width are enforced by the stylesheet as well.
+  const [width, setWidth] = useState(loadWidth);
+  const [isResizing, setIsResizing] = useState(false);
 
   const connectedChannel = channelState.channels.find(
     (c) => c.id == channelState.connected,
@@ -78,8 +96,33 @@ export default function SideBar() {
     }
   };
 
+  const onResizeStart = (e: PointerEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setIsResizing(true);
+  };
+
+  const onResize = (e: PointerEvent<HTMLDivElement>) => {
+    if (!isResizing || !container.current) return;
+    setWidth(e.clientX - container.current.getBoundingClientRect().left);
+  };
+
+  const onResizeEnd = () => {
+    if (!isResizing || !container.current) return;
+    setIsResizing(false);
+    // The rendered width is stored so that values clamped by the stylesheet
+    // are not persisted.
+    const renderedWidth = container.current.getBoundingClientRect().width;
+    setWidth(renderedWidth);
+    localStorage.setItem(widthStorageKey, String(renderedWidth));
+  };
+
   return (
-    <nav className={styles.container}>
+    <nav
+      ref={container}
+      className={styles.container}
+      style={width !== undefined ? { width } : undefined}
+    >
       <header className={styles.header}>
         <span className={styles.title}>Channels</span>
         <IconButton
@@ -142,6 +185,14 @@ export default function SideBar() {
           <SettingsIcon />
         </IconButton>
       </footer>
+
+      <div
+        className={`${styles.resizeHandle} ${isResizing ? styles.resizing : ""}`}
+        onPointerDown={onResizeStart}
+        onPointerMove={onResize}
+        onPointerUp={onResizeEnd}
+        onPointerCancel={onResizeEnd}
+      />
     </nav>
   );
 }
