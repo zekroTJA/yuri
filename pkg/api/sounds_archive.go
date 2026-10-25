@@ -23,6 +23,18 @@ const maxImportSoundSize = 50 << 20
 // oggMagic is the capture pattern every Ogg page starts with.
 var oggMagic = []byte("OggS")
 
+// soundsExport godoc
+//
+//	@Summary		Export sounds
+//	@Description	Exports all sounds as a .tar.gz archive containing a meta.json and the Ogg encoded sound files.
+//	@Tags			Sounds
+//	@Produce		application/gzip
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Success		200	{file}		binary
+//	@Failure		401	{object}	api.ErrorResponse
+//	@Failure		500	{object}	api.ErrorResponse
+//	@Router			/sounds/export [get]
 func (t *api) soundsExport(ctx *gin.Context) {
 	sounds, err := t.db.ListSounds()
 	if err != nil {
@@ -92,6 +104,20 @@ func (t *api) soundsExport(ctx *gin.Context) {
 	}
 }
 
+// soundsImport godoc
+//
+//	@Summary		Import sounds
+//	@Description	Imports sounds from a .tar.gz archive in the format produced by the export endpoint. Sounds with existing handles are skipped.
+//	@Tags			Sounds
+//	@Accept			multipart/form-data
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Param			file	formData	file	true	"Sound archive"
+//	@Success		200		{object}	models.SoundImportResponse
+//	@Failure		400		{object}	api.ErrorResponse
+//	@Failure		401		{object}	api.ErrorResponse
+//	@Failure		500		{object}	api.ErrorResponse
+//	@Router			/sounds/import [post]
 func (t *api) soundsImport(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
 

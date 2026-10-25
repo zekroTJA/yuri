@@ -10,6 +10,19 @@ import (
 	"github.com/zekrotja/yuri/pkg/api/models"
 )
 
+// authRegister godoc
+//
+//	@Summary		Register
+//	@Description	Creates a new user account.
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		models.AuthRequest	true	"Credentials"
+//	@Success		201		{object}	models.AuthRegisterResponse
+//	@Failure		400		{object}	api.ErrorResponse
+//	@Failure		409		{object}	api.ErrorResponse
+//	@Failure		500		{object}	api.ErrorResponse
+//	@Router			/auth/register [post]
 func (t *api) authRegister(ctx *gin.Context) {
 	var req models.AuthRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -49,9 +62,25 @@ func (t *api) authRegister(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{"id": user.ID, "handle": user.Handle})
+	ctx.JSON(http.StatusCreated, models.AuthRegisterResponse{
+		ID:     user.ID,
+		Handle: user.Handle,
+	})
 }
 
+// authLogin godoc
+//
+//	@Summary		Login
+//	@Description	Authenticates the user and sets the "session" cookie.
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body	models.AuthRequest	true	"Credentials"
+//	@Success		204
+//	@Failure		400	{object}	api.ErrorResponse
+//	@Failure		401	{object}	api.ErrorResponse
+//	@Failure		500	{object}	api.ErrorResponse
+//	@Router			/auth/login [post]
 func (t *api) authLogin(ctx *gin.Context) {
 	var req models.AuthRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {

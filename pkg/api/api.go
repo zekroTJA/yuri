@@ -43,6 +43,16 @@ type api struct {
 	corsOrigin string
 }
 
+//	@title			Yuri API
+//	@version		1.0
+//	@description	Soundboard server for uploading sounds into channels and playing them back to connected clients.
+//	@BasePath		/api/v1
+
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@in							header
+//	@name						Authorization
+//	@description				API key passed as "Bearer <token>". Alternatively, the "session" cookie set by /auth/login can be used.
+
 func Run(
 	cfg *config.Api,
 	storage *storage.Storage,
@@ -85,6 +95,7 @@ func Run(
 	apiGroup := router.Group("/api/v1")
 	apiGroup.POST("/auth/register", t.authRegister)
 	apiGroup.POST("/auth/login", t.authLogin)
+	apiGroup.GET("/docs/swagger.json", t.docsSwagger)
 
 	authenticated := apiGroup.Group("/", t.requireAuth)
 

@@ -17,6 +17,23 @@ const (
 	channelInviteCodeLen = 16
 )
 
+// channelInvitesCreate godoc
+//
+//	@Summary		Create channel invite
+//	@Description	Creates an invite for a channel. Only allowed for the channel owner. A max_activations of 0 means unlimited activations.
+//	@Tags			Channel Invites
+//	@Accept			json
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Param			id		path		int									true	"Channel ID"
+//	@Param			body	body		models.ChannelInviteCreateRequest	true	"Invite"
+//	@Success		201		{object}	models.ChannelInviteResponse
+//	@Failure		400		{object}	api.ErrorResponse
+//	@Failure		401		{object}	api.ErrorResponse
+//	@Failure		403		{object}	api.ErrorResponse
+//	@Failure		404		{object}	api.ErrorResponse
+//	@Failure		500		{object}	api.ErrorResponse
+//	@Router			/channels/{id}/invites [post]
 func (t *api) channelInvitesCreate(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
 
@@ -65,6 +82,21 @@ func (t *api) channelInvitesCreate(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, models.ChannelInviteToResponse(invite))
 }
 
+// channelInvitesList godoc
+//
+//	@Summary		List channel invites
+//	@Description	Lists all invites of a channel. Only allowed for the channel owner.
+//	@Tags			Channel Invites
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Param			id	path		int	true	"Channel ID"
+//	@Success		200	{array}		models.ChannelInviteResponse
+//	@Failure		400	{object}	api.ErrorResponse
+//	@Failure		401	{object}	api.ErrorResponse
+//	@Failure		403	{object}	api.ErrorResponse
+//	@Failure		404	{object}	api.ErrorResponse
+//	@Failure		500	{object}	api.ErrorResponse
+//	@Router			/channels/{id}/invites [get]
 func (t *api) channelInvitesList(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
 
@@ -105,6 +137,22 @@ func (t *api) channelInvitesList(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
+// channelInvitesDelete godoc
+//
+//	@Summary		Delete channel invite
+//	@Description	Deletes an invite of a channel. Only allowed for the channel owner.
+//	@Tags			Channel Invites
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Param			id			path	int	true	"Channel ID"
+//	@Param			inviteId	path	int	true	"Invite ID"
+//	@Success		204
+//	@Failure		400	{object}	api.ErrorResponse
+//	@Failure		401	{object}	api.ErrorResponse
+//	@Failure		403	{object}	api.ErrorResponse
+//	@Failure		404	{object}	api.ErrorResponse
+//	@Failure		500	{object}	api.ErrorResponse
+//	@Router			/channels/{id}/invites/{inviteId} [delete]
 func (t *api) channelInvitesDelete(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
 
@@ -161,6 +209,21 @@ func (t *api) channelInvitesDelete(ctx *gin.Context) {
 	ctx.Status(http.StatusNoContent)
 }
 
+// channelInvitesRedeem godoc
+//
+//	@Summary		Redeem channel invite
+//	@Description	Adds the authenticated user as member to the channel of the invite.
+//	@Tags			Channel Invites
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Param			code	path		string	true	"Invite code"
+//	@Success		200		{object}	models.ChannelResponse
+//	@Failure		400		{object}	api.ErrorResponse
+//	@Failure		401		{object}	api.ErrorResponse
+//	@Failure		404		{object}	api.ErrorResponse
+//	@Failure		410		{object}	api.ErrorResponse
+//	@Failure		500		{object}	api.ErrorResponse
+//	@Router			/invites/{code} [post]
 func (t *api) channelInvitesRedeem(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
 

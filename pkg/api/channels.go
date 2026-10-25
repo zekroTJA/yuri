@@ -12,6 +12,20 @@ import (
 	"github.com/zekrotja/yuri/pkg/util"
 )
 
+// channelsCreate godoc
+//
+//	@Summary		Create channel
+//	@Description	Creates a new channel owned by the authenticated user.
+//	@Tags			Channels
+//	@Accept			json
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Param			body	body		models.ChannelRequest	true	"Channel"
+//	@Success		201		{object}	models.ChannelResponse
+//	@Failure		400		{object}	api.ErrorResponse
+//	@Failure		401		{object}	api.ErrorResponse
+//	@Failure		500		{object}	api.ErrorResponse
+//	@Router			/channels [post]
 func (t *api) channelsCreate(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
 
@@ -38,6 +52,17 @@ func (t *api) channelsCreate(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, models.ChannelToResponse(channel, user.ID, nil))
 }
 
+// channelsList godoc
+//
+//	@Summary		List channels
+//	@Description	Lists all channels the authenticated user owns or is a member of.
+//	@Tags			Channels
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Success		200	{array}		models.ChannelResponse
+//	@Failure		401	{object}	api.ErrorResponse
+//	@Failure		500	{object}	api.ErrorResponse
+//	@Router			/channels [get]
 func (t *api) channelsList(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
 
@@ -59,6 +84,21 @@ func (t *api) channelsList(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
+// channelsGet godoc
+//
+//	@Summary		Get channel
+//	@Description	Returns a channel the authenticated user owns or is a member of.
+//	@Tags			Channels
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Param			id	path		int	true	"Channel ID"
+//	@Success		200	{object}	models.ChannelResponse
+//	@Failure		400	{object}	api.ErrorResponse
+//	@Failure		401	{object}	api.ErrorResponse
+//	@Failure		403	{object}	api.ErrorResponse
+//	@Failure		404	{object}	api.ErrorResponse
+//	@Failure		500	{object}	api.ErrorResponse
+//	@Router			/channels/{id} [get]
 func (t *api) channelsGet(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
 
@@ -91,6 +131,23 @@ func (t *api) channelsGet(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, models.ChannelToResponse(channel, user.ID, channelConnections))
 }
 
+// channelsUpdate godoc
+//
+//	@Summary		Update channel
+//	@Description	Updates the name of a channel. Only allowed for the channel owner.
+//	@Tags			Channels
+//	@Accept			json
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Param			id		path		int						true	"Channel ID"
+//	@Param			body	body		models.ChannelRequest	true	"Channel"
+//	@Success		200		{object}	models.ChannelResponse
+//	@Failure		400		{object}	api.ErrorResponse
+//	@Failure		401		{object}	api.ErrorResponse
+//	@Failure		403		{object}	api.ErrorResponse
+//	@Failure		404		{object}	api.ErrorResponse
+//	@Failure		500		{object}	api.ErrorResponse
+//	@Router			/channels/{id} [post]
 func (t *api) channelsUpdate(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
 
@@ -152,6 +209,21 @@ func (t *api) channelsUpdate(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, channelResponse)
 }
 
+// channelsDelete godoc
+//
+//	@Summary		Delete channel
+//	@Description	Deletes a channel. Only allowed for the channel owner.
+//	@Tags			Channels
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Param			id	path	int	true	"Channel ID"
+//	@Success		204
+//	@Failure		400	{object}	api.ErrorResponse
+//	@Failure		401	{object}	api.ErrorResponse
+//	@Failure		403	{object}	api.ErrorResponse
+//	@Failure		404	{object}	api.ErrorResponse
+//	@Failure		500	{object}	api.ErrorResponse
+//	@Router			/channels/{id} [delete]
 func (t *api) channelsDelete(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
 
@@ -198,6 +270,21 @@ func (t *api) channelsDelete(ctx *gin.Context) {
 	ctx.Status(http.StatusNoContent)
 }
 
+// channelsConnect godoc
+//
+//	@Summary		Connect to channel
+//	@Description	Connects the authenticated user to a channel. If the user is connected to another channel, they are disconnected from it first.
+//	@Tags			Channels
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Param			id	path		int	true	"Channel ID"
+//	@Success		200	{object}	models.ChannelConnectionResponse
+//	@Failure		400	{object}	api.ErrorResponse
+//	@Failure		401	{object}	api.ErrorResponse
+//	@Failure		403	{object}	api.ErrorResponse
+//	@Failure		404	{object}	api.ErrorResponse
+//	@Failure		500	{object}	api.ErrorResponse
+//	@Router			/channels/{id}/connect [post]
 func (t *api) channelsConnect(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
 
@@ -274,6 +361,19 @@ func (t *api) channelsConnect(ctx *gin.Context) {
 	})
 }
 
+// channelsDisconnect godoc
+//
+//	@Summary		Disconnect from channel
+//	@Description	Disconnects the authenticated user from the channel they are currently connected to.
+//	@Tags			Channels
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Success		204
+//	@Failure		400	{object}	api.ErrorResponse
+//	@Failure		401	{object}	api.ErrorResponse
+//	@Failure		404	{object}	api.ErrorResponse
+//	@Failure		500	{object}	api.ErrorResponse
+//	@Router			/channels/disconnect [post]
 func (t *api) channelsDisconnect(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
 

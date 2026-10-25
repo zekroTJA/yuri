@@ -33,6 +33,13 @@ tasks:
     cmds:
       - go build -o bin/yuri ./cmd/yuri/main.go
 
+  be:docs:
+    aliases:
+      - docs
+    cmds:
+      - go run github.com/swaggo/swag/cmd/swag@v1.16.6 fmt -d pkg/api -g api.go
+      - go run github.com/swaggo/swag/cmd/swag@v1.16.6 init -g api.go -d pkg/api,pkg/api/models,pkg/database -o pkg/api/docs --outputTypes json
+
   fe:build:
     aliases:
       - web:build

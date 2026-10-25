@@ -13,6 +13,20 @@ import (
 	"github.com/zekrotja/yuri/pkg/util"
 )
 
+// apiKeysCreate godoc
+//
+//	@Summary		Create API key
+//	@Description	Creates a new API key. The raw key is only returned once in the response.
+//	@Tags			API Keys
+//	@Accept			json
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Param			body	body		models.APIKeyCreateRequest	true	"API key"
+//	@Success		201		{object}	models.APIKeyCreateResponse
+//	@Failure		400		{object}	api.ErrorResponse
+//	@Failure		401		{object}	api.ErrorResponse
+//	@Failure		500		{object}	api.ErrorResponse
+//	@Router			/apikeys [post]
 func (t *api) apiKeysCreate(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
 
@@ -54,6 +68,17 @@ func (t *api) apiKeysCreate(ctx *gin.Context) {
 	})
 }
 
+// apiKeysList godoc
+//
+//	@Summary		List API keys
+//	@Description	Lists all API keys of the authenticated user.
+//	@Tags			API Keys
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Success		200	{array}		models.APIKeyResponse
+//	@Failure		401	{object}	api.ErrorResponse
+//	@Failure		500	{object}	api.ErrorResponse
+//	@Router			/apikeys [get]
 func (t *api) apiKeysList(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
 
@@ -72,6 +97,23 @@ func (t *api) apiKeysList(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
+// apiKeysUpdate godoc
+//
+//	@Summary		Update API key
+//	@Description	Updates the name of an API key.
+//	@Tags			API Keys
+//	@Accept			json
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Param			id		path		int							true	"API key ID"
+//	@Param			body	body		models.APIKeyUpdateRequest	true	"API key update"
+//	@Success		200		{object}	models.APIKeyResponse
+//	@Failure		400		{object}	api.ErrorResponse
+//	@Failure		401		{object}	api.ErrorResponse
+//	@Failure		403		{object}	api.ErrorResponse
+//	@Failure		404		{object}	api.ErrorResponse
+//	@Failure		500		{object}	api.ErrorResponse
+//	@Router			/apikeys/{id} [post]
 func (t *api) apiKeysUpdate(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
 
@@ -113,6 +155,21 @@ func (t *api) apiKeysUpdate(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, models.APIKeyToResponse(key))
 }
 
+// apiKeysDelete godoc
+//
+//	@Summary		Delete API key
+//	@Description	Deletes an API key.
+//	@Tags			API Keys
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Param			id	path	int	true	"API key ID"
+//	@Success		204
+//	@Failure		400	{object}	api.ErrorResponse
+//	@Failure		401	{object}	api.ErrorResponse
+//	@Failure		403	{object}	api.ErrorResponse
+//	@Failure		404	{object}	api.ErrorResponse
+//	@Failure		500	{object}	api.ErrorResponse
+//	@Router			/apikeys/{id} [delete]
 func (t *api) apiKeysDelete(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
 

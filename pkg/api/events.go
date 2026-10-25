@@ -12,6 +12,16 @@ import (
 	"github.com/zekrotja/yuri/pkg/database"
 )
 
+// eventsStream godoc
+//
+//	@Summary		Event stream
+//	@Description	Opens a server-sent events stream delivering sound, channel and play events for the authenticated user.
+//	@Tags			Events
+//	@Produce		text/event-stream
+//	@Security		ApiKeyAuth
+//	@Success		200	{string}	string	"Server-sent events stream"
+//	@Failure		401	{object}	api.ErrorResponse
+//	@Router			/events [get]
 func (t *api) eventsStream(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
 

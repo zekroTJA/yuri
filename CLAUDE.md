@@ -55,6 +55,8 @@ Models: `User`, `APIKey`, `Sound`, `Channel`, `ChannelInvite` — all embed `gor
 
 Sets up a Gin router in release mode. All handlers are methods on the unexported `api` struct (holding `*database.Database`, `*storage.Storage`, `*ffmpeg.FFMpeg`, a JWT handler, and the SSE `*sse.Manager`). Routes are registered under the `/api/v1` group in `api.go`'s `Run` function; add new route files in `pkg/api/` and register them there. Auth and unauthenticated routes (`/auth/register`, `/auth/login`) are split from the `authenticated` group, which is gated by the `requireAuth` middleware.
 
+**API docs (`docs.go`):** Handlers carry [swaggo](https://github.com/swaggo/swag) annotations; general API info sits above `Run` in `api.go`. `task docs` regenerates `pkg/api/docs/swagger.json` (run it after changing handlers, routes or models), which is embedded into the binary and served unauthenticated at `GET /api/v1/docs/swagger.json`.
+
 **Auth (`auth.go`, `middleware.go`):** Passwords are hashed with argon2id. Two credential paths are accepted by `requireAuth`:
 
 - Session cookie: a signed JWT (`zekrotja/jwt`, HMAC-SHA256, random secret generated per process start — sessions do not survive a restart) set on login, valid for 30 days.

@@ -21,6 +21,27 @@ import (
 
 const downloadTimeout = 5 * time.Minute
 
+// soundsUpload godoc
+//
+//	@Summary		Upload sound
+//	@Description	Creates a new sound either from an uploaded file or from a media URL downloaded via yt-dlp. Exactly one of "file" or "url" must be provided. The audio is transcoded to Ogg.
+//	@Tags			Sounds
+//	@Accept			multipart/form-data
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Param			handle	formData	string		true	"Sound handle"
+//	@Param			file	formData	file		false	"Audio file"
+//	@Param			url		formData	string		false	"Media URL"
+//	@Param			tags	formData	[]string	false	"Tags"		collectionFormat(multi)
+//	@Param			filters	formData	[]string	false	"Filters"	collectionFormat(multi)	Enums(normalize, overdrive)
+//	@Success		201		{object}	models.SoundResponse
+//	@Failure		400		{object}	api.ErrorResponse
+//	@Failure		401		{object}	api.ErrorResponse
+//	@Failure		409		{object}	api.ErrorResponse
+//	@Failure		422		{object}	api.ErrorResponse
+//	@Failure		500		{object}	api.ErrorResponse
+//	@Failure		501		{object}	api.ErrorResponse
+//	@Router			/sounds [post]
 func (t *api) soundsUpload(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
 
@@ -133,6 +154,17 @@ func (t *api) soundsUpload(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, soundResponse)
 }
 
+// soundsList godoc
+//
+//	@Summary		List sounds
+//	@Description	Lists all sounds.
+//	@Tags			Sounds
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Success		200	{array}		models.SoundResponse
+//	@Failure		401	{object}	api.ErrorResponse
+//	@Failure		500	{object}	api.ErrorResponse
+//	@Router			/sounds [get]
 func (t *api) soundsList(ctx *gin.Context) {
 	sounds, err := t.db.ListSounds()
 	if err != nil {
@@ -149,6 +181,20 @@ func (t *api) soundsList(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
+// soundsGet godoc
+//
+//	@Summary		Get sound file
+//	@Description	Returns the Ogg encoded audio file of a sound.
+//	@Tags			Sounds
+//	@Produce		audio/ogg
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Param			id	path		string	true	"Sound ID or handle"
+//	@Success		200	{file}		binary
+//	@Failure		401	{object}	api.ErrorResponse
+//	@Failure		404	{object}	api.ErrorResponse
+//	@Failure		500	{object}	api.ErrorResponse
+//	@Router			/sounds/{id} [get]
 func (t *api) soundsGet(ctx *gin.Context) {
 	sound, err := t.getSoundByIDOrHandle(ctx.Param("id"))
 	if err == database.ErrNotFound {
@@ -176,6 +222,23 @@ func (t *api) soundsGet(ctx *gin.Context) {
 	}
 }
 
+// soundsUpdate godoc
+//
+//	@Summary		Update sound
+//	@Description	Updates the handle and tags of a sound.
+//	@Tags			Sounds
+//	@Accept			json
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Param			id		path		string						true	"Sound ID or handle"
+//	@Param			body	body		models.SoundUpdateRequest	true	"Sound update"
+//	@Success		200		{object}	models.SoundResponse
+//	@Failure		400		{object}	api.ErrorResponse
+//	@Failure		401		{object}	api.ErrorResponse
+//	@Failure		404		{object}	api.ErrorResponse
+//	@Failure		409		{object}	api.ErrorResponse
+//	@Failure		500		{object}	api.ErrorResponse
+//	@Router			/sounds/{id} [post]
 func (t *api) soundsUpdate(ctx *gin.Context) {
 	sound, err := t.getSoundByIDOrHandle(ctx.Param("id"))
 	if err == database.ErrNotFound {
@@ -235,6 +298,19 @@ func (t *api) soundsUpdate(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, soundResponse)
 }
 
+// soundsDelete godoc
+//
+//	@Summary		Delete sound
+//	@Description	Deletes a sound and its stored audio file.
+//	@Tags			Sounds
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Param			id	path	string	true	"Sound ID or handle"
+//	@Success		204
+//	@Failure		401	{object}	api.ErrorResponse
+//	@Failure		404	{object}	api.ErrorResponse
+//	@Failure		500	{object}	api.ErrorResponse
+//	@Router			/sounds/{id} [delete]
 func (t *api) soundsDelete(ctx *gin.Context) {
 	sound, err := t.getSoundByIDOrHandle(ctx.Param("id"))
 	if err == database.ErrNotFound {
@@ -265,6 +341,20 @@ func (t *api) soundsDelete(ctx *gin.Context) {
 	ctx.Status(http.StatusNoContent)
 }
 
+// soundsPlay godoc
+//
+//	@Summary		Play sound
+//	@Description	Plays a sound in the channel the authenticated user is currently connected to.
+//	@Tags			Sounds
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Param			id	path	string	true	"Sound ID or handle"
+//	@Success		204
+//	@Failure		400	{object}	api.ErrorResponse
+//	@Failure		401	{object}	api.ErrorResponse
+//	@Failure		404	{object}	api.ErrorResponse
+//	@Failure		500	{object}	api.ErrorResponse
+//	@Router			/sounds/{id}/play [post]
 func (t *api) soundsPlay(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
 
@@ -309,6 +399,23 @@ func (t *api) soundsPlay(ctx *gin.Context) {
 	ctx.Status(http.StatusNoContent)
 }
 
+// soundsTrim godoc
+//
+//	@Summary		Trim sound
+//	@Description	Trims a sound to the given range. The original audio file is replaced.
+//	@Tags			Sounds
+//	@Accept			json
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Param			id		path		string					true	"Sound ID or handle"
+//	@Param			body	body		models.SoundTrimRequest	true	"Range to keep in seconds"
+//	@Success		200		{object}	models.SoundResponse
+//	@Failure		400		{object}	api.ErrorResponse
+//	@Failure		401		{object}	api.ErrorResponse
+//	@Failure		404		{object}	api.ErrorResponse
+//	@Failure		422		{object}	api.ErrorResponse
+//	@Failure		500		{object}	api.ErrorResponse
+//	@Router			/sounds/{id}/trim [post]
 func (t *api) soundsTrim(ctx *gin.Context) {
 	sound, err := t.getSoundByIDOrHandle(ctx.Param("id"))
 	if err == database.ErrNotFound {
@@ -397,6 +504,23 @@ func (t *api) soundsTrim(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, soundResponse)
 }
 
+// soundsCopy godoc
+//
+//	@Summary		Copy sound
+//	@Description	Creates a copy of a sound with a new handle and tags.
+//	@Tags			Sounds
+//	@Accept			json
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Param			id		path		string					true	"Sound ID or handle"
+//	@Param			body	body		models.SoundCopyRequest	true	"Copy target"
+//	@Success		201		{object}	models.SoundResponse
+//	@Failure		400		{object}	api.ErrorResponse
+//	@Failure		401		{object}	api.ErrorResponse
+//	@Failure		404		{object}	api.ErrorResponse
+//	@Failure		409		{object}	api.ErrorResponse
+//	@Failure		500		{object}	api.ErrorResponse
+//	@Router			/sounds/{id}/copy [post]
 func (t *api) soundsCopy(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
 
