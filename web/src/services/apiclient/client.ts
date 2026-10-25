@@ -11,8 +11,10 @@ import type {
   ChannelRequest,
   ChannelResponse,
   RegisterResponse,
+  ScoreboardResponse,
   SoundCopyRequest,
   SoundImportResponse,
+  SoundPlayResponse,
   SoundResponse,
   SoundTrimRequest,
   SoundUpdateRequest,
@@ -201,6 +203,27 @@ export class ApiClient {
 
   async playSound(idOrHandle: number | string): Promise<void> {
     await this.request<void>(`/sounds/${idOrHandle}/play`, { method: "POST" });
+  }
+
+  // -- Stats -----------------------------------------------------------------
+
+  // Returns the most played sounds and the total number of plays. When since
+  // is given, only plays from that point in time until now are counted.
+  async getScoreboard(
+    limit?: number,
+    since?: Date,
+  ): Promise<ScoreboardResponse> {
+    const query = new URLSearchParams();
+    if (limit !== undefined) query.set("limit", String(limit));
+    if (since) query.set("since", since.toISOString());
+    return this.request<ScoreboardResponse>(`/stats/scoreboard?${query}`);
+  }
+
+  // Returns the latest entries of the sound play log, newest first.
+  async listSoundPlays(limit?: number): Promise<SoundPlayResponse[]> {
+    const query = new URLSearchParams();
+    if (limit !== undefined) query.set("limit", String(limit));
+    return this.request<SoundPlayResponse[]>(`/stats/plays?${query}`);
   }
 
   // -- Channels --------------------------------------------------------------

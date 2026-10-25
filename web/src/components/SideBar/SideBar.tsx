@@ -25,6 +25,7 @@ import SpeakerIcon from "../../assets/speaker.svg?react";
 import SpeakerMutedIcon from "../../assets/speaker-muted.svg?react";
 import LeaveIcon from "../../assets/leave.svg?react";
 import SettingsIcon from "../../assets/settings.svg?react";
+import StatsIcon from "../../assets/stats.svg?react";
 import PlusIcon from "../../assets/plus.svg?react";
 import InviteIcon from "../../assets/invite.svg?react";
 import CopyIcon from "../../assets/copy.svg?react";
@@ -202,6 +203,9 @@ export default function SideBar() {
             <LeaveIcon />
           </IconButton>
         )}
+        <IconButton title="Statistics" onClick={() => navigate("/stats")}>
+          <StatsIcon />
+        </IconButton>
         <IconButton title="Settings" onClick={() => navigate("/settings")}>
           <SettingsIcon />
         </IconButton>

@@ -1,0 +1,207 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5em;
+    max-width: 50rem;
+    padding: 1em;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.title {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8em;
+}
+
+.sectionHeader {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8em;
+    font-size: 0.9rem;
+}
+
+.sectionTitle {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.6;
+}
+
+.empty {
+    font-size: 0.9rem;
+    opacity: 0.6;
+}
+
+.scoreboard {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    padding: 1em;
+    border-radius: 8px;
+    background-color: rgba(0 0 0 / 20%);
+    box-shadow: var(--shadow);
+    transition: opacity 0.15s ease;
+
+    &.stale {
+        opacity: 0.6;
+    }
+}
+
+.total {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5em;
+}
+
+.totalValue {
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.totalLabel {
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+.ranking {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2em;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.rank {
+    display: grid;
+    grid-template-columns: 1.5em minmax(6rem, 12rem) 1fr;
+    align-items: center;
+    gap: 0.8em;
+    padding: 0.25em 0.4em;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+        background-color: rgba(255 255 255 / 6%);
+    }
+}
+
+.rankPosition {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.6;
+}
+
+.rankHandle {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rankBarTrack {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    min-width: 0;
+}
+
+.rankBar {
+    flex-shrink: 0;
+    height: 0.9em;
+    min-width: 2px;
+    /* Leaves room for the count label next to the longest bar. */
+    max-width: calc(100% - 3.5em);
+    border-radius: 0 4px 4px 0;
+    background-color: var(--accent);
+}
+
+.rankCount {
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.85;
+}
+
+.plays {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    border-radius: 8px;
+    background-color: rgba(0 0 0 / 20%);
+    box-shadow: var(--shadow);
+    list-style: none;
+    overflow: hidden;
+}
+
+.play {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1em;
+    padding: 0.45em 0.8em;
+    font-size: 0.9rem;
+
+    & + & {
+        border-top: solid 1px rgba(255 255 255 / 6%);
+    }
+}
+
+.playSound {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &.deleted {
+        text-decoration: line-through;
+        opacity: 0.5;
+    }
+}
+
+.playUser {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    opacity: 0.85;
+}
+
+.avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 1.6em;
+    height: 1.6em;
+    border-radius: 50%;
+    border: solid 2px var(--accent-border);
+    background-color: var(--accent-bg);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.playTime {
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.6;
+}

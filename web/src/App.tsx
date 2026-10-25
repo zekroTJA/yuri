@@ -8,6 +8,7 @@ import Settings from "./routes/Settings/Settings";
 import ApiDocs from "./routes/ApiDocs/ApiDocs";
 import SoundEdit from "./routes/SoundEdit/SoundEdit";
 import SoundUpload from "./routes/SoundUpload/SoundUpload";
+import Stats from "./routes/Stats/Stats";
 import { API_CLIENT } from "./services/apiclient";
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route element={<Main />}>
         <Route index element={<SoundBoard />} />
+        <Route path="stats" element={<Stats />} />
         <Route path="settings" element={<Settings />} />
         <Route path="settings/api-docs" element={<ApiDocs />} />
         <Route path="sounds/upload" element={<SoundUpload />} />

@@ -92,6 +92,32 @@ export interface SoundImportResponse {
   skipped: SoundImportSkipped[];
 }
 
+// -- Stats ---------------------------------------------------------------
+
+export interface SoundPlayCountResponse {
+  sound: SoundResponse;
+  count: number;
+}
+
+export interface ScoreboardResponse {
+  // Number of plays of all sounds in the requested time range.
+  total_plays: number;
+  sounds: SoundPlayCountResponse[];
+}
+
+export interface SoundPlaySoundResponse {
+  id: number;
+  handle: string;
+  deleted: boolean;
+}
+
+export interface SoundPlayResponse {
+  id: number;
+  played_at: string;
+  sound: SoundPlaySoundResponse;
+  user: SoundUserResponse;
+}
+
 // -- Channels --------------------------------------------------------------
 
 export interface ChannelRequest {
