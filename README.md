@@ -118,5 +118,5 @@ To operate on a different database file, pass `-d`/`--database <path>`.
 
 The source code of this project is licensed under the [MIT License](LICENSE).
 
-The project logo and other branding assets (`.github/media/banner.webp`, `web/public/favicon.ico` and `web/src/assets/yuri-icon.webp`) are **not** covered
+The project logo and other branding assets (`.github/media/banner.webp` and all image files in `web/public/`) are **not** covered
 by the MIT License. They are © 2026 Ringo Hoffmann, all rights reserved, and may not be used for other purposes, copied or modified without prior written permission.
