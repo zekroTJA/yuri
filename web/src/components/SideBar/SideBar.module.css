@@ -264,11 +264,10 @@
     padding: 0 0.4em;
 }
 
-.volumeIcon {
+.volumeButton {
     flex-shrink: 0;
-    width: 1.1em;
-    height: 1.1em;
-    opacity: 0.6;
+    /* Compensates the button padding so that the icon stays aligned. */
+    margin: -0.35em;
 }
 
 .volumeSlider {

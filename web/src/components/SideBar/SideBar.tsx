@@ -22,6 +22,7 @@ import TabBar from "../TabBar/TabBar";
 import Input from "../Input/Input";
 import Button from "../Button/Button";
 import SpeakerIcon from "../../assets/speaker.svg?react";
+import SpeakerMutedIcon from "../../assets/speaker-muted.svg?react";
 import LeaveIcon from "../../assets/leave.svg?react";
 import SettingsIcon from "../../assets/settings.svg?react";
 import PlusIcon from "../../assets/plus.svg?react";
@@ -38,6 +39,15 @@ const widthStorageKey = "sidebar-width";
 function loadWidth(): number | undefined {
   const width = Number(localStorage.getItem(widthStorageKey));
   return width > 0 ? width : undefined;
+}
+
+const unmutedVolumeStorageKey = "volume-unmuted";
+const defaultUnmutedVolume = 0.5;
+
+function loadUnmutedVolume(): number {
+  const stored = Number(localStorage.getItem(unmutedVolumeStorageKey));
+  if (stored > 0 && stored <= 1) return stored;
+  return getVolume() > 0 ? getVolume() : defaultUnmutedVolume;
 }
 
 function inviteExpiresAt(): string {
@@ -210,17 +220,35 @@ export default function SideBar() {
 
 function VolumeSlider() {
   const [volume, setVolumeState] = useState(getVolume);
+  // The volume which is restored when unmuting. It is persisted so that it
+  // is still available after a reload while being muted.
+  const unmutedVolume = useRef(loadUnmutedVolume());
 
-  const onChange = (newVolume: number) => {
+  const applyVolume = (newVolume: number) => {
     setVolume(newVolume);
     setVolumeState(newVolume);
   };
 
+  const onChange = (newVolume: number) => {
+    if (newVolume > 0) {
+      unmutedVolume.current = newVolume;
+      localStorage.setItem(unmutedVolumeStorageKey, String(newVolume));
+    }
+    applyVolume(newVolume);
+  };
+
+  const isMuted = volume == 0;
   const volumePercent = Math.round(volume * 100);
 
   return (
     <div className={styles.volume}>
-      <SpeakerIcon className={styles.volumeIcon} />
+      <IconButton
+        className={styles.volumeButton}
+        title={isMuted ? "Unmute" : "Mute"}
+        onClick={() => applyVolume(isMuted ? unmutedVolume.current : 0)}
+      >
+        {isMuted ? <SpeakerMutedIcon /> : <SpeakerIcon />}
+      </IconButton>
       <input
         className={styles.volumeSlider}
         type="range"
