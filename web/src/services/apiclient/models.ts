@@ -61,6 +61,12 @@ export interface SoundUpdateRequest {
   tags?: string[];
 }
 
+// Range of the sound to keep in seconds.
+export interface SoundTrimRequest {
+  start: number;
+  end: number;
+}
+
 export interface UploadSoundRequest {
   handle: string;
   // Either file or url must be set. When url is set, the media behind the

@@ -8,6 +8,9 @@ import Input from "../../components/Input/Input";
 import Button from "../../components/Button/Button";
 import IconButton from "../../components/IconButton/IconButton";
 import ErrorTile from "../../components/ErrorTile/ErrorTile";
+import SoundTrimmer, {
+  type TrimRange,
+} from "../../components/SoundTrimmer/SoundTrimmer";
 import BackIcon from "../../assets/back.svg?react";
 
 export default function SoundEdit() {
@@ -49,6 +52,7 @@ function SoundEditForm({
 }) {
   const [handle, setHandle] = useState(sound.handle);
   const [tags, setTags] = useState(sound.tags?.join(", ") ?? "");
+  const [trimRange, setTrimRange] = useState<TrimRange | undefined>();
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | undefined>();
 
@@ -64,6 +68,9 @@ function SoundEditForm({
           .map((t) => t.trim())
           .filter((t) => !!t),
       });
+      if (trimRange) {
+        await API_CLIENT.trimSound(sound.id, trimRange);
+      }
       onSaved();
     } catch (e) {
       setError(errorMessage(e));
@@ -95,6 +102,10 @@ function SoundEditForm({
           onKeyUp={onKeyUp}
         />
       </label>
+      <div className={styles.field}>
+        <span className={styles.label}>Trim</span>
+        <SoundTrimmer soundId={sound.id} onChange={setTrimRange} />
+      </div>
       <div className={styles.actions}>
         <Button
           variant="primary"

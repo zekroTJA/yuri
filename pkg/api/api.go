@@ -101,6 +101,7 @@ func Run(
 	authenticated.POST("/sounds/:id", t.soundsUpdate)
 	authenticated.DELETE("/sounds/:id", t.soundsDelete)
 	authenticated.POST("/sounds/:id/play", t.soundsPlay)
+	authenticated.POST("/sounds/:id/trim", t.soundsTrim)
 
 	authenticated.GET("/events", t.eventsStream)
 

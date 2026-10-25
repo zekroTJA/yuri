@@ -3,8 +3,6 @@ package api
 import (
 	"bytes"
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -98,13 +96,12 @@ func (t *api) soundsUpload(ctx *gin.Context) {
 
 	tags := ctx.PostFormArray("tags")
 
-	randBytes := make([]byte, 8)
-	if _, err = rand.Read(randBytes); err != nil {
-		slog.Error("failed generating random bytes", "err", err)
+	storageID, err := newStorageID(handle)
+	if err != nil {
+		slog.Error("failed generating storage ID", "err", err)
 		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
-	storageID := strings.ToLower(handle) + "-" + hex.EncodeToString(randBytes)
 
 	var encoded bytes.Buffer
 	if err = t.encoder.Format(source, &encoded, filters...); err != nil {
@@ -310,4 +307,92 @@ func (t *api) soundsPlay(ctx *gin.Context) {
 	}, channelConnections)
 
 	ctx.Status(http.StatusNoContent)
+}
+
+func (t *api) soundsTrim(ctx *gin.Context) {
+	sound, err := t.getSoundByIDOrHandle(ctx.Param("id"))
+	if err == database.ErrNotFound {
+		ctx.JSON(http.StatusNotFound, ErrSoundNotFound)
+		return
+	}
+	if err != nil {
+		slog.Error("failed getting sound from database", "id", ctx.Param("id"), "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return
+	}
+
+	var req models.SoundTrimRequest
+	if err = ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, ErrInvalidRequestBody)
+		return
+	}
+
+	if req.Start < 0 || req.End <= req.Start {
+		ctx.JSON(http.StatusBadRequest, ErrInvalidTrimRange)
+		return
+	}
+
+	file, err := t.storage.Load(sound.StorageId)
+	if err != nil {
+		slog.Error("failed loading sound file", "storage_id", sound.StorageId, "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return
+	}
+	defer file.Close()
+
+	start := time.Duration(req.Start * float64(time.Second))
+	end := time.Duration(req.End * float64(time.Second))
+
+	var trimmed bytes.Buffer
+	if err = t.encoder.Trim(file, &trimmed, start, end); err != nil {
+		slog.Error("failed trimming sound file", "storage_id", sound.StorageId, "err", err)
+		ctx.JSON(http.StatusUnprocessableEntity, ErrSoundTrimFailed)
+		return
+	}
+
+	if trimmed.Len() == 0 {
+		ctx.JSON(http.StatusBadRequest, ErrInvalidTrimRange)
+		return
+	}
+
+	// The trimmed sound is stored under a new storage ID so that the
+	// original file stays intact until the database points to the new one.
+	storageID, err := newStorageID(sound.Handle)
+	if err != nil {
+		slog.Error("failed generating storage ID", "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return
+	}
+
+	if err = t.storage.Store(storageID, &trimmed); err != nil {
+		slog.Error("failed storing sound file", "storage_id", storageID, "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return
+	}
+
+	soundID := sound.ID
+	oldStorageID := sound.StorageId
+	if err = t.db.UpdateSoundStorageID(soundID, storageID); err != nil {
+		_ = t.storage.Delete(storageID)
+		slog.Error("failed updating sound storage ID in database", "id", soundID, "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return
+	}
+
+	_ = t.storage.Delete(oldStorageID)
+
+	sound, err = t.db.GetSoundByID(soundID)
+	if err != nil {
+		slog.Error("failed getting sound from database", "id", soundID, "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return
+	}
+
+	soundResponse := models.SoundToResponse(sound)
+	t.sseManager.Broadcast(sse.Event{
+		Event: sse.EventTypeSoundUpdate,
+		Data:  sse.EventDataSoundUpdate{Sound: soundResponse},
+	})
+
+	ctx.JSON(http.StatusOK, soundResponse)
 }

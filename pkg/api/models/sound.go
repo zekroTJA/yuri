@@ -25,6 +25,12 @@ type SoundUpdateRequest struct {
 	Tags   []string `json:"tags"`
 }
 
+// SoundTrimRequest defines the range of the sound to keep in seconds.
+type SoundTrimRequest struct {
+	Start float64 `json:"start"`
+	End   float64 `json:"end" binding:"required"`
+}
+
 func SoundToResponse(s *database.Sound) *SoundResponse {
 	creator := SoundUserResponse{}
 	if s.Owner != nil {

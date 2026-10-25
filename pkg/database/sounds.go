@@ -42,6 +42,11 @@ func (t *Database) UpdateSound(id uint, handle string, tags []string) (*Sound, e
 	return &sound, mapError(res.Error)
 }
 
+func (t *Database) UpdateSoundStorageID(id uint, storageID string) error {
+	res := t.db.Model(&Sound{}).Where("id = ?", id).Update("storage_id", storageID)
+	return mapError(res.Error)
+}
+
 func (t *Database) DeleteSound(id uint) error {
 	res := t.db.Delete(&Sound{}, id)
 	return mapError(res.Error)

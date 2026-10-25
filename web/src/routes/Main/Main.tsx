@@ -210,9 +210,11 @@ export default function Main() {
     eventStream.on("sound-create", (event) =>
       dispatchSoundState(["upsertSound", event.Sound]),
     );
-    eventStream.on("sound-update", (event) =>
-      dispatchSoundState(["upsertSound", event.Sound]),
-    );
+    eventStream.on("sound-update", (event) => {
+      // The sound file might have changed, e.g. when it has been trimmed.
+      evictSound(event.Sound.id);
+      dispatchSoundState(["upsertSound", event.Sound]);
+    });
     eventStream.on("sound-delete", (event) => {
       evictSound(event.sound_id);
       dispatchSoundState(["removeSound", event.sound_id]);

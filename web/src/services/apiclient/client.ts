@@ -13,6 +13,7 @@ import type {
   RegisterResponse,
   SoundImportResponse,
   SoundResponse,
+  SoundTrimRequest,
   SoundUpdateRequest,
   UploadSoundRequest,
 } from "./models";
@@ -163,6 +164,18 @@ export class ApiClient {
     req: SoundUpdateRequest,
   ): Promise<SoundResponse> {
     return this.request<SoundResponse>(`/sounds/${idOrHandle}`, {
+      method: "POST",
+      body: JSON.stringify(req),
+    });
+  }
+
+  // Cuts the sound to the given range. The trimmed sound replaces the
+  // original one.
+  async trimSound(
+    idOrHandle: number | string,
+    req: SoundTrimRequest,
+  ): Promise<SoundResponse> {
+    return this.request<SoundResponse>(`/sounds/${idOrHandle}/trim`, {
       method: "POST",
       body: JSON.stringify(req),
     });

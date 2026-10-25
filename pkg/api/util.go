@@ -7,6 +7,7 @@ import (
 
 	"github.com/zekrotja/yuri/pkg/database"
 	"github.com/zekrotja/yuri/pkg/ffmpeg"
+	"github.com/zekrotja/yuri/pkg/util"
 )
 
 var filterMap = map[string]ffmpeg.Filter{
@@ -28,6 +29,13 @@ func isValidMediaURL(rawURL string) bool {
 		return false
 	}
 	return (parsed.Scheme == "http" || parsed.Scheme == "https") && parsed.Host != ""
+}
+
+// newStorageID generates a unique storage ID for a sound with the given
+// handle.
+func newStorageID(handle string) (string, error) {
+	suffix := util.GenerateRandomString(8, util.DefaultCharset)
+	return strings.ToLower(handle) + "-" + suffix, nil
 }
 
 func (t *api) getSoundByIDOrHandle(idOrHandle string) (*database.Sound, error) {

@@ -5,6 +5,8 @@ import (
 	"errors"
 	"io"
 	"os/exec"
+	"strconv"
+	"time"
 
 	"github.com/gabriel-vasile/mimetype"
 )
@@ -32,23 +34,10 @@ func New(ffmpegExec string) (*FFMpeg, error) {
 }
 
 func (t *FFMpeg) Format(in io.Reader, out io.Writer, filter ...Filter) error {
-	buf, err := io.ReadAll(in)
+	buf, inType, err := readAndDetectType(in)
 	if err != nil {
 		return err
 	}
-
-	mimeType := mimetype.Detect(buf)
-	if mimeType == nil {
-		return errors.New("could not detect mimetype")
-	}
-
-	inExt := mimeType.Extension()
-	if inExt == "" {
-		return errors.New("could not detect file extension")
-	}
-
-	inType := inExt[1:]
-	// TODO: Check against allowed in mimetypes
 
 	var args []string
 
@@ -66,6 +55,29 @@ func (t *FFMpeg) Format(in io.Reader, out io.Writer, filter ...Filter) error {
 	rdr := bytes.NewReader(buf)
 
 	return t.run(rdr, inType, out, outType, args)
+}
+
+// Trim cuts the audio read from in to the range between start and end and
+// writes the result encoded as Ogg to out.
+func (t *FFMpeg) Trim(in io.Reader, out io.Writer, start time.Duration, end time.Duration) error {
+	if start < 0 || end <= start {
+		return errors.New("invalid trim range")
+	}
+
+	buf, inType, err := readAndDetectType(in)
+	if err != nil {
+		return err
+	}
+
+	// Passed after the input so that they are applied as output options,
+	// which results in sample accurate cuts instead of seeking to the
+	// nearest keyframe.
+	args := []string{
+		"-ss", formatSeconds(start),
+		"-to", formatSeconds(end),
+	}
+
+	return t.run(bytes.NewReader(buf), inType, out, outType, args)
 }
 
 func (t *FFMpeg) run(
@@ -92,6 +104,30 @@ func (t *FFMpeg) run(
 	}
 
 	return err
+}
+
+func readAndDetectType(in io.Reader) (buf []byte, inType string, err error) {
+	buf, err = io.ReadAll(in)
+	if err != nil {
+		return nil, "", err
+	}
+
+	mimeType := mimetype.Detect(buf)
+	if mimeType == nil {
+		return nil, "", errors.New("could not detect mimetype")
+	}
+
+	inExt := mimeType.Extension()
+	if inExt == "" {
+		return nil, "", errors.New("could not detect file extension")
+	}
+
+	// TODO: Check against allowed in mimetypes
+	return buf, inExt[1:], nil
+}
+
+func formatSeconds(d time.Duration) string {
+	return strconv.FormatFloat(d.Seconds(), 'f', 3, 64)
 }
 
 func getFfmpegPath(path string) (string, error) {

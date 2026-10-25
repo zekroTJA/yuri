@@ -38,6 +38,8 @@ var (
 	ErrDownloadFailed    = ErrorResponse{Code: "download_failed", Message: "Failed to download media from URL"}
 	ErrYtdlpNotInstalled = ErrorResponse{Code: "ytdlp_not_installed", Message: "Downloading from URLs is not available because yt-dlp is not installed"}
 	ErrSoundEncodeFailed = ErrorResponse{Code: "sound_encode_failed", Message: "Failed to encode file"}
+	ErrInvalidTrimRange  = ErrorResponse{Code: "invalid_trim_range", Message: "Trim start must not be negative and must be before the end"}
+	ErrSoundTrimFailed   = ErrorResponse{Code: "sound_trim_failed", Message: "Failed to trim sound"}
 	ErrSoundNotFound     = ErrorResponse{Code: "sound_not_found", Message: "Sound not found"}
 	ErrInvalidHandle     = ErrorResponse{Code: "invalid_handle", Message: "Handle must not contain path separators"}
 	ErrInvalidArchive    = ErrorResponse{Code: "invalid_archive", Message: "Invalid sound archive"}
