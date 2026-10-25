@@ -18,6 +18,7 @@ import type {
   SoundUpdateRequest,
   UploadSoundRequest,
 } from "./models";
+import type { SwaggerSpec } from "./swagger";
 
 const apiPrefix = "/api/v1";
 
@@ -287,6 +288,17 @@ export class ApiClient {
   // returned stream and call close() (e.g. in a useEffect cleanup) when done.
   connectEvents(): ApiEventStream {
     return new ApiEventStream(this.url("/events"));
+  }
+
+  // -- Docs ----------------------------------------------------------------
+
+  async getApiDocs(): Promise<SwaggerSpec> {
+    return this.request<SwaggerSpec>("/docs/swagger.json");
+  }
+
+  // Absolute URL to the raw Swagger specification JSON.
+  getApiDocsUrl(): string {
+    return this.url("/docs/swagger.json");
   }
 
   // -- Internals -------------------------------------------------------

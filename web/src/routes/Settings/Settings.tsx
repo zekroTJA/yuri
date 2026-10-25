@@ -6,7 +6,7 @@ import {
   type ChangeEvent,
   type KeyboardEvent,
 } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import styles from "./Settings.module.css";
 import { SoundContext } from "../../contexts";
 import {
@@ -218,7 +218,9 @@ function ApiKeys() {
       <h2 className={styles.sectionTitle}>API Keys</h2>
       <p className={styles.description}>
         API keys can be used to access the API by passing them in the{" "}
-        <code>Authorization: Bearer &lt;key&gt;</code> header.
+        <code>Authorization: Bearer &lt;key&gt;</code> header. See the{" "}
+        <Link to="/settings/api-docs">API documentation</Link> for all
+        available endpoints.
       </p>
 
       {!!error && <ErrorTile message={error} />}
