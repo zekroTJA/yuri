@@ -28,3 +28,8 @@ func (t *Database) GetUserByID(id uint) (*User, error) {
 	}
 	return &user, res.Error
 }
+
+func (t *Database) UpdateUserPassword(id uint, passwordHash []byte) error {
+	res := t.db.Model(&User{}).Where("id = ?", id).Update("password_hash", passwordHash)
+	return res.Error
+}

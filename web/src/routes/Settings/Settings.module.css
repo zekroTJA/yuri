@@ -225,3 +225,22 @@
 .skippedName {
     font-family: var(--mono);
 }
+
+.passwordForm {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8em;
+    max-width: 25rem;
+}
+
+.passwordActions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.8em;
+}
+
+.success {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}

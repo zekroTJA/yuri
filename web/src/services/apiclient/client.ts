@@ -4,6 +4,7 @@ import type {
   APIKeyCreateResponse,
   APIKeyResponse,
   APIKeyUpdateRequest,
+  AuthChangePasswordRequest,
   AuthRequest,
   ChannelConnectionResponse,
   ChannelInviteCreateRequest,
@@ -66,6 +67,13 @@ export class ApiClient {
     await this.request<void>("/auth/login", {
       method: "POST",
       body: JSON.stringify({ handle, password } satisfies AuthRequest),
+    });
+  }
+
+  async changePassword(req: AuthChangePasswordRequest): Promise<void> {
+    await this.request<void>("/auth/password", {
+      method: "POST",
+      body: JSON.stringify(req),
     });
   }
 

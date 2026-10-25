@@ -11,6 +11,11 @@ export interface AuthRequest {
   password: string;
 }
 
+export interface AuthChangePasswordRequest {
+  current_password: string;
+  new_password: string;
+}
+
 export interface RegisterResponse {
   id: number;
   handle: string;

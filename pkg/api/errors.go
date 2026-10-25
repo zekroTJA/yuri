@@ -21,6 +21,7 @@ var (
 	ErrPasswordTooShort   = ErrorResponse{Code: "password_too_short", Message: "Password must be at least 6 characters"}
 	ErrHandleConflict     = ErrorResponse{Code: "handle_conflict", Message: "Handle is already in use"}
 	ErrInvalidCredentials = ErrorResponse{Code: "invalid_credentials", Message: "Invalid username or password"}
+	ErrInvalidPassword    = ErrorResponse{Code: "invalid_password", Message: "Current password is incorrect"}
 
 	ErrInvalidScope   = ErrorResponse{Code: "invalid_scope", Message: "Invalid scope"}
 	ErrAPIKeyNotFound = ErrorResponse{Code: "api_key_not_found", Message: "API key not found"}

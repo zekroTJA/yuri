@@ -100,6 +100,8 @@ func Run(
 
 	authenticated := apiGroup.Group("/", t.requireAuth)
 
+	authenticated.POST("/auth/password", t.authChangePassword)
+
 	authenticated.GET("/apikeys", t.apiKeysList)
 	authenticated.POST("/apikeys", t.apiKeysCreate)
 	authenticated.POST("/apikeys/:id", t.apiKeysUpdate)

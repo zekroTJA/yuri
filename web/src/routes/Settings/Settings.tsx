@@ -48,6 +48,7 @@ export default function Settings() {
       </header>
       <SoundArchive />
       <ApiKeys />
+      <ChangePassword />
     </div>
   );
 }
@@ -171,6 +172,95 @@ function ImportResult({
         </ul>
       )}
     </div>
+  );
+}
+
+function ChangePassword() {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [newPasswordRepeat, setNewPasswordRepeat] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [isChanged, setIsChanged] = useState(false);
+  const [error, setError] = useState<string | undefined>();
+
+  const isRepeatMismatch =
+    !!newPasswordRepeat && newPassword != newPasswordRepeat;
+  const canSave =
+    !!currentPassword &&
+    !!newPassword &&
+    newPassword == newPasswordRepeat &&
+    !isSaving;
+
+  const onSave = async () => {
+    if (!canSave) return;
+    setError(undefined);
+    setIsChanged(false);
+    setIsSaving(true);
+    try {
+      await API_CLIENT.changePassword({
+        current_password: currentPassword,
+        new_password: newPassword,
+      });
+      setCurrentPassword("");
+      setNewPassword("");
+      setNewPasswordRepeat("");
+      setIsChanged(true);
+    } catch (e) {
+      setError(errorMessage(e));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const onKeyUp = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key == "Enter") onSave();
+  };
+
+  return (
+    <section className={styles.section}>
+      <h2 className={styles.sectionTitle}>Password</h2>
+      <p className={styles.description}>
+        Change the password used to log in to your account.
+      </p>
+
+      {!!error && <ErrorTile message={error} />}
+
+      <div className={styles.passwordForm}>
+        <Input
+          type="password"
+          placeholder="Current password"
+          autoComplete="current-password"
+          value={currentPassword}
+          onInput={(e) => setCurrentPassword(e.currentTarget.value)}
+          onKeyUp={onKeyUp}
+        />
+        <Input
+          type="password"
+          placeholder="New password"
+          autoComplete="new-password"
+          value={newPassword}
+          onInput={(e) => setNewPassword(e.currentTarget.value)}
+          onKeyUp={onKeyUp}
+        />
+        <Input
+          type="password"
+          placeholder="Repeat new password"
+          autoComplete="new-password"
+          isError={isRepeatMismatch}
+          value={newPasswordRepeat}
+          onInput={(e) => setNewPasswordRepeat(e.currentTarget.value)}
+          onKeyUp={onKeyUp}
+        />
+        <div className={styles.passwordActions}>
+          {isChanged && (
+            <span className={styles.success}>Password changed.</span>
+          )}
+          <Button variant="primary" disabled={!canSave} onClick={onSave}>
+            {isSaving ? "Saving..." : "Change password"}
+          </Button>
+        </div>
+      </div>
+    </section>
   );
 }
 
