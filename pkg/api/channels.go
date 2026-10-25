@@ -15,7 +15,7 @@ import (
 // channelsCreate godoc
 //
 //	@Summary		Create channel
-//	@Description	Creates a new channel owned by the authenticated user.
+//	@Description	Creates a new channel owned by the authenticated user. Requires the "write" scope when using an API key.
 //	@Tags			Channels
 //	@Accept			json
 //	@Produce		json
@@ -55,7 +55,7 @@ func (t *api) channelsCreate(ctx *gin.Context) {
 // channelsList godoc
 //
 //	@Summary		List channels
-//	@Description	Lists all channels the authenticated user owns or is a member of.
+//	@Description	Lists all channels the authenticated user owns or is a member of. Requires the "read" scope when using an API key.
 //	@Tags			Channels
 //	@Produce		json
 //	@Security		ApiKeyAuth
@@ -87,7 +87,7 @@ func (t *api) channelsList(ctx *gin.Context) {
 // channelsGet godoc
 //
 //	@Summary		Get channel
-//	@Description	Returns a channel the authenticated user owns or is a member of.
+//	@Description	Returns a channel the authenticated user owns or is a member of. Requires the "read" scope when using an API key.
 //	@Tags			Channels
 //	@Produce		json
 //	@Security		ApiKeyAuth
@@ -134,7 +134,7 @@ func (t *api) channelsGet(ctx *gin.Context) {
 // channelsUpdate godoc
 //
 //	@Summary		Update channel
-//	@Description	Updates the name of a channel. Only allowed for the channel owner.
+//	@Description	Updates the name of a channel. Only allowed for the channel owner. Requires the "write" scope when using an API key.
 //	@Tags			Channels
 //	@Accept			json
 //	@Produce		json
@@ -212,7 +212,7 @@ func (t *api) channelsUpdate(ctx *gin.Context) {
 // channelsDelete godoc
 //
 //	@Summary		Delete channel
-//	@Description	Deletes a channel. Only allowed for the channel owner.
+//	@Description	Deletes a channel. Only allowed for the channel owner. Requires the "delete" scope when using an API key.
 //	@Tags			Channels
 //	@Produce		json
 //	@Security		ApiKeyAuth
@@ -273,7 +273,7 @@ func (t *api) channelsDelete(ctx *gin.Context) {
 // channelsConnect godoc
 //
 //	@Summary		Connect to channel
-//	@Description	Connects the authenticated user to a channel. If the user is connected to another channel, they are disconnected from it first.
+//	@Description	Connects the authenticated user to a channel. If the user is connected to another channel, they are disconnected from it first. Requires the "write" scope when using an API key.
 //	@Tags			Channels
 //	@Produce		json
 //	@Security		ApiKeyAuth
@@ -364,7 +364,7 @@ func (t *api) channelsConnect(ctx *gin.Context) {
 // channelsDisconnect godoc
 //
 //	@Summary		Disconnect from channel
-//	@Description	Disconnects the authenticated user from the channel they are currently connected to.
+//	@Description	Disconnects the authenticated user from the channel they are currently connected to. Requires the "write" scope when using an API key.
 //	@Tags			Channels
 //	@Produce		json
 //	@Security		ApiKeyAuth

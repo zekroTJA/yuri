@@ -16,7 +16,7 @@ import (
 // apiKeysCreate godoc
 //
 //	@Summary		Create API key
-//	@Description	Creates a new API key. The raw key is only returned once in the response.
+//	@Description	Creates a new API key. The raw key is only returned once in the response. Requires the "write" scope when using an API key.
 //	@Tags			API Keys
 //	@Accept			json
 //	@Produce		json
@@ -71,7 +71,7 @@ func (t *api) apiKeysCreate(ctx *gin.Context) {
 // apiKeysList godoc
 //
 //	@Summary		List API keys
-//	@Description	Lists all API keys of the authenticated user.
+//	@Description	Lists all API keys of the authenticated user. Requires the "read" scope when using an API key.
 //	@Tags			API Keys
 //	@Produce		json
 //	@Security		ApiKeyAuth
@@ -100,7 +100,7 @@ func (t *api) apiKeysList(ctx *gin.Context) {
 // apiKeysUpdate godoc
 //
 //	@Summary		Update API key
-//	@Description	Updates the name of an API key.
+//	@Description	Updates the name of an API key. Requires the "write" scope when using an API key.
 //	@Tags			API Keys
 //	@Accept			json
 //	@Produce		json
@@ -158,7 +158,7 @@ func (t *api) apiKeysUpdate(ctx *gin.Context) {
 // apiKeysDelete godoc
 //
 //	@Summary		Delete API key
-//	@Description	Deletes an API key.
+//	@Description	Deletes an API key. Requires the "delete" scope when using an API key.
 //	@Tags			API Keys
 //	@Produce		json
 //	@Security		ApiKeyAuth

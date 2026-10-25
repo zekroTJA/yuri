@@ -24,7 +24,7 @@ const downloadTimeout = 5 * time.Minute
 // soundsUpload godoc
 //
 //	@Summary		Upload sound
-//	@Description	Creates a new sound either from an uploaded file or from a media URL downloaded via yt-dlp. Exactly one of "file" or "url" must be provided. The audio is transcoded to Ogg.
+//	@Description	Creates a new sound either from an uploaded file or from a media URL downloaded via yt-dlp. Exactly one of "file" or "url" must be provided. The audio is transcoded to Ogg. Requires the "write" scope when using an API key.
 //	@Tags			Sounds
 //	@Accept			multipart/form-data
 //	@Produce		json
@@ -157,7 +157,7 @@ func (t *api) soundsUpload(ctx *gin.Context) {
 // soundsList godoc
 //
 //	@Summary		List sounds
-//	@Description	Lists all sounds.
+//	@Description	Lists all sounds. Requires the "read" scope when using an API key.
 //	@Tags			Sounds
 //	@Produce		json
 //	@Security		ApiKeyAuth
@@ -184,7 +184,7 @@ func (t *api) soundsList(ctx *gin.Context) {
 // soundsGet godoc
 //
 //	@Summary		Get sound file
-//	@Description	Returns the Ogg encoded audio file of a sound.
+//	@Description	Returns the Ogg encoded audio file of a sound. Requires the "read" scope when using an API key.
 //	@Tags			Sounds
 //	@Produce		audio/ogg
 //	@Produce		json
@@ -225,7 +225,7 @@ func (t *api) soundsGet(ctx *gin.Context) {
 // soundsUpdate godoc
 //
 //	@Summary		Update sound
-//	@Description	Updates the handle and tags of a sound.
+//	@Description	Updates the handle and tags of a sound. Requires the "write" scope when using an API key.
 //	@Tags			Sounds
 //	@Accept			json
 //	@Produce		json
@@ -301,7 +301,7 @@ func (t *api) soundsUpdate(ctx *gin.Context) {
 // soundsDelete godoc
 //
 //	@Summary		Delete sound
-//	@Description	Deletes a sound and its stored audio file.
+//	@Description	Deletes a sound and its stored audio file. Requires the "delete" scope when using an API key.
 //	@Tags			Sounds
 //	@Produce		json
 //	@Security		ApiKeyAuth
@@ -344,7 +344,7 @@ func (t *api) soundsDelete(ctx *gin.Context) {
 // soundsPlay godoc
 //
 //	@Summary		Play sound
-//	@Description	Plays a sound in the channel the authenticated user is currently connected to.
+//	@Description	Plays a sound in the channel the authenticated user is currently connected to. Requires the "write" scope when using an API key.
 //	@Tags			Sounds
 //	@Produce		json
 //	@Security		ApiKeyAuth
@@ -402,7 +402,7 @@ func (t *api) soundsPlay(ctx *gin.Context) {
 // soundsTrim godoc
 //
 //	@Summary		Trim sound
-//	@Description	Trims a sound to the given range. The original audio file is replaced.
+//	@Description	Trims a sound to the given range. The original audio file is replaced. Requires the "write" scope when using an API key.
 //	@Tags			Sounds
 //	@Accept			json
 //	@Produce		json
@@ -507,7 +507,7 @@ func (t *api) soundsTrim(ctx *gin.Context) {
 // soundsCopy godoc
 //
 //	@Summary		Copy sound
-//	@Description	Creates a copy of a sound with a new handle and tags.
+//	@Description	Creates a copy of a sound with a new handle and tags. Requires the "write" scope when using an API key.
 //	@Tags			Sounds
 //	@Accept			json
 //	@Produce		json

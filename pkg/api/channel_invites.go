@@ -20,7 +20,7 @@ const (
 // channelInvitesCreate godoc
 //
 //	@Summary		Create channel invite
-//	@Description	Creates an invite for a channel. Only allowed for the channel owner. A max_activations of 0 means unlimited activations.
+//	@Description	Creates an invite for a channel. Only allowed for the channel owner. A max_activations of 0 means unlimited activations. Requires the "write" scope when using an API key.
 //	@Tags			Channel Invites
 //	@Accept			json
 //	@Produce		json
@@ -85,7 +85,7 @@ func (t *api) channelInvitesCreate(ctx *gin.Context) {
 // channelInvitesList godoc
 //
 //	@Summary		List channel invites
-//	@Description	Lists all invites of a channel. Only allowed for the channel owner.
+//	@Description	Lists all invites of a channel. Only allowed for the channel owner. Requires the "read" scope when using an API key.
 //	@Tags			Channel Invites
 //	@Produce		json
 //	@Security		ApiKeyAuth
@@ -140,7 +140,7 @@ func (t *api) channelInvitesList(ctx *gin.Context) {
 // channelInvitesDelete godoc
 //
 //	@Summary		Delete channel invite
-//	@Description	Deletes an invite of a channel. Only allowed for the channel owner.
+//	@Description	Deletes an invite of a channel. Only allowed for the channel owner. Requires the "delete" scope when using an API key.
 //	@Tags			Channel Invites
 //	@Produce		json
 //	@Security		ApiKeyAuth
@@ -212,7 +212,7 @@ func (t *api) channelInvitesDelete(ctx *gin.Context) {
 // channelInvitesRedeem godoc
 //
 //	@Summary		Redeem channel invite
-//	@Description	Adds the authenticated user as member to the channel of the invite.
+//	@Description	Adds the authenticated user as member to the channel of the invite. Requires the "write" scope when using an API key.
 //	@Tags			Channel Invites
 //	@Produce		json
 //	@Security		ApiKeyAuth

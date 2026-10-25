@@ -15,7 +15,7 @@ import (
 // eventsStream godoc
 //
 //	@Summary		Event stream
-//	@Description	Opens a server-sent events stream delivering sound, channel and play events for the authenticated user.
+//	@Description	Opens a server-sent events stream delivering sound, channel and play events for the authenticated user. Requires the "read" scope when using an API key.
 //	@Tags			Events
 //	@Produce		text/event-stream
 //	@Security		ApiKeyAuth

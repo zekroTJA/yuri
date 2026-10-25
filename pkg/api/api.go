@@ -51,7 +51,7 @@ type api struct {
 //	@securityDefinitions.apikey	ApiKeyAuth
 //	@in							header
 //	@name						Authorization
-//	@description				API key passed as "Bearer <token>". Alternatively, the "session" cookie set by /auth/login can be used.
+//	@description				API key passed as "Bearer <token>". Alternatively, the "session" cookie set by /auth/login can be used. API keys must have the scope matching the request method: GET requires "read", POST requires "write" and DELETE requires "delete". Session cookies are not restricted by scopes.
 
 func Run(
 	cfg *config.Api,

@@ -26,7 +26,7 @@ var oggMagic = []byte("OggS")
 // soundsExport godoc
 //
 //	@Summary		Export sounds
-//	@Description	Exports all sounds as a .tar.gz archive containing a meta.json and the Ogg encoded sound files.
+//	@Description	Exports all sounds as a .tar.gz archive containing a meta.json and the Ogg encoded sound files. Requires the "read" scope when using an API key.
 //	@Tags			Sounds
 //	@Produce		application/gzip
 //	@Produce		json
@@ -107,7 +107,7 @@ func (t *api) soundsExport(ctx *gin.Context) {
 // soundsImport godoc
 //
 //	@Summary		Import sounds
-//	@Description	Imports sounds from a .tar.gz archive in the format produced by the export endpoint. Sounds with existing handles are skipped.
+//	@Description	Imports sounds from a .tar.gz archive in the format produced by the export endpoint. Sounds with existing handles are skipped. Requires the "write" scope when using an API key.
 //	@Tags			Sounds
 //	@Accept			multipart/form-data
 //	@Produce		json
