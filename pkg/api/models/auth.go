@@ -10,6 +10,10 @@ type AuthChangePasswordRequest struct {
 	NewPassword     string `json:"new_password" binding:"required"`
 }
 
+type AuthDeleteAccountRequest struct {
+	Password string `json:"password" binding:"required"`
+}
+
 type AuthRegisterResponse struct {
 	ID     uint   `json:"id"`
 	Handle string `json:"handle"`

@@ -49,6 +49,7 @@ export default function Settings() {
       <SoundArchive />
       <ApiKeys />
       <ChangePassword />
+      <DeleteAccount />
     </div>
   );
 }
@@ -257,6 +258,70 @@ function ChangePassword() {
           )}
           <Button variant="primary" disabled={!canSave} onClick={onSave}>
             {isSaving ? "Saving..." : "Change password"}
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function DeleteAccount() {
+  const navigate = useNavigate();
+  const [password, setPassword] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState<string | undefined>();
+
+  const onDelete = async () => {
+    if (!password || isDeleting) return;
+    if (
+      !window.confirm(
+        "Do you really want to delete your account? This can not be undone.",
+      )
+    ) {
+      return;
+    }
+    setError(undefined);
+    setIsDeleting(true);
+    try {
+      await API_CLIENT.deleteAccount({ password });
+      navigate("/login");
+    } catch (e) {
+      setError(errorMessage(e));
+      setIsDeleting(false);
+    }
+  };
+
+  const onKeyUp = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key == "Enter") onDelete();
+  };
+
+  return (
+    <section className={styles.section}>
+      <h2 className={styles.sectionTitle}>Delete Account</h2>
+      <p className={styles.description}>
+        Permanently deletes your account including all of your API keys and
+        channels you have created. Sounds you have uploaded are kept. Enter
+        your password to confirm.
+      </p>
+
+      {!!error && <ErrorTile message={error} />}
+
+      <div className={styles.passwordForm}>
+        <Input
+          type="password"
+          placeholder="Password"
+          autoComplete="current-password"
+          value={password}
+          onInput={(e) => setPassword(e.currentTarget.value)}
+          onKeyUp={onKeyUp}
+        />
+        <div className={styles.passwordActions}>
+          <Button
+            variant="danger"
+            disabled={!password || isDeleting}
+            onClick={onDelete}
+          >
+            {isDeleting ? "Deleting..." : "Delete account"}
           </Button>
         </div>
       </div>

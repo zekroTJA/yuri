@@ -3,11 +3,13 @@ package api
 import (
 	"log/slog"
 	"net/http"
+	"slices"
 	"strings"
 
 	"github.com/alexedwards/argon2id"
 	"github.com/gin-gonic/gin"
 	"github.com/zekrotja/yuri/pkg/api/models"
+	"github.com/zekrotja/yuri/pkg/api/sse"
 	"github.com/zekrotja/yuri/pkg/database"
 )
 
@@ -171,5 +173,79 @@ func (t *api) authChangePassword(ctx *gin.Context) {
 		return
 	}
 
+	ctx.Status(http.StatusNoContent)
+}
+
+// authDeleteAccount godoc
+//
+//	@Summary		Delete account
+//	@Description	Permanently deletes the account of the authenticated user including all of their API keys and channels. Sounds uploaded by the user are kept. The current password must be provided. Requires the "delete" scope when using an API key.
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Param			body	body	models.AuthDeleteAccountRequest	true	"Current password"
+//	@Success		204
+//	@Failure		400	{object}	api.ErrorResponse
+//	@Failure		401	{object}	api.ErrorResponse
+//	@Failure		403	{object}	api.ErrorResponse
+//	@Failure		500	{object}	api.ErrorResponse
+//	@Router			/auth/account [delete]
+func (t *api) authDeleteAccount(ctx *gin.Context) {
+	user := ctx.MustGet(userKey).(*database.User)
+
+	var req models.AuthDeleteAccountRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, ErrInvalidRequestBody)
+		return
+	}
+
+	match, err := argon2id.ComparePasswordAndHash(req.Password, string(user.PasswordHash))
+	if err != nil || !match {
+		ctx.JSON(http.StatusForbidden, ErrInvalidPassword)
+		return
+	}
+
+	channels, err := t.db.ListChannelsByUser(user.ID)
+	if err != nil {
+		slog.Error("failed listing channels of user", "user", user.ID, "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return
+	}
+
+	if err = t.db.DeleteUser(user.ID); err != nil {
+		slog.Error("failed deleting user from database", "user", user.ID, "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return
+	}
+
+	t.connectionsMtx.Lock()
+	defer t.connectionsMtx.Unlock()
+
+	for _, channel := range channels {
+		if channel.CreatorID == user.ID {
+			delete(t.connections, channel.ID)
+			t.sseManager.Send(sse.Event{
+				Event: sse.EventTypeChannelDelete,
+				Data: sse.EventDataChannelDelete{
+					ChannelId: channel.ID,
+				},
+			}, channel.AssociatedUserIds())
+			continue
+		}
+
+		t.connections[channel.ID].Remove(user.ID)
+		channel.Members = slices.DeleteFunc(channel.Members, func(member *database.User) bool {
+			return member.ID == user.ID
+		})
+		t.sseManager.Send(sse.Event{
+			Event: sse.EventTypeChannelUpdate,
+			Data: sse.EventDataChannelUpdate{
+				Channel: models.ChannelToResponse(channel, user.ID, t.connections[channel.ID].Collect()),
+			},
+		}, channel.AssociatedUserIds())
+	}
+
+	ctx.SetCookie(sessionCookieName, "", -1, "/", "", false, true)
 	ctx.Status(http.StatusNoContent)
 }

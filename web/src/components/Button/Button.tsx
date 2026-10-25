@@ -2,7 +2,7 @@ import styles from "./Button.module.css";
 
 import type React from "react";
 
-export type Variant = "default" | "primary";
+export type Variant = "default" | "primary" | "danger";
 
 export type Props = React.PropsWithChildren &
   React.ButtonHTMLAttributes<HTMLButtonElement> & {

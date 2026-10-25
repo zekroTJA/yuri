@@ -16,3 +16,7 @@
 .primary {
     background-color: var(--accent);
 }
+
+.danger {
+    background-color: var(--error);
+}

@@ -101,6 +101,7 @@ func Run(
 	authenticated := apiGroup.Group("/", t.requireAuth)
 
 	authenticated.POST("/auth/password", t.authChangePassword)
+	authenticated.DELETE("/auth/account", t.authDeleteAccount)
 
 	authenticated.GET("/apikeys", t.apiKeysList)
 	authenticated.POST("/apikeys", t.apiKeysCreate)

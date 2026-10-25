@@ -5,6 +5,7 @@ import type {
   APIKeyResponse,
   APIKeyUpdateRequest,
   AuthChangePasswordRequest,
+  AuthDeleteAccountRequest,
   AuthRequest,
   ChannelConnectionResponse,
   ChannelInviteCreateRequest,
@@ -73,6 +74,15 @@ export class ApiClient {
   async changePassword(req: AuthChangePasswordRequest): Promise<void> {
     await this.request<void>("/auth/password", {
       method: "POST",
+      body: JSON.stringify(req),
+    });
+  }
+
+  // Permanently deletes the account of the current user. Sounds uploaded by
+  // the user are kept.
+  async deleteAccount(req: AuthDeleteAccountRequest): Promise<void> {
+    await this.request<void>("/auth/account", {
+      method: "DELETE",
       body: JSON.stringify(req),
     });
   }
