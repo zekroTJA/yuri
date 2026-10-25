@@ -7,7 +7,8 @@ type ErrorResponse struct {
 }
 
 var (
-	ErrInternal = ErrorResponse{Code: "internal", Message: "Internal server error"}
+	ErrInternal  = ErrorResponse{Code: "internal", Message: "Internal server error"}
+	ErrUnhealthy = ErrorResponse{Code: "unhealthy", Message: "Service is unhealthy"}
 
 	ErrInvalidRequestBody = ErrorResponse{Code: "invalid_request_body", Message: "Invalid request body"}
 	ErrInvalidID          = ErrorResponse{Code: "invalid_id", Message: "Invalid ID"}

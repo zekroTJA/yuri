@@ -1,6 +1,8 @@
 package database
 
 import (
+	"context"
+
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -36,4 +38,13 @@ func (t *Database) Transaction(fn func(tx *Database) error) error {
 	return t.db.Transaction(func(gormTx *gorm.DB) error {
 		return fn(&Database{db: gormTx})
 	})
+}
+
+// Ping checks whether the underlying database connection is alive.
+func (t *Database) Ping(ctx context.Context) error {
+	sqlDB, err := t.db.DB()
+	if err != nil {
+		return err
+	}
+	return sqlDB.PingContext(ctx)
 }

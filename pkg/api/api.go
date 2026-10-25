@@ -100,6 +100,7 @@ func Run(
 	apiGroup.POST("/auth/register", t.authRegister)
 	apiGroup.POST("/auth/login", t.authLogin)
 	apiGroup.GET("/docs/swagger.json", t.docsSwagger)
+	apiGroup.GET("/health", t.health)
 
 	authenticated := apiGroup.Group("/", t.requireAuth)
 

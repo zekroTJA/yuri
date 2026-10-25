@@ -1208,6 +1208,32 @@
                 }
             }
         },
+        "/health": {
+            "get": {
+                "description": "Checks whether the service is healthy by verifying the database connection.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Health check",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.HealthResponse"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/invites/{code}": {
             "post": {
                 "security": [
@@ -2314,6 +2340,14 @@
                 },
                 "id": {
                     "type": "integer"
+                }
+            }
+        },
+        "models.HealthResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string"
                 }
             }
         },

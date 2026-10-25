@@ -31,4 +31,6 @@ ENV YURI_API_ADDRESS=0.0.0.0:8080 \
 USER yuri
 VOLUME /data
 EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD wget --quiet --output-document=/dev/null "http://127.0.0.1:${YURI_API_ADDRESS##*:}/api/v1/health" || exit 1
 ENTRYPOINT ["/usr/local/bin/yuri"]
