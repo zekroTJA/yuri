@@ -22,6 +22,7 @@ const (
 	userKey            = "user"
 	apiKeyHintLen      = 6
 	apiKeyCharacterLen = 64
+	randomSoundHandle  = ":random"
 )
 
 type sessionClaims struct {

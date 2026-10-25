@@ -14,6 +14,12 @@ func (t *Database) GetSoundByID(id uint) (*Sound, error) {
 	return &sound, mapError(res.Error)
 }
 
+func (t *Database) GetRandomSound() (*Sound, error) {
+	var sound Sound
+	res := t.db.Order("RANDOM()").Take(&sound)
+	return &sound, mapError(res.Error)
+}
+
 func (t *Database) ListSounds() ([]*Sound, error) {
 	var sounds []*Sound
 	res := t.db.Preload("Owner").Find(&sounds)

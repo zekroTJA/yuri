@@ -1562,7 +1562,7 @@
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Plays a sound in the channel the authenticated user is currently connected to. Requires the \"write\" scope when using an API key.",
+                "description": "Plays a sound in the channel the authenticated user is currently connected to. When \":random\" is passed as ID, a random sound is played. Requires the \"write\" scope when using an API key.",
                 "produces": [
                     "application/json"
                 ],
@@ -1573,7 +1573,7 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Sound ID or handle",
+                        "description": "Sound ID, handle or \\",
                         "name": "id",
                         "in": "path",
                         "required": true

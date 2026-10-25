@@ -344,11 +344,11 @@ func (t *api) soundsDelete(ctx *gin.Context) {
 // soundsPlay godoc
 //
 //	@Summary		Play sound
-//	@Description	Plays a sound in the channel the authenticated user is currently connected to. Requires the "write" scope when using an API key.
+//	@Description	Plays a sound in the channel the authenticated user is currently connected to. When ":random" is passed as ID, a random sound is played. Requires the "write" scope when using an API key.
 //	@Tags			Sounds
 //	@Produce		json
 //	@Security		ApiKeyAuth
-//	@Param			id	path	string	true	"Sound ID or handle"
+//	@Param			id	path	string	true	"Sound ID, handle or \":random\""
 //	@Success		204
 //	@Failure		400	{object}	api.ErrorResponse
 //	@Failure		401	{object}	api.ErrorResponse
@@ -378,13 +378,18 @@ func (t *api) soundsPlay(ctx *gin.Context) {
 		return
 	}
 
-	sound, err := t.getSoundByIDOrHandle(ctx.Param("id"))
+	var sound *database.Sound
+	if ctx.Param("id") == randomSoundHandle {
+		sound, err = t.db.GetRandomSound()
+	} else {
+		sound, err = t.getSoundByIDOrHandle(ctx.Param("id"))
+	}
 	if err == database.ErrNotFound {
 		ctx.JSON(http.StatusNotFound, ErrSoundNotFound)
 		return
 	}
 	if err != nil {
-		slog.Error("failed getting sound from database", "id", ctx.Param("soundId"), "err", err)
+		slog.Error("failed getting sound from database", "id", ctx.Param("id"), "err", err)
 		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
