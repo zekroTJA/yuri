@@ -43,11 +43,19 @@
 .header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 0.6em;
     padding-left: 0.4em;
 }
 
+.logo {
+    flex-shrink: 0;
+    width: 1.8rem;
+    height: 1.8rem;
+    object-fit: contain;
+}
+
 .title {
+    flex-grow: 1;
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.08em;

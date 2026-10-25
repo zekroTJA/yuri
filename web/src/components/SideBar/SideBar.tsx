@@ -28,6 +28,7 @@ import PlusIcon from "../../assets/plus.svg?react";
 import InviteIcon from "../../assets/invite.svg?react";
 import CopyIcon from "../../assets/copy.svg?react";
 import CloseIcon from "../../assets/close.svg?react";
+import yuriIcon from "../../assets/yuri-icon.webp";
 
 const inviteMaxActivations = 1;
 const inviteLifetimeMs = 7 * 24 * 60 * 60 * 1000;
@@ -126,6 +127,7 @@ export default function SideBar() {
       style={width !== undefined ? { width } : undefined}
     >
       <header className={styles.header}>
+        <img className={styles.logo} src={yuriIcon} alt="Yuri" />
         <span className={styles.title}>Channels</span>
         <IconButton
           title={isAddingChannel ? "Cancel" : "Add channel"}
