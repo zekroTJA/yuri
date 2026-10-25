@@ -8,6 +8,7 @@ env:
   YURI_LOGGING_LEVEL: debug
   YURI_API_WEBAPPPATH: web/dist
   YURI_API_CORSORIGIN: http://localhost:5173
+  YURI_API_DISABLEREGISTRATION: false
   YURI_API_SIGNINGSECRET: foobarbaz
   VITE_API_URL: http://localhost:8080
 

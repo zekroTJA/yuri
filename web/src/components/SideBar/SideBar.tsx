@@ -1,6 +1,7 @@
 import {
   useCallback,
   useContext,
+  useEffect,
   useRef,
   useState,
   type CSSProperties,
@@ -49,6 +50,8 @@ function loadWidth(): number | undefined {
 
 const unmutedVolumeStorageKey = "volume-unmuted";
 const defaultUnmutedVolume = 0.5;
+// The volume change applied per scroll step on the volume slider.
+const volumeWheelStep = 0.02;
 
 function loadUnmutedVolume(): number {
   const stored = Number(localStorage.getItem(unmutedVolumeStorageKey));
@@ -345,18 +348,41 @@ function VolumeSlider() {
   // is still available after a reload while being muted.
   const unmutedVolume = useRef(loadUnmutedVolume());
 
-  const applyVolume = (newVolume: number) => {
+  const applyVolume = useCallback((newVolume: number) => {
     setVolume(newVolume);
     setVolumeState(newVolume);
-  };
+  }, []);
 
-  const onChange = (newVolume: number) => {
-    if (newVolume > 0) {
-      unmutedVolume.current = newVolume;
-      localStorage.setItem(unmutedVolumeStorageKey, String(newVolume));
-    }
-    applyVolume(newVolume);
-  };
+  const onChange = useCallback(
+    (newVolume: number) => {
+      if (newVolume > 0) {
+        unmutedVolume.current = newVolume;
+        localStorage.setItem(unmutedVolumeStorageKey, String(newVolume));
+      }
+      applyVolume(newVolume);
+    },
+    [applyVolume],
+  );
+
+  const sliderRef = useRef<HTMLInputElement>(null);
+
+  // The wheel listener is registered natively because React registers wheel
+  // listeners as passive, which does not allow preventing the page scroll.
+  useEffect(() => {
+    const slider = sliderRef.current;
+    if (!slider) return;
+
+    const onWheel = (e: WheelEvent) => {
+      if (e.deltaY === 0) return;
+      e.preventDefault();
+      const step = e.deltaY < 0 ? volumeWheelStep : -volumeWheelStep;
+      const newVolume = Math.round((getVolume() + step) * 100) / 100;
+      onChange(Math.min(Math.max(newVolume, 0), 1));
+    };
+
+    slider.addEventListener("wheel", onWheel, { passive: false });
+    return () => slider.removeEventListener("wheel", onWheel);
+  }, [onChange]);
 
   const isMuted = volume == 0;
   const volumePercent = Math.round(volume * 100);
@@ -371,6 +397,7 @@ function VolumeSlider() {
         {isMuted ? <SpeakerMutedIcon /> : <SpeakerIcon />}
       </IconButton>
       <input
+        ref={sliderRef}
         className={styles.volumeSlider}
         type="range"
         min={0}
