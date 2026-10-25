@@ -1,9 +1,11 @@
 import {
+  useCallback,
   useContext,
   useRef,
   useState,
   type CSSProperties,
   type KeyboardEvent,
+  type MouseEvent,
   type PointerEvent,
 } from "react";
 import { useNavigate } from "react-router";
@@ -19,6 +21,7 @@ import { errorMessage } from "../../utils/errors";
 import IconButton from "../IconButton/IconButton";
 import ErrorTile from "../ErrorTile/ErrorTile";
 import TabBar from "../TabBar/TabBar";
+import ContextMenu from "../ContextMenu/ContextMenu";
 import Input from "../Input/Input";
 import Button from "../Button/Button";
 import SpeakerIcon from "../../assets/speaker.svg?react";
@@ -30,6 +33,8 @@ import PlusIcon from "../../assets/plus.svg?react";
 import InviteIcon from "../../assets/invite.svg?react";
 import CopyIcon from "../../assets/copy.svg?react";
 import CloseIcon from "../../assets/close.svg?react";
+import EditIcon from "../../assets/edit.svg?react";
+import TrashIcon from "../../assets/trash.svg?react";
 import yuriIcon from "../../assets/yuri-icon.webp";
 
 const inviteMaxActivations = 1;
@@ -60,12 +65,24 @@ type Invite = {
   code: string;
 };
 
+type ChannelContextMenu = {
+  channel: ChannelResponse;
+  x: number;
+  y: number;
+};
+
 export default function SideBar() {
   const navigate = useNavigate();
   const channelState = useContext(ChannelContext);
   const channelActions = useContext(ChannelActionsContext);
   const [isAddingChannel, setIsAddingChannel] = useState(false);
   const [invite, setInvite] = useState<Invite | undefined>();
+  const [contextMenu, setContextMenu] = useState<
+    ChannelContextMenu | undefined
+  >();
+  const [editingChannelId, setEditingChannelId] = useState<
+    number | undefined
+  >();
   const [error, setError] = useState<string | undefined>();
   const container = useRef<HTMLElement>(null);
   // Undefined means that the default width from the stylesheet is used. The
@@ -109,6 +126,49 @@ export default function SideBar() {
       setError(errorMessage(e));
     }
   };
+
+  const onRename = async (channel: ChannelResponse, name: string) => {
+    if (!name || name == channel.name) {
+      setEditingChannelId(undefined);
+      return;
+    }
+    setError(undefined);
+    try {
+      // The channel is updated in the list by the resulting channel-update
+      // event.
+      await API_CLIENT.updateChannel(channel.id, { name });
+      setEditingChannelId(undefined);
+    } catch (e) {
+      setError(errorMessage(e));
+    }
+  };
+
+  const onDelete = async (channel: ChannelResponse) => {
+    if (
+      !window.confirm(
+        `Do you really want to delete the channel "${channel.name}"?`,
+      )
+    ) {
+      return;
+    }
+    setError(undefined);
+    try {
+      // The channel is removed from the list by the resulting channel-delete
+      // event.
+      await API_CLIENT.deleteChannel(channel.id);
+    } catch (e) {
+      setError(errorMessage(e));
+    }
+  };
+
+  const onOpenContextMenu = (channel: ChannelResponse, e: MouseEvent) => {
+    // All context menu actions are restricted to the channel owner.
+    if (!channel.is_owner) return;
+    e.preventDefault();
+    setContextMenu({ channel, x: e.clientX, y: e.clientY });
+  };
+
+  const onCloseContextMenu = useCallback(() => setContextMenu(undefined), []);
 
   const onResizeStart = (e: PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -170,10 +230,14 @@ export default function SideBar() {
             key={c.id}
             channel={c}
             isConnected={c.id == channelState.connected}
+            isEditing={c.id == editingChannelId}
             invite={invite?.channelId == c.id ? invite.code : undefined}
             onConnect={() => onConnect(c.id)}
             onCreateInvite={() => onCreateInvite(c.id)}
             onCloseInvite={() => setInvite(undefined)}
+            onRename={(name) => onRename(c, name)}
+            onCancelEdit={() => setEditingChannelId(undefined)}
+            onContextMenu={(e) => onOpenContextMenu(c, e)}
           />
         ))}
         {channelState.channels.length == 0 && !isAddingChannel && (
@@ -210,6 +274,32 @@ export default function SideBar() {
           <SettingsIcon />
         </IconButton>
       </footer>
+
+      {!!contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          onClose={onCloseContextMenu}
+          items={[
+            {
+              label: "Create invite",
+              icon: <InviteIcon />,
+              onClick: () => onCreateInvite(contextMenu.channel.id),
+            },
+            {
+              label: "Edit",
+              icon: <EditIcon />,
+              onClick: () => setEditingChannelId(contextMenu.channel.id),
+            },
+            {
+              label: "Delete",
+              icon: <TrashIcon />,
+              isDanger: true,
+              onClick: () => onDelete(contextMenu.channel),
+            },
+          ]}
+        />
+      )}
 
       <div
         className={`${styles.resizeHandle} ${isResizing ? styles.resizing : ""}`}
@@ -273,24 +363,45 @@ function VolumeSlider() {
 type ChannelProps = {
   channel: ChannelResponse;
   isConnected: boolean;
+  isEditing: boolean;
   invite: string | undefined;
   onConnect: () => void;
   onCreateInvite: () => void;
   onCloseInvite: () => void;
+  onRename: (name: string) => void;
+  onCancelEdit: () => void;
+  onContextMenu: (e: MouseEvent) => void;
 };
 
 function Channel({
   channel,
   isConnected,
+  isEditing,
   invite,
   onConnect,
   onCreateInvite,
   onCloseInvite,
+  onRename,
+  onCancelEdit,
+  onContextMenu,
 }: ChannelProps) {
+  if (isEditing) {
+    return (
+      <li className={styles.channel}>
+        <ChannelNameInput
+          name={channel.name}
+          onSubmit={onRename}
+          onCancel={onCancelEdit}
+        />
+      </li>
+    );
+  }
+
   return (
     <li className={styles.channel}>
       <div
         className={`${styles.channelRow} ${isConnected ? styles.connected : ""}`}
+        onContextMenu={onContextMenu}
       >
         <button
           className={styles.channelButton}
@@ -323,6 +434,36 @@ function Channel({
         </ul>
       )}
     </li>
+  );
+}
+
+function ChannelNameInput({
+  name,
+  onSubmit,
+  onCancel,
+}: {
+  name: string;
+  onSubmit: (name: string) => void;
+  onCancel: () => void;
+}) {
+  const [value, setValue] = useState(name);
+
+  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key == "Enter") onSubmit(value.trim());
+    if (e.key == "Escape") onCancel();
+  };
+
+  return (
+    <Input
+      className={styles.channelNameInput}
+      placeholder="Channel name"
+      aria-label="Channel name"
+      value={value}
+      onInput={(e) => setValue(e.currentTarget.value)}
+      onKeyDown={onKeyDown}
+      onBlur={onCancel}
+      autoFocus
+    />
   );
 }
 
