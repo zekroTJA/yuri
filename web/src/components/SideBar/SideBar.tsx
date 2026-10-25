@@ -2,6 +2,7 @@ import {
   useContext,
   useRef,
   useState,
+  type CSSProperties,
   type KeyboardEvent,
   type PointerEvent,
 } from "react";
@@ -13,6 +14,7 @@ import {
   type ChannelResponse,
   type ChannelUserResponse,
 } from "../../services/apiclient";
+import { getVolume, setVolume } from "../../services/soundplayer";
 import { errorMessage } from "../../utils/errors";
 import IconButton from "../IconButton/IconButton";
 import ErrorTile from "../ErrorTile/ErrorTile";
@@ -163,6 +165,8 @@ export default function SideBar() {
         )}
       </ul>
 
+      <VolumeSlider />
+
       <footer className={styles.footer}>
         <div className={styles.status}>
           {connectedChannel ? (
@@ -194,6 +198,36 @@ export default function SideBar() {
         onPointerCancel={onResizeEnd}
       />
     </nav>
+  );
+}
+
+function VolumeSlider() {
+  const [volume, setVolumeState] = useState(getVolume);
+
+  const onChange = (newVolume: number) => {
+    setVolume(newVolume);
+    setVolumeState(newVolume);
+  };
+
+  const volumePercent = Math.round(volume * 100);
+
+  return (
+    <div className={styles.volume}>
+      <SpeakerIcon className={styles.volumeIcon} />
+      <input
+        className={styles.volumeSlider}
+        type="range"
+        min={0}
+        max={1}
+        step={0.01}
+        value={volume}
+        title={`Volume: ${volumePercent}%`}
+        aria-label="Volume"
+        style={{ "--volume": `${volumePercent}%` } as CSSProperties}
+        onChange={(e) => onChange(Number(e.currentTarget.value))}
+      />
+      <span className={styles.volumeValue}>{volumePercent}%</span>
+    </div>
   );
 }
 

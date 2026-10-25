@@ -247,3 +247,85 @@
     font-size: 0.85rem;
     opacity: 0.6;
 }
+
+.volume {
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    padding: 0 0.4em;
+}
+
+.volumeIcon {
+    flex-shrink: 0;
+    width: 1.1em;
+    height: 1.1em;
+    opacity: 0.6;
+}
+
+.volumeSlider {
+    --track-height: 4px;
+    --thumb-size: 0.9em;
+
+    flex-grow: 1;
+    min-width: 0;
+    height: var(--thumb-size);
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+    appearance: none;
+
+    &::-webkit-slider-runnable-track {
+        height: var(--track-height);
+        border-radius: var(--track-height);
+        background: linear-gradient(
+            to right,
+            var(--accent) var(--volume),
+            rgba(255 255 255 / 15%) var(--volume)
+        );
+    }
+
+    &::-moz-range-track {
+        height: var(--track-height);
+        border-radius: var(--track-height);
+        background-color: rgba(255 255 255 / 15%);
+    }
+
+    &::-moz-range-progress {
+        height: var(--track-height);
+        border-radius: var(--track-height);
+        background-color: var(--accent);
+    }
+
+    &::-webkit-slider-thumb {
+        width: var(--thumb-size);
+        height: var(--thumb-size);
+        margin-top: calc((var(--track-height) - var(--thumb-size)) / 2);
+        border: none;
+        border-radius: 50%;
+        background-color: var(--text);
+        appearance: none;
+    }
+
+    &::-moz-range-thumb {
+        width: var(--thumb-size);
+        height: var(--thumb-size);
+        border: none;
+        border-radius: 50%;
+        background-color: var(--text);
+    }
+
+    &:focus-visible {
+        outline: solid 2px var(--accent-border);
+        outline-offset: 2px;
+        border-radius: 3px;
+    }
+}
+
+.volumeValue {
+    flex-shrink: 0;
+    width: 2.8em;
+    font-size: 0.8rem;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.7;
+}

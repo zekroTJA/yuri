@@ -4,6 +4,37 @@ import { API_CLIENT } from "../apiclient";
 // repeatedly played sounds are only fetched once.
 const objectUrls = new Map<number, Promise<string>>();
 
+// Currently playing audio elements, so that volume changes also apply to
+// sounds which are already playing.
+const playingAudios = new Set<HTMLAudioElement>();
+
+const volumeStorageKey = "volume";
+const defaultVolume = 0.5;
+
+let volume = loadVolume();
+
+function loadVolume(): number {
+  const stored = localStorage.getItem(volumeStorageKey);
+  if (stored === null) return defaultVolume;
+  const parsed = Number(stored);
+  return Number.isFinite(parsed)
+    ? Math.min(Math.max(parsed, 0), 1)
+    : defaultVolume;
+}
+
+// Returns the output volume of played sounds in the range of 0 to 1.
+export function getVolume(): number {
+  return volume;
+}
+
+// Sets the output volume of played sounds in the range of 0 to 1. The value
+// is persisted and applied to currently playing sounds as well.
+export function setVolume(newVolume: number): void {
+  volume = Math.min(Math.max(newVolume, 0), 1);
+  localStorage.setItem(volumeStorageKey, String(volume));
+  playingAudios.forEach((audio) => (audio.volume = volume));
+}
+
 function getObjectUrl(soundId: number): Promise<string> {
   let objectUrl = objectUrls.get(soundId);
   if (!objectUrl) {
@@ -20,6 +51,8 @@ function getObjectUrl(soundId: number): Promise<string> {
 // playback has finished or could not be started.
 export async function playSound(soundId: number): Promise<void> {
   const audio = new Audio(await getObjectUrl(soundId));
+  audio.volume = volume;
+  playingAudios.add(audio);
   await new Promise<void>((resolve) => {
     audio.addEventListener("ended", () => resolve());
     audio.addEventListener("error", () => resolve());
@@ -28,6 +61,7 @@ export async function playSound(soundId: number): Promise<void> {
       resolve();
     });
   });
+  playingAudios.delete(audio);
 }
 
 // Drops the cached file of the given sound, e.g. after it has been deleted.
