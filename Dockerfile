@@ -1,17 +1,19 @@
-FROM oven/bun:1-alpine AS web
+FROM --platform=$BUILDPLATFORM oven/bun:1-alpine AS web
 WORKDIR /build
 COPY web/package.json web/bun.lock ./
 RUN bun install --frozen-lockfile
 COPY web/ ./
 RUN bun run build
 
-FROM golang:1.26-alpine AS backend
+FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS backend
+ARG TARGETOS
+ARG TARGETARCH
 WORKDIR /build
 COPY go.mod go.sum ./
 RUN go mod download
 COPY cmd/ cmd/
 COPY pkg/ pkg/
-RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /yuri ./cmd/yuri
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags="-s -w" -o /yuri ./cmd/yuri
 
 FROM alpine:3
 RUN apk add --no-cache ffmpeg ca-certificates \
