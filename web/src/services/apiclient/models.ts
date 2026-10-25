@@ -11,6 +11,10 @@ export interface AuthRequest {
   password: string;
 }
 
+export interface AuthConfigResponse {
+  registration_enabled: boolean;
+}
+
 export interface AuthDeleteAccountRequest {
   password: string;
 }

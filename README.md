@@ -61,23 +61,24 @@ After starting the container, open `http://localhost:8080` in your browser and r
 > The container runs as user `yuri` with UID `1000`. When you bind-mount a host directory to `/data` instead of using a named volume, make sure it is writable by this user (e.g. `chown -R 1000:1000 ./data`).
 
 > [!IMPORTANT]
-> Registration is open to everyone who can reach the instance. If you expose Yuri to the internet, consider putting it behind a reverse proxy with TLS and access restrictions.
+> By default, registration is open to everyone who can reach the instance. If you expose Yuri to the internet, consider disabling registration via `YURI_API_DISABLEREGISTRATION` once all users have signed up, or putting it behind a reverse proxy with TLS and access restrictions.
 
 ### Configuration
 
 Yuri is configured via environment variables.
 
-| Variable                 | Default (in image)    | Description                                                                                                                        |
-| ------------------------ | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `YURI_API_ADDRESS`       | `0.0.0.0:8080`        | Address the web server binds to.                                                                                                   |
-| `YURI_API_SIGNINGSECRET` |                       | Secret used to sign session tokens. If not set, a random secret is generated on every start, which invalidates all login sessions. |
-| `YURI_API_CORSORIGIN`    |                       | Allowed CORS origin. Only required if the web app is served from a different origin than the API.                                  |
-| `YURI_API_WEBAPPPATH`    | `/usr/share/yuri/web` | Directory of the bundled web app files.                                                                                            |
-| `YURI_DATABASE_DSN`      | `/data/db.sqlite3`    | Path to the SQLite database file.                                                                                                  |
-| `YURI_STORAGE_DIR`       | `/data/storage`       | Directory where sound files are stored.                                                                                            |
-| `YURI_LOGGING_LEVEL`     | `info`                | Log level (`debug`, `info`, `warn`, `error`).                                                                                      |
-| `YURI_FFMPEG_PATH`       |                       | Path to the ffmpeg executable. Resolved via `PATH` if empty.                                                                       |
-| `YURI_YTDLP_PATH`        |                       | Path to the yt-dlp executable. Resolved via `PATH` if empty. Importing from URLs is disabled if yt-dlp is not available.           |
+| Variable                       | Default (in image)    | Description                                                                                                                        |
+| ------------------------------ | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `YURI_API_ADDRESS`             | `0.0.0.0:8080`        | Address the web server binds to.                                                                                                   |
+| `YURI_API_SIGNINGSECRET`       |                       | Secret used to sign session tokens. If not set, a random secret is generated on every start, which invalidates all login sessions. |
+| `YURI_API_CORSORIGIN`          |                       | Allowed CORS origin. Only required if the web app is served from a different origin than the API.                                  |
+| `YURI_API_DISABLEREGISTRATION` | `false`               | Disables the registration of new users. Existing users can still log in.                                                           |
+| `YURI_API_WEBAPPPATH`          | `/usr/share/yuri/web` | Directory of the bundled web app files.                                                                                            |
+| `YURI_DATABASE_DSN`            | `/data/db.sqlite3`    | Path to the SQLite database file.                                                                                                  |
+| `YURI_STORAGE_DIR`             | `/data/storage`       | Directory where sound files are stored.                                                                                            |
+| `YURI_LOGGING_LEVEL`           | `info`                | Log level (`debug`, `info`, `warn`, `error`).                                                                                      |
+| `YURI_FFMPEG_PATH`             |                       | Path to the ffmpeg executable. Resolved via `PATH` if empty.                                                                       |
+| `YURI_YTDLP_PATH`              |                       | Path to the yt-dlp executable. Resolved via `PATH` if empty. Importing from URLs is disabled if yt-dlp is not available.           |
 
 ## License
 

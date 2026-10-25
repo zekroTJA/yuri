@@ -5,6 +5,7 @@ import type {
   APIKeyResponse,
   APIKeyUpdateRequest,
   AuthChangePasswordRequest,
+  AuthConfigResponse,
   AuthDeleteAccountRequest,
   AuthRequest,
   ChannelConnectionResponse,
@@ -56,6 +57,10 @@ export class ApiClient {
   }
 
   // -- Auth ------------------------------------------------------------
+
+  async getAuthConfig(): Promise<AuthConfigResponse> {
+    return this.request<AuthConfigResponse>("/auth/config");
+  }
 
   async register(handle: string, password: string): Promise<RegisterResponse> {
     return this.request<RegisterResponse>("/auth/register", {

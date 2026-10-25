@@ -298,6 +298,26 @@
                 }
             }
         },
+        "/auth/config": {
+            "get": {
+                "description": "Returns the authentication options of this instance, e.g. whether new users are allowed to register.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Auth configuration",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.AuthConfigResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/login": {
             "post": {
                 "description": "Authenticates the user and sets the \"session\" cookie.",
@@ -409,7 +429,7 @@
         },
         "/auth/register": {
             "post": {
-                "description": "Creates a new user account.",
+                "description": "Creates a new user account. Not available if registration is disabled on this instance.",
                 "consumes": [
                     "application/json"
                 ],
@@ -440,6 +460,12 @@
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/api.ErrorResponse"
                         }
@@ -2102,6 +2128,14 @@
                 },
                 "new_password": {
                     "type": "string"
+                }
+            }
+        },
+        "models.AuthConfigResponse": {
+            "type": "object",
+            "properties": {
+                "registration_enabled": {
+                    "type": "boolean"
                 }
             }
         },

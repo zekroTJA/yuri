@@ -1,7 +1,7 @@
 import styles from "./Login.module.css";
 import Button from "../../components/Button/Button";
 import TabBar from "../../components/TabBar/TabBar";
-import { useState, type KeyboardEvent } from "react";
+import { useEffect, useState, type KeyboardEvent } from "react";
 import Input from "../../components/Input/Input";
 import { API_CLIENT } from "../../services/apiclient";
 import { useNavigate } from "react-router";
@@ -20,6 +20,13 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [passwordRepeat, setPasswordRepeat] = useState("");
   const [error, setError] = useState<string | undefined>();
+  const [isRegistrationEnabled, setIsRegistrationEnabled] = useState(false);
+
+  useEffect(() => {
+    API_CLIENT.getAuthConfig()
+      .then((config) => setIsRegistrationEnabled(config.registration_enabled))
+      .catch((e) => console.error("failed getting auth config", e));
+  }, []);
 
   const onLogin = async () => {
     if (!username || !password) return;
@@ -45,10 +52,12 @@ export default function Login() {
   return (
     <div className={styles.outer}>
       <section className={styles.container}>
-        <TabBar options={tabs} onSelect={(id) => setSelectedTab(id)} />
+        {isRegistrationEnabled && (
+          <TabBar options={tabs} onSelect={(id) => setSelectedTab(id)} />
+        )}
         {!!error && <ErrorTile message={error} />}
         <TabContent
-          id={selectedTab}
+          id={isRegistrationEnabled ? selectedTab : "login"}
           username={username}
           password={password}
           passwordRepeat={passwordRepeat}

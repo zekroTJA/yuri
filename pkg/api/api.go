@@ -41,7 +41,8 @@ type api struct {
 	connectionsMtx sync.RWMutex
 	connections    map[uint]util.Set[uint]
 
-	corsOrigin string
+	corsOrigin          string
+	registrationEnabled bool
 }
 
 //	@title			Yuri API
@@ -74,14 +75,15 @@ func Run(
 	}
 
 	t := &api{
-		db:          db,
-		storage:     storage,
-		encoder:     encoder,
-		downloader:  downloader,
-		jwtHandler:  jwt.NewHandler[sessionClaims](jwt.NewHmacSha256(secret)),
-		sseManager:  sse.NewManager(),
-		connections: make(map[uint]util.Set[uint]),
-		corsOrigin:  cfg.CORSOrigin,
+		db:                  db,
+		storage:             storage,
+		encoder:             encoder,
+		downloader:          downloader,
+		jwtHandler:          jwt.NewHandler[sessionClaims](jwt.NewHmacSha256(secret)),
+		sseManager:          sse.NewManager(),
+		connections:         make(map[uint]util.Set[uint]),
+		corsOrigin:          cfg.CORSOrigin,
+		registrationEnabled: !cfg.DisableRegistration,
 	}
 
 	router := gin.New()
@@ -94,6 +96,7 @@ func Run(
 	}
 
 	apiGroup := router.Group("/api/v1")
+	apiGroup.GET("/auth/config", t.authConfig)
 	apiGroup.POST("/auth/register", t.authRegister)
 	apiGroup.POST("/auth/login", t.authLogin)
 	apiGroup.GET("/docs/swagger.json", t.docsSwagger)

@@ -14,6 +14,10 @@ type AuthDeleteAccountRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type AuthConfigResponse struct {
+	RegistrationEnabled bool `json:"registration_enabled"`
+}
+
 type AuthRegisterResponse struct {
 	ID     uint   `json:"id"`
 	Handle string `json:"handle"`

@@ -13,20 +13,40 @@ import (
 	"github.com/zekrotja/yuri/pkg/database"
 )
 
+// authConfig godoc
+//
+//	@Summary		Auth configuration
+//	@Description	Returns the authentication options of this instance, e.g. whether new users are allowed to register.
+//	@Tags			Auth
+//	@Produce		json
+//	@Success		200	{object}	models.AuthConfigResponse
+//	@Router			/auth/config [get]
+func (t *api) authConfig(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, models.AuthConfigResponse{
+		RegistrationEnabled: t.registrationEnabled,
+	})
+}
+
 // authRegister godoc
 //
 //	@Summary		Register
-//	@Description	Creates a new user account.
+//	@Description	Creates a new user account. Not available if registration is disabled on this instance.
 //	@Tags			Auth
 //	@Accept			json
 //	@Produce		json
 //	@Param			body	body		models.AuthRequest	true	"Credentials"
 //	@Success		201		{object}	models.AuthRegisterResponse
 //	@Failure		400		{object}	api.ErrorResponse
+//	@Failure		403		{object}	api.ErrorResponse
 //	@Failure		409		{object}	api.ErrorResponse
 //	@Failure		500		{object}	api.ErrorResponse
 //	@Router			/auth/register [post]
 func (t *api) authRegister(ctx *gin.Context) {
+	if !t.registrationEnabled {
+		ctx.JSON(http.StatusForbidden, ErrRegistrationDisabled)
+		return
+	}
+
 	var req models.AuthRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, ErrInvalidRequestBody)

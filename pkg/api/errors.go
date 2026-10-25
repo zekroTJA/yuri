@@ -18,10 +18,11 @@ var (
 	ErrInvalidLimit       = ErrorResponse{Code: "invalid_limit", Message: "Limit must be a number between 1 and 100"}
 	ErrInvalidSince       = ErrorResponse{Code: "invalid_since", Message: "Since must be a date (YYYY-MM-DD) or an RFC3339 timestamp"}
 
-	ErrPasswordTooShort   = ErrorResponse{Code: "password_too_short", Message: "Password must be at least 6 characters"}
-	ErrHandleConflict     = ErrorResponse{Code: "handle_conflict", Message: "Handle is already in use"}
-	ErrInvalidCredentials = ErrorResponse{Code: "invalid_credentials", Message: "Invalid username or password"}
-	ErrInvalidPassword    = ErrorResponse{Code: "invalid_password", Message: "Current password is incorrect"}
+	ErrPasswordTooShort     = ErrorResponse{Code: "password_too_short", Message: "Password must be at least 6 characters"}
+	ErrHandleConflict       = ErrorResponse{Code: "handle_conflict", Message: "Handle is already in use"}
+	ErrInvalidCredentials   = ErrorResponse{Code: "invalid_credentials", Message: "Invalid username or password"}
+	ErrRegistrationDisabled = ErrorResponse{Code: "registration_disabled", Message: "Registration is disabled"}
+	ErrInvalidPassword      = ErrorResponse{Code: "invalid_password", Message: "Current password is incorrect"}
 
 	ErrInvalidScope   = ErrorResponse{Code: "invalid_scope", Message: "Invalid scope"}
 	ErrAPIKeyNotFound = ErrorResponse{Code: "api_key_not_found", Message: "API key not found"}
