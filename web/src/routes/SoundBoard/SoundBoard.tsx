@@ -13,6 +13,29 @@ import UploadIcon from "../../assets/upload.svg?react";
 import EditIcon from "../../assets/edit.svg?react";
 import DownloadIcon from "../../assets/download.svg?react";
 import TrashIcon from "../../assets/trash.svg?react";
+import SortAlphaIcon from "../../assets/sort-alpha.svg?react";
+import ClockIcon from "../../assets/clock.svg?react";
+
+type SortOrder = "alphabetical" | "latest";
+
+const sortOrderStorageKey = "sound-sort-order";
+
+function loadSortOrder(): SortOrder {
+  return localStorage.getItem(sortOrderStorageKey) == "latest"
+    ? "latest"
+    : "alphabetical";
+}
+
+function compareSounds(
+  a: SoundResponse,
+  b: SoundResponse,
+  sortOrder: SortOrder,
+): number {
+  if (sortOrder == "latest") {
+    return Date.parse(b.created_at) - Date.parse(a.created_at);
+  }
+  return a.handle.localeCompare(b.handle);
+}
 
 type SoundContextMenu = {
   sound: SoundResponse;
@@ -25,6 +48,7 @@ export default function SoundBoard() {
   const channelState = useContext(ChannelContext);
   const soundState = useContext(SoundContext);
   const [filter, setFilter] = useState("");
+  const [sortOrder, setSortOrder] = useState(loadSortOrder);
   const [error, setError] = useState<string | undefined>();
   const [contextMenu, setContextMenu] = useState<
     SoundContextMenu | undefined
@@ -40,7 +64,14 @@ export default function SoundBoard() {
         s.handle.toLowerCase().includes(normalizedFilter) ||
         s.tags?.some((t) => t.toLowerCase().includes(normalizedFilter)),
     )
-    .toSorted((a, b) => a.handle.localeCompare(b.handle));
+    .toSorted((a, b) => compareSounds(a, b, sortOrder));
+
+  const onToggleSortOrder = () => {
+    const newSortOrder =
+      sortOrder == "alphabetical" ? "latest" : "alphabetical";
+    setSortOrder(newSortOrder);
+    localStorage.setItem(sortOrderStorageKey, newSortOrder);
+  };
 
   const onPlay = async (sound: SoundResponse) => {
     setError(undefined);
@@ -93,6 +124,19 @@ export default function SoundBoard() {
           value={filter}
           onInput={(e) => setFilter(e.currentTarget.value)}
         />
+        <Button
+          title={
+            sortOrder == "alphabetical"
+              ? "Sorted alphabetically, click to sort by latest added"
+              : "Sorted by latest added, click to sort alphabetically"
+          }
+          onClick={onToggleSortOrder}
+        >
+          <span className={styles.buttonContent}>
+            {sortOrder == "alphabetical" ? <SortAlphaIcon /> : <ClockIcon />}
+            {sortOrder == "alphabetical" ? "A–Z" : "Latest"}
+          </span>
+        </Button>
         <Button variant="primary" onClick={() => navigate("/sounds/upload")}>
           <span className={styles.buttonContent}>
             <UploadIcon />
