@@ -21,11 +21,13 @@ type SoundResponse struct {
 }
 
 type SoundUpdateRequest struct {
+	// Handle must only contain letters, digits, underscores and dashes.
 	Handle string   `json:"handle" binding:"required"`
 	Tags   []string `json:"tags"`
 }
 
 type SoundCopyRequest struct {
+	// Handle must only contain letters, digits, underscores and dashes.
 	Handle string   `json:"handle" binding:"required"`
 	Tags   []string `json:"tags"`
 }

@@ -4,6 +4,7 @@ import styles from "./SoundEdit.module.css";
 import { SoundContext } from "../../contexts";
 import { API_CLIENT, type SoundResponse } from "../../services/apiclient";
 import { errorMessage } from "../../utils/errors";
+import { onSoundHandleInput } from "../../utils/handle";
 import Input from "../../components/Input/Input";
 import Button from "../../components/Button/Button";
 import IconButton from "../../components/IconButton/IconButton";
@@ -120,7 +121,7 @@ function SoundEditForm({
         <span className={styles.label}>Handle</span>
         <Input
           value={handle}
-          onInput={(e) => setHandle(e.currentTarget.value)}
+          onInput={(e) => onSoundHandleInput(e, setHandle)}
           onKeyUp={onKeyUp}
         />
       </label>

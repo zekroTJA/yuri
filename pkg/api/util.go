@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -10,15 +11,18 @@ import (
 	"github.com/zekrotja/yuri/pkg/util"
 )
 
+var soundHandlePattern = regexp.MustCompile(`^[a-zA-Z0-9_\-]+$`)
+
 var filterMap = map[string]ffmpeg.Filter{
 	"normalize": ffmpeg.FilterNormalize,
 	"overdrive": ffmpeg.FilterOverdrive,
 }
 
-// isValidSoundHandle reports whether the given handle can safely be used as
-// part of file names, i.e. in the storage ID or in sound archives.
+// isValidSoundHandle reports whether the given handle only consists of
+// alphanumeric characters, underscores and dashes, so that it can safely be
+// used as part of file names, i.e. in the storage ID or in sound archives.
 func isValidSoundHandle(handle string) bool {
-	return handle != "" && !strings.ContainsAny(handle, `/\`)
+	return soundHandlePattern.MatchString(handle)
 }
 
 // isValidMediaURL reports whether the given URL is an absolute http or https

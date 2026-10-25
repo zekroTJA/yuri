@@ -29,7 +29,7 @@ const downloadTimeout = 5 * time.Minute
 //	@Accept			multipart/form-data
 //	@Produce		json
 //	@Security		ApiKeyAuth
-//	@Param			handle	formData	string		true	"Sound handle"
+//	@Param			handle	formData	string		true	"Sound handle (letters, digits, underscores and dashes only)"
 //	@Param			file	formData	file		false	"Audio file"
 //	@Param			url		formData	string		false	"Media URL"
 //	@Param			tags	formData	[]string	false	"Tags"		collectionFormat(multi)

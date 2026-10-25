@@ -1124,7 +1124,7 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Sound handle",
+                        "description": "Sound handle (letters, digits, underscores and dashes only)",
                         "name": "handle",
                         "in": "formData",
                         "required": true
@@ -1970,6 +1970,7 @@
             ],
             "properties": {
                 "handle": {
+                    "description": "Handle must only contain letters, digits, underscores and dashes.",
                     "type": "string"
                 },
                 "tags": {
@@ -2055,6 +2056,7 @@
             ],
             "properties": {
                 "handle": {
+                    "description": "Handle must only contain letters, digits, underscores and dashes.",
                     "type": "string"
                 },
                 "tags": {
