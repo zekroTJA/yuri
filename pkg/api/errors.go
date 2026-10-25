@@ -15,6 +15,8 @@ var (
 	ErrForbidden          = ErrorResponse{Code: "forbidden", Message: "Forbidden"}
 	ErrUnauthorized       = ErrorResponse{Code: "unauthorized", Message: "Unauthorized"}
 	ErrNotFound           = ErrorResponse{Code: "not_found", Message: "Not found"}
+	ErrInvalidLimit       = ErrorResponse{Code: "invalid_limit", Message: "Limit must be a number between 1 and 100"}
+	ErrInvalidSince       = ErrorResponse{Code: "invalid_since", Message: "Since must be a date (YYYY-MM-DD) or an RFC3339 timestamp"}
 
 	ErrPasswordTooShort   = ErrorResponse{Code: "password_too_short", Message: "Password must be at least 6 characters"}
 	ErrHandleConflict     = ErrorResponse{Code: "handle_conflict", Message: "Handle is already in use"}

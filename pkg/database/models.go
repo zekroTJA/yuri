@@ -12,6 +12,7 @@ var models = []any{
 	&Sound{},
 	&Channel{},
 	&ChannelInvite{},
+	&SoundPlay{},
 }
 
 type Scope string
@@ -86,4 +87,15 @@ type ChannelInvite struct {
 	Channel   *Channel
 	CreatorID uint
 	Creator   *User
+}
+
+// SoundPlay is a log entry of a sound being played by a user. The time the
+// sound has been played is stored as CreatedAt.
+type SoundPlay struct {
+	gorm.Model
+
+	SoundID uint `gorm:"index"`
+	Sound   *Sound
+	UserID  uint
+	User    *User
 }

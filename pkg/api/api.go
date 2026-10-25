@@ -118,6 +118,9 @@ func Run(
 
 	authenticated.GET("/events", t.eventsStream)
 
+	authenticated.GET("/stats/scoreboard", t.statsScoreboard)
+	authenticated.GET("/stats/plays", t.statsPlays)
+
 	authenticated.GET("/channels", t.channelsList)
 	authenticated.GET("/channels/:id", t.channelsGet)
 	authenticated.POST("/channels", t.channelsCreate)

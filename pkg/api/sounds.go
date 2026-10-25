@@ -401,6 +401,10 @@ func (t *api) soundsPlay(ctx *gin.Context) {
 		Data:  sse.EventDataPlay{Sound: sound.ID},
 	}, channelConnections)
 
+	if _, err = t.db.CreateSoundPlay(sound.ID, user.ID); err != nil {
+		slog.Error("failed logging sound play in database", "sound", sound.ID, "user", user.ID, "err", err)
+	}
+
 	ctx.Status(http.StatusNoContent)
 }
 

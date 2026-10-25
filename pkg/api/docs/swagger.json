@@ -1685,6 +1685,119 @@
                     }
                 }
             }
+        },
+        "/stats/plays": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Lists the latest entries of the sound play log ordered from newest to oldest. Plays of deleted sounds are included. Requires the \"read\" scope when using an API key.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stats"
+                ],
+                "summary": "List latest sound plays",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Number of entries to return (1-100)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.SoundPlayResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stats/scoreboard": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Lists the most played sounds ordered by their play count together with the total number of plays of all sounds. When \"since\" is given, only plays from that point in time until now are counted, otherwise all time. Plays of deleted sounds are not counted. Requires the \"read\" scope when using an API key.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stats"
+                ],
+                "summary": "Get sound scoreboard",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Number of sounds to return (1-100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date (YYYY-MM-DD) or RFC3339 timestamp from which plays are counted",
+                        "name": "since",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.ScoreboardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1963,6 +2076,21 @@
                 }
             }
         },
+        "models.ScoreboardResponse": {
+            "type": "object",
+            "properties": {
+                "sounds": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.SoundPlayCountResponse"
+                    }
+                },
+                "total_plays": {
+                    "description": "TotalPlays is the number of plays of all sounds in the requested time range.",
+                    "type": "integer"
+                }
+            }
+        },
         "models.SoundCopyRequest": {
             "type": "object",
             "required": [
@@ -2006,6 +2134,48 @@
                 },
                 "reason": {
                     "type": "string"
+                }
+            }
+        },
+        "models.SoundPlayCountResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "sound": {
+                    "$ref": "#/definitions/models.SoundResponse"
+                }
+            }
+        },
+        "models.SoundPlayResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "played_at": {
+                    "type": "string"
+                },
+                "sound": {
+                    "$ref": "#/definitions/models.SoundPlaySoundResponse"
+                },
+                "user": {
+                    "$ref": "#/definitions/models.SoundUserResponse"
+                }
+            }
+        },
+        "models.SoundPlaySoundResponse": {
+            "type": "object",
+            "properties": {
+                "deleted": {
+                    "type": "boolean"
+                },
+                "handle": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
                 }
             }
         },
