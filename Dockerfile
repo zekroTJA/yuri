@@ -13,7 +13,8 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY cmd/ cmd/
 COPY pkg/ pkg/
-RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags="-s -w" -o /yuri ./cmd/yuri
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags="-s -w" -o /yuri ./cmd/yuri \
+    && CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags="-s -w" -o /mgmt ./cmd/mgmt
 
 FROM alpine:3
 RUN apk add --no-cache ffmpeg yt-dlp ca-certificates \
@@ -21,6 +22,7 @@ RUN apk add --no-cache ffmpeg yt-dlp ca-certificates \
     && mkdir --parents /data/storage \
     && chown --recursive yuri:yuri /data
 COPY --from=backend /yuri /usr/local/bin/yuri
+COPY --from=backend /mgmt /usr/local/bin/mgmt
 COPY --from=web /build/dist /usr/share/yuri/web
 ENV YURI_API_ADDRESS=0.0.0.0:8080 \
     YURI_API_WEBAPPPATH=/usr/share/yuri/web \

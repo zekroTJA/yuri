@@ -11,6 +11,12 @@ func (t *Database) CreateUser(handle string, passwordHash []byte) (*User, error)
 	return user, res.Error
 }
 
+func (t *Database) ListUsers() ([]*User, error) {
+	var users []*User
+	res := t.db.Order("id ASC").Find(&users)
+	return users, res.Error
+}
+
 func (t *Database) GetUserByHandle(handle string) (*User, error) {
 	var user User
 	res := t.db.Where("handle = ?", handle).First(&user)

@@ -80,6 +80,40 @@ Yuri is configured via environment variables.
 | `YURI_FFMPEG_PATH`             |                       | Path to the ffmpeg executable. Resolved via `PATH` if empty.                                                                       |
 | `YURI_YTDLP_PATH`              |                       | Path to the yt-dlp executable. Resolved via `PATH` if empty. Importing from URLs is disabled if yt-dlp is not available.           |
 
+### Management CLI
+
+The image ships with `mgmt`, a command line tool that manages data directly in the database. This is useful, for example, to create users when registration is disabled via `YURI_API_DISABLEREGISTRATION`.
+
+Run it inside the running container with `docker exec`. The database location is read from `YURI_DATABASE_DSN`, which is already set in the image, so no further configuration is needed.
+
+```bash
+docker exec -it yuri mgmt --help
+```
+
+When using Docker Compose, use `docker compose exec yuri mgmt …` instead.
+
+#### Users
+
+```bash
+# List all users
+docker exec yuri mgmt users list
+
+# Create a user with a randomly generated password, which is printed once
+docker exec yuri mgmt users create alice
+
+# Create a user and enter the password interactively
+docker exec -it yuri mgmt users create alice --read-password
+
+# Delete a user (asks for confirmation; pass --yes to skip it)
+docker exec -it yuri mgmt users delete alice
+```
+
+User handles are stored in lowercase, the same as when registering via the web app. You can also pass the password with `--password <password>`, but keep in mind that it may end up in your shell history.
+
+Deleting a user also deletes their API keys, their channel memberships and all channels they created. Sounds uploaded by the user are kept.
+
+To operate on a different database file, pass `-d`/`--database <path>`.
+
 ## License
 
 The source code of this project is licensed under the [MIT License](LICENSE).
