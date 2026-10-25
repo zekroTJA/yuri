@@ -270,6 +270,87 @@ func (t *api) channelsDelete(ctx *gin.Context) {
 	ctx.Status(http.StatusNoContent)
 }
 
+// channelsLeave godoc
+//
+//	@Summary		Leave channel
+//	@Description	Removes the authenticated user from the members of a channel they have joined. If the user is connected to the channel, they are disconnected from it. Not allowed for the channel owner. Requires the "write" scope when using an API key.
+//	@Tags			Channels
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Param			id	path	int	true	"Channel ID"
+//	@Success		204
+//	@Failure		400	{object}	api.ErrorResponse
+//	@Failure		401	{object}	api.ErrorResponse
+//	@Failure		403	{object}	api.ErrorResponse
+//	@Failure		404	{object}	api.ErrorResponse
+//	@Failure		500	{object}	api.ErrorResponse
+//	@Router			/channels/{id}/leave [post]
+func (t *api) channelsLeave(ctx *gin.Context) {
+	user := ctx.MustGet(userKey).(*database.User)
+
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, ErrInvalidID)
+		return
+	}
+
+	channel, err := t.db.GetChannelByID(uint(id))
+	if err == database.ErrNotFound {
+		ctx.JSON(http.StatusNotFound, ErrChannelNotFound)
+		return
+	}
+	if err != nil {
+		slog.Error("failed getting channel from database", "id", id, "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return
+	}
+
+	if channel.CreatorID == user.ID {
+		ctx.JSON(http.StatusBadRequest, ErrOwnerCannotLeave)
+		return
+	}
+
+	if !channelHasMember(channel, user.ID) {
+		ctx.JSON(http.StatusForbidden, ErrForbidden)
+		return
+	}
+
+	if err = t.db.RemoveChannelMember(channel.ID, user.ID); err != nil {
+		slog.Error("failed removing channel member from database", "id", id, "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return
+	}
+
+	channel, err = t.db.GetChannelByID(channel.ID)
+	if err != nil {
+		slog.Error("failed getting channel from database", "id", id, "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return
+	}
+
+	t.connectionsMtx.Lock()
+	defer t.connectionsMtx.Unlock()
+
+	t.connections[channel.ID].Remove(user.ID)
+
+	t.sseManager.Send(sse.Event{
+		Event: sse.EventTypeChannelUpdate,
+		Data: sse.EventDataChannelUpdate{
+			Channel: models.ChannelToResponse(channel, user.ID, t.connections[channel.ID].Collect()),
+		},
+	}, channel.AssociatedUserIds())
+
+	// For the leaving user, the channel is gone just like it has been deleted.
+	t.sseManager.Send(sse.Event{
+		Event: sse.EventTypeChannelDelete,
+		Data: sse.EventDataChannelDelete{
+			ChannelId: channel.ID,
+		},
+	}, []uint{user.ID})
+
+	ctx.Status(http.StatusNoContent)
+}
+
 // channelsConnect godoc
 //
 //	@Summary		Connect to channel

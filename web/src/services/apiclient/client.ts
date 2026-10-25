@@ -267,6 +267,10 @@ export class ApiClient {
     await this.request<void>("/channels/disconnect", { method: "POST" });
   }
 
+  async leaveChannel(id: number): Promise<void> {
+    await this.request<void>(`/channels/${id}/leave`, { method: "POST" });
+  }
+
   // -- Channel invites -------------------------------------------------------
 
   async listChannelInvites(

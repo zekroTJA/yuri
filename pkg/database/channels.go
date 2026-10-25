@@ -48,3 +48,10 @@ func (t *Database) AddChannelMember(channelID uint, userID uint) error {
 	err := t.db.Model(channel).Association("Members").Append(user)
 	return mapError(err)
 }
+
+func (t *Database) RemoveChannelMember(channelID uint, userID uint) error {
+	channel := &Channel{Model: gorm.Model{ID: channelID}}
+	user := &User{Model: gorm.Model{ID: userID}}
+	err := t.db.Model(channel).Association("Members").Delete(user)
+	return mapError(err)
+}

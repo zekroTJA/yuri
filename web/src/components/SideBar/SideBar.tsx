@@ -161,9 +161,25 @@ export default function SideBar() {
     }
   };
 
+  const onLeave = async (channel: ChannelResponse) => {
+    if (
+      !window.confirm(
+        `Do you really want to leave the channel "${channel.name}"?`,
+      )
+    ) {
+      return;
+    }
+    setError(undefined);
+    try {
+      // The channel is removed from the list by the resulting channel-delete
+      // event.
+      await API_CLIENT.leaveChannel(channel.id);
+    } catch (e) {
+      setError(errorMessage(e));
+    }
+  };
+
   const onOpenContextMenu = (channel: ChannelResponse, e: MouseEvent) => {
-    // All context menu actions are restricted to the channel owner.
-    if (!channel.is_owner) return;
     e.preventDefault();
     setContextMenu({ channel, x: e.clientX, y: e.clientY });
   };
@@ -280,24 +296,35 @@ export default function SideBar() {
           x={contextMenu.x}
           y={contextMenu.y}
           onClose={onCloseContextMenu}
-          items={[
-            {
-              label: "Create invite",
-              icon: <InviteIcon />,
-              onClick: () => onCreateInvite(contextMenu.channel.id),
-            },
-            {
-              label: "Edit",
-              icon: <EditIcon />,
-              onClick: () => setEditingChannelId(contextMenu.channel.id),
-            },
-            {
-              label: "Delete",
-              icon: <TrashIcon />,
-              isDanger: true,
-              onClick: () => onDelete(contextMenu.channel),
-            },
-          ]}
+          items={
+            contextMenu.channel.is_owner
+              ? [
+                  {
+                    label: "Create invite",
+                    icon: <InviteIcon />,
+                    onClick: () => onCreateInvite(contextMenu.channel.id),
+                  },
+                  {
+                    label: "Edit",
+                    icon: <EditIcon />,
+                    onClick: () => setEditingChannelId(contextMenu.channel.id),
+                  },
+                  {
+                    label: "Delete",
+                    icon: <TrashIcon />,
+                    isDanger: true,
+                    onClick: () => onDelete(contextMenu.channel),
+                  },
+                ]
+              : [
+                  {
+                    label: "Leave",
+                    icon: <LeaveIcon />,
+                    isDanger: true,
+                    onClick: () => onLeave(contextMenu.channel),
+                  },
+                ]
+          }
         />
       )}
 

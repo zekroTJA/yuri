@@ -48,4 +48,5 @@ var (
 
 	ErrAlreadyConnected = ErrorResponse{Code: "already_connected", Message: "Already connected"}
 	ErrNotConnected     = ErrorResponse{Code: "not_connected", Message: "You need to be connected to a channel to perform this action"}
+	ErrOwnerCannotLeave = ErrorResponse{Code: "owner_cannot_leave", Message: "The channel owner can not leave the channel"}
 )
