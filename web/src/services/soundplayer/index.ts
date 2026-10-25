@@ -14,31 +14,70 @@ type Playback = {
 // changes to the sound which is already playing.
 let currentPlayback: Playback | undefined;
 
-const volumeStorageKey = "volume";
+const volumeStorageKey = "volume-level";
+// Previously, the volume was stored as linear gain under this key. It is
+// converted to a volume level when no volume level has been stored yet.
+const legacyVolumeStorageKey = "volume";
 const defaultVolume = 0.5;
+// The attenuation in decibels at the lowest volume level above 0. Volume
+// levels are mapped linearly onto this decibel range, so that the volume
+// slider behaves logarithmically, which matches the perceived loudness.
+const volumeRangeDb = 40;
 
 let volume = loadVolume();
 
-function loadVolume(): number {
-  const stored = localStorage.getItem(volumeStorageKey);
-  if (stored === null) return defaultVolume;
-  const parsed = Number(stored);
-  return Number.isFinite(parsed)
-    ? Math.min(Math.max(parsed, 0), 1)
-    : defaultVolume;
+function clampVolume(value: number): number {
+  return Math.min(Math.max(value, 0), 1);
 }
 
-// Returns the output volume of played sounds in the range of 0 to 1.
+function loadVolume(): number {
+  const stored = localStorage.getItem(volumeStorageKey);
+  if (stored !== null) {
+    const parsed = Number(stored);
+    return Number.isFinite(parsed) ? clampVolume(parsed) : defaultVolume;
+  }
+
+  const legacyStored = localStorage.getItem(legacyVolumeStorageKey);
+  if (legacyStored !== null) {
+    const parsed = Number(legacyStored);
+    if (Number.isFinite(parsed)) return gainToVolume(clampVolume(parsed));
+  }
+
+  return defaultVolume;
+}
+
+// Converts a volume level in the range of 0 to 1 to a linear gain in the
+// range of 0 to 1.
+function volumeToGain(volumeLevel: number): number {
+  if (volumeLevel <= 0) return 0;
+  return Math.pow(10, ((volumeLevel - 1) * volumeRangeDb) / 20);
+}
+
+// Converts a linear gain in the range of 0 to 1 to a volume level in the
+// range of 0 to 1.
+function gainToVolume(gain: number): number {
+  if (gain <= 0) return 0;
+  return clampVolume(1 + (20 * Math.log10(gain)) / volumeRangeDb);
+}
+
+// Returns the volume level of played sounds in the range of 0 to 1 as shown
+// on the volume slider.
 export function getVolume(): number {
   return volume;
 }
 
-// Sets the output volume of played sounds in the range of 0 to 1. The value
+// Returns the linear gain in the range of 0 to 1 which has to be applied to
+// played sounds for the current volume level.
+export function getGain(): number {
+  return volumeToGain(volume);
+}
+
+// Sets the volume level of played sounds in the range of 0 to 1. The value
 // is persisted and applied to currently playing sounds as well.
 export function setVolume(newVolume: number): void {
-  volume = Math.min(Math.max(newVolume, 0), 1);
+  volume = clampVolume(newVolume);
   localStorage.setItem(volumeStorageKey, String(volume));
-  if (currentPlayback?.audio) currentPlayback.audio.volume = volume;
+  if (currentPlayback?.audio) currentPlayback.audio.volume = getGain();
 }
 
 function getObjectUrl(soundId: number): Promise<string> {
@@ -76,7 +115,7 @@ export async function playSound(soundId: number): Promise<void> {
     if (stopped) return;
 
     const audio = new Audio(objectUrl);
-    audio.volume = volume;
+    audio.volume = getGain();
     playback.audio = audio;
     await new Promise<void>((resolve) => {
       resolvePlayback = resolve;

@@ -48,7 +48,7 @@ function loadWidth(): number | undefined {
   return width > 0 ? width : undefined;
 }
 
-const unmutedVolumeStorageKey = "volume-unmuted";
+const unmutedVolumeStorageKey = "volume-level-unmuted";
 const defaultUnmutedVolume = 0.5;
 // The volume change applied per scroll step on the volume slider.
 const volumeWheelStep = 0.02;

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import styles from "./SoundTrimmer.module.css";
 import { API_CLIENT } from "../../services/apiclient";
-import { getVolume } from "../../services/soundplayer";
+import { getGain } from "../../services/soundplayer";
 import { errorMessage } from "../../utils/errors";
 import Button from "../Button/Button";
 import Input from "../Input/Input";
@@ -143,7 +143,7 @@ export default function SoundTrimmer({ soundId, onChange }: Props) {
     await audioContext.resume();
 
     const gain = audioContext.createGain();
-    gain.gain.value = getVolume();
+    gain.gain.value = getGain();
     gain.connect(audioContext.destination);
 
     const source = audioContext.createBufferSource();
