@@ -19,9 +19,10 @@ type Logging struct {
 }
 
 type Api struct {
-	Address    string `default:"0.0.0.0:8080"`
-	WebAppPath string `default:""`
-	CORSOrigin string
+	Address       string `default:"0.0.0.0:8080"`
+	WebAppPath    string `default:""`
+	CORSOrigin    string `default:""`
+	SigningSecret string `default:""`
 }
 
 type Database struct {

@@ -44,9 +44,14 @@ type api struct {
 func Run(cfg *config.Api, storage *storage.Storage, encoder *ffmpeg.FFMpeg, db *database.Database) error {
 	gin.SetMode(gin.ReleaseMode)
 
-	secret := make([]byte, 32)
-	if _, err := rand.Read(secret); err != nil {
-		return err
+	var secret []byte
+	if cfg.SigningSecret != "" {
+		secret = []byte(cfg.SigningSecret)
+	} else {
+		secret = make([]byte, 32)
+		if _, err := rand.Read(secret); err != nil {
+			return err
+		}
 	}
 
 	t := &api{
