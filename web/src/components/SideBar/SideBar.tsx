@@ -482,9 +482,11 @@ function Channel({
 
       {channel.connected_users.length > 0 && (
         <ul className={styles.users}>
-          {channel.connected_users.map((u) => (
-            <User key={u.id} user={u} />
-          ))}
+          {channel.connected_users
+            .toSorted((a, b) => a.handle.localeCompare(b.handle))
+            .map((u) => (
+              <User key={u.id} user={u} />
+            ))}
         </ul>
       )}
     </li>
