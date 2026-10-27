@@ -37,9 +37,9 @@ func isValidMediaURL(rawURL string) bool {
 
 // newStorageID generates a unique storage ID for a sound with the given
 // handle.
-func newStorageID(handle string) (string, error) {
+func newStorageID(handle string) string {
 	suffix := util.GenerateRandomString(8, util.DefaultCharset)
-	return strings.ToLower(handle) + "-" + suffix, nil
+	return strings.ToLower(handle) + "-" + suffix
 }
 
 func (t *api) getSoundByIDOrHandle(idOrHandle string) (*database.Sound, error) {

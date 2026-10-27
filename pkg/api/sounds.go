@@ -117,12 +117,7 @@ func (t *api) soundsUpload(ctx *gin.Context) {
 
 	tags := ctx.PostFormArray("tags")
 
-	storageID, err := newStorageID(handle)
-	if err != nil {
-		slog.Error("failed generating storage ID", "err", err)
-		ctx.JSON(http.StatusInternalServerError, ErrInternal)
-		return
-	}
+	storageID := newStorageID(handle)
 
 	var encoded bytes.Buffer
 	if err = t.encoder.Format(source, &encoded, filters...); err != nil {
@@ -473,12 +468,7 @@ func (t *api) soundsTrim(ctx *gin.Context) {
 
 	// The trimmed sound is stored under a new storage ID so that the
 	// original file stays intact until the database points to the new one.
-	storageID, err := newStorageID(sound.Handle)
-	if err != nil {
-		slog.Error("failed generating storage ID", "err", err)
-		ctx.JSON(http.StatusInternalServerError, ErrInternal)
-		return
-	}
+	storageID := newStorageID(sound.Handle)
 
 	if err = t.storage.Store(storageID, &trimmed); err != nil {
 		slog.Error("failed storing sound file", "storage_id", storageID, "err", err)
@@ -574,12 +564,7 @@ func (t *api) soundsCopy(ctx *gin.Context) {
 	}
 	defer file.Close()
 
-	storageID, err := newStorageID(req.Handle)
-	if err != nil {
-		slog.Error("failed generating storage ID", "err", err)
-		ctx.JSON(http.StatusInternalServerError, ErrInternal)
-		return
-	}
+	storageID := newStorageID(req.Handle)
 
 	// The stored file is already encoded, so it is copied as-is.
 	if err = t.storage.Store(storageID, file); err != nil {

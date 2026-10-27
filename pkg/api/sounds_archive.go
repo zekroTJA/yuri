@@ -2,13 +2,12 @@ package api
 
 import (
 	"bytes"
-	"crypto/rand"
-	"encoding/hex"
+	"cmp"
 	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
-	"strings"
+	"slices"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -137,6 +136,10 @@ func (t *api) soundsImport(ctx *gin.Context) {
 		return
 	}
 
+	slices.SortFunc(metas, func(a, b soundarchive.Meta) int {
+		return cmp.Compare(a.CreatedAt.Unix(), b.CreatedAt.Unix())
+	})
+
 	if _, err = file.Seek(0, io.SeekStart); err != nil {
 		slog.Error("failed rewinding uploaded sound archive", "err", err)
 		ctx.JSON(http.StatusInternalServerError, ErrInternal)
@@ -235,11 +238,7 @@ func (t *api) importSound(
 		return nil, "sound file is not Ogg encoded", nil
 	}
 
-	randBytes := make([]byte, 8)
-	if _, err = rand.Read(randBytes); err != nil {
-		return nil, "", fmt.Errorf("failed generating random bytes: %w", err)
-	}
-	storageID := strings.ToLower(meta.Name) + "-" + hex.EncodeToString(randBytes)
+	storageID := newStorageID(meta.Name)
 
 	if err = t.storage.Store(storageID, bytes.NewReader(data)); err != nil {
 		return nil, "", fmt.Errorf("failed storing sound file: %w", err)
