@@ -48,3 +48,7 @@ func (t *Database) Ping(ctx context.Context) error {
 	}
 	return sqlDB.PingContext(ctx)
 }
+
+func (t *Database) Db() *gorm.DB {
+	return t.db
+}

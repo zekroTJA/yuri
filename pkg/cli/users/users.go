@@ -1,7 +1,6 @@
 package users
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"os"
@@ -11,6 +10,7 @@ import (
 	"time"
 
 	"github.com/alexedwards/argon2id"
+	"github.com/zekrotja/yuri/pkg/cli/cliutil"
 	"github.com/zekrotja/yuri/pkg/database"
 	"github.com/zekrotja/yuri/pkg/util"
 	"golang.org/x/term"
@@ -139,7 +139,7 @@ func (t *Command) deleteUser() error {
 	}
 
 	if !t.Delete.Yes {
-		confirmed, err := confirm(fmt.Sprintf(
+		confirmed, err := cliutil.Confirm(fmt.Sprintf(
 			"Delete user %q (ID %d) including their API keys and owned channels?", user.Handle, user.ID))
 		if err != nil {
 			return fmt.Errorf("failed reading confirmation: %s", err.Error())
@@ -166,14 +166,4 @@ func readSecretStdin() (string, error) {
 		return "", err
 	}
 	return string(pass), nil
-}
-
-func confirm(prompt string) (bool, error) {
-	fmt.Printf("%s [y/N]: ", prompt)
-	answer, err := bufio.NewReader(os.Stdin).ReadString('\n')
-	if err != nil && answer == "" {
-		return false, err
-	}
-	answer = strings.ToLower(strings.TrimSpace(answer))
-	return answer == "y" || answer == "yes", nil
 }
