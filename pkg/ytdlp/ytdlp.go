@@ -25,21 +25,21 @@ type YtDlp struct {
 // New creates a new YtDlp instance. If ytdlpExec is empty, the executable is
 // resolved via PATH. A missing executable does not fail the creation; instead,
 // ErrNotInstalled is returned when Download is called.
-func New(ytdlpExec string) *YtDlp {
+func New(ytdlpExec string) (*YtDlp, error) {
 	if ytdlpExec == "" {
 		ytdlpExec, _ = exec.LookPath("yt-dlp")
 	}
 
-	return &YtDlp{ytdlpExec: ytdlpExec}
+	if ytdlpExec == "" {
+		return nil, ErrNotInstalled
+	}
+
+	return &YtDlp{ytdlpExec: ytdlpExec}, nil
 }
 
 // Download downloads the audio of the media behind the given URL and writes
 // it to out.
 func (t *YtDlp) Download(ctx context.Context, url string, out io.Writer) error {
-	if t.ytdlpExec == "" {
-		return ErrNotInstalled
-	}
-
 	cmdArgs := []string{
 		"--quiet",
 		"--no-warnings",

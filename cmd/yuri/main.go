@@ -40,7 +40,11 @@ func run() error {
 		return err
 	}
 
-	downloader := ytdlp.New(cfg.Ytdlp.Path)
+	downloader, err := ytdlp.New(cfg.Ytdlp.Path)
+	if err != nil {
+		slog.Error("Failed initializing downloader", "err", err)
+		return err
+	}
 
 	slog.Info("Initializing database ...")
 	db, err := database.New(cfg.Database.Dsn)
