@@ -13,7 +13,6 @@ import (
 	"github.com/zekrotja/yuri/pkg/ffmpeg"
 	"github.com/zekrotja/yuri/pkg/storage"
 	"github.com/zekrotja/yuri/pkg/util"
-	"github.com/zekrotja/yuri/pkg/ytdlp"
 )
 
 const (
@@ -34,7 +33,7 @@ type api struct {
 	db         *database.Database
 	storage    *storage.Storage
 	encoder    *ffmpeg.FFMpeg
-	downloader *ytdlp.YtDlp
+	downloader Downlaoder
 	jwtHandler jwt.Handler[sessionClaims]
 	sseManager *sse.Manager
 
@@ -59,7 +58,7 @@ func Run(
 	cfg *config.Api,
 	storage *storage.Storage,
 	encoder *ffmpeg.FFMpeg,
-	downloader *ytdlp.YtDlp,
+	downloader Downlaoder,
 	db *database.Database,
 ) error {
 	gin.SetMode(gin.ReleaseMode)

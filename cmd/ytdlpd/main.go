@@ -12,6 +12,7 @@ import (
 	"github.com/alexedwards/argon2id"
 	"github.com/alexflint/go-arg"
 	"github.com/zekrotja/yuri/pkg/ytdlp"
+	"github.com/zekrotja/yuri/pkg/ytdlpd"
 )
 
 type Args struct {
@@ -90,12 +91,10 @@ func main() {
 	}
 }
 
-type downloadPayload struct {
-	Url string `json:"url"`
-}
-
 func downloadHandler(downloader *ytdlp.YtDlp, tokenHash string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		slog.Info("incoming request", "method", r.Method, "path", r.URL.Path)
+
 		authHeader := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
 		if len(authHeader) < 2 || !strings.EqualFold(authHeader[0], "bearer") {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -112,7 +111,7 @@ func downloadHandler(downloader *ytdlp.YtDlp, tokenHash string) http.HandlerFunc
 			return
 		}
 
-		var payload downloadPayload
+		var payload ytdlpd.RequestModel
 		if err = json.NewDecoder(r.Body).Decode(&payload); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(w, "invalid payload: %s", err.Error())

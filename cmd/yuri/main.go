@@ -12,6 +12,7 @@ import (
 	"github.com/zekrotja/yuri/pkg/ffmpeg"
 	"github.com/zekrotja/yuri/pkg/storage"
 	"github.com/zekrotja/yuri/pkg/ytdlp"
+	"github.com/zekrotja/yuri/pkg/ytdlpd"
 )
 
 func main() {
@@ -40,10 +41,15 @@ func run() error {
 		return err
 	}
 
-	downloader, err := ytdlp.New(cfg.Ytdlp.Path)
-	if err != nil {
-		slog.Error("Failed initializing downloader", "err", err)
-		return err
+	var downloader api.Downlaoder
+	if cfg.Ytdlp != nil && cfg.Ytdlpd.Url != "" {
+		downloader = ytdlpd.New(cfg.Ytdlpd.Url, cfg.Ytdlpd.Token)
+	} else {
+		downloader, err = ytdlp.New(cfg.Ytdlp.Path)
+		if err != nil {
+			slog.Error("Failed initializing downloader", "err", err)
+			return err
+		}
 	}
 
 	slog.Info("Initializing database ...")

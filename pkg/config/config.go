@@ -13,6 +13,7 @@ type Config struct {
 	Storage  *Storage
 	Ffmpeg   *Ffmpeg
 	Ytdlp    *Ytdlp
+	Ytdlpd   *Ytdlpd
 }
 
 type Logging struct {
@@ -41,6 +42,11 @@ type Ffmpeg struct {
 
 type Ytdlp struct {
 	Path string `default:""`
+}
+
+type Ytdlpd struct {
+	Url   string `default:""`
+	Token string `default:""`
 }
 
 func New() (*Config, error) {

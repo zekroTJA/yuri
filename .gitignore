@@ -37,3 +37,5 @@ go.work.sum
 /bin/
 
 *.tar.gz
+
+storage.json
