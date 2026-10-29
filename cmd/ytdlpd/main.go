@@ -43,6 +43,7 @@ func main() {
    \_, /\__/\_,_/_/ .__/\_,_/
   /___/          /_/
 
+  yt-dlp deamon proxy
 	`)
 
 	downloader, err := ytdlp.New(args.YtdlpPath)
@@ -80,8 +81,9 @@ func main() {
 
 	mux.HandleFunc("POST /api/v1/download",
 		downloadHandler(downloader, storage.TokenHash))
+	mux.HandleFunc("GET /api/v1/health", healthcheckHandler())
 
-	slog.Info("Listening for incoming requests", "addr", args.BindAddress)
+	slog.Info("Ready to receive requests", "addr", args.BindAddress)
 	if err = http.ListenAndServe(args.BindAddress, mux); err != nil {
 		slog.Error("failed start server", "err", err)
 		os.Exit(1)
@@ -129,6 +131,12 @@ func downloadHandler(downloader *ytdlp.YtDlp, tokenHash string) http.HandlerFunc
 			fmt.Fprintf(w, "error downloading url: %s", err.Error())
 			return
 		}
+	}
+}
+
+func healthcheckHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
 	}
 }
 

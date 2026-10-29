@@ -7,15 +7,19 @@ on:
     tags:
       - "*"
 
-env:
-  IMAGE_NAME: ghcr.io/zekrotja/yuri
-
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+    strategy:
+      matrix:
+        image:
+          - name: ghcr.io/zekrotja/yuri
+            dockerfile: yuri.Dockerfile
+          - name: ghcr.io/zekrotja/yuri-ytdlpd
+            dockerfile: ytdlpd.Dockerfile
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -37,7 +41,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ${{ env.IMAGE_NAME }}
+          images: ${{ matrix.image.name }}
           flavor: |
             latest=false
           tags: |
@@ -48,6 +52,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
+          file: ${{ matrix.image.dockerfile }}
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
