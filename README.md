@@ -79,6 +79,89 @@ Yuri is configured via environment variables.
 | `YURI_LOGGING_LEVEL`           | `info`                | Log level (`debug`, `info`, `warn`, `error`).                                                                                      |
 | `YURI_FFMPEG_PATH`             |                       | Path to the ffmpeg executable. Resolved via `PATH` if empty.                                                                       |
 | `YURI_YTDLP_PATH`              |                       | Path to the yt-dlp executable. Resolved via `PATH` if empty. Importing from URLs is disabled if yt-dlp is not available.           |
+| `YURI_YTDLPD_URL`              |                       | Base URL of an external [ytdlpd](#external-download-proxy-ytdlpd) service. If set, URL imports are downloaded via this service.    |
+| `YURI_YTDLPD_TOKEN`            |                       | Token used to authenticate against the ytdlpd service. Printed by ytdlpd on its first startup.                                     |
+
+### External download proxy (ytdlpd)
+
+Some platforms, like YouTube, block requests coming from IP ranges that belong to data centers. If Yuri is hosted on a VPS, importing sounds from URLs might therefore fail, even though yt-dlp itself works fine.
+
+To work around this, downloads can be delegated to **ytdlpd**, a small download proxy service that runs yt-dlp on behalf of Yuri. Host it somewhere with a residential IP address — for example a homelab server or a Raspberry Pi at home — and point Yuri to it. When ytdlpd is configured, Yuri sends all URL imports to it and receives the downloaded audio back. Transcoding is still done by Yuri.
+
+ytdlpd is published as a Docker image for `linux/amd64` and `linux/arm64`:
+
+```
+ghcr.io/zekrotja/yuri-ytdlpd:latest
+```
+
+#### Setting up ytdlpd
+
+Start the service on the host that should perform the downloads. Its state is stored in the `/data` volume.
+
+```bash
+docker run -d \
+  --name yuri-ytdlpd \
+  -p 8080:8080 \
+  -v yuri-ytdlpd-data:/data \
+  ghcr.io/zekrotja/yuri-ytdlpd:latest
+```
+
+Or with Docker Compose:
+
+```yaml
+services:
+    ytdlpd:
+        image: ghcr.io/zekrotja/yuri-ytdlpd:latest
+        restart: unless-stopped
+        ports:
+            - "8080:8080"
+        volumes:
+            - ytdlpd-data:/data
+
+volumes:
+    ytdlpd-data:
+```
+
+On its first startup, ytdlpd generates an access token and prints it to the log. Look it up with:
+
+```bash
+docker logs yuri-ytdlpd
+# or: docker compose logs ytdlpd
+```
+
+The output looks like this:
+
+```
+A new token has been initialized. It is only shown on this startup and not again!
+Add the following to your Yuri config:
+
+  YURI_YTDLPD_URL: <PUBLIC_URL_OF_THIS_SERVICE>
+  YURI_YTDLPD_TOKEN: <token>
+```
+
+> [!IMPORTANT]
+> The token is shown **only once**. Only a hash of it is persisted in `/data/storage.json`, so it cannot be recovered later. If you lose it, stop the container, delete `storage.json` from the data volume (or recreate the volume) and start it again to generate a new token.
+
+#### Configuring Yuri
+
+Set the following environment variables on your Yuri instance and restart it:
+
+```yaml
+services:
+    yuri:
+        image: ghcr.io/zekrotja/yuri:latest
+        environment:
+            # ...
+            YURI_YTDLPD_URL: "https://ytdlpd.example.com"
+            YURI_YTDLPD_TOKEN: "<token>"
+```
+
+`YURI_YTDLPD_URL` is the base URL under which Yuri can reach ytdlpd — without the `/api/v1/...` path. As long as it is set, the local yt-dlp installation of Yuri is not used.
+
+> [!WARNING]
+> ytdlpd itself serves plain HTTP. Because the token is sent with every request, do not expose it to the internet without TLS. Put it behind a reverse proxy with HTTPS, or connect Yuri and ytdlpd through a VPN like WireGuard or Tailscale.
+
+ytdlpd provides an unauthenticated health check endpoint at `GET /api/v1/health`, which is also used by the Docker health check of the image. The yt-dlp version shipped with the image is pinned at build time. Pull the image regularly to keep yt-dlp up to date, since sites like YouTube frequently change in ways that break older versions.
 
 ### Management CLI
 
