@@ -55,7 +55,14 @@ func (t *api) eventsStream(ctx *gin.Context) {
 	ctx.Header("Cache-Control", "no-cache")
 	ctx.Header("Connection", "keep-alive")
 
+	// Headers are flushed immediately so that clients get notified that the
+	// stream has been opened before the first event is sent.
 	rc := http.NewResponseController(ctx.Writer)
+	if err := rc.Flush(); err != nil {
+		slog.Error("failed flusing sse writer", "err", err.Error(), "userId", user.ID)
+		return
+	}
+
 	for {
 		select {
 		case <-ctx.Request.Context().Done():

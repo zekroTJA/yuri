@@ -18,13 +18,30 @@ import {
   type SoundState,
 } from "../../contexts";
 
+const connectedChannelStorageKey = "connected-channel";
+
+function loadConnectedChannel(): number | undefined {
+  const stored = Number(localStorage.getItem(connectedChannelStorageKey));
+  return stored > 0 ? stored : undefined;
+}
+
+function storeConnectedChannel(channelId: number | undefined) {
+  if (channelId === undefined) {
+    localStorage.removeItem(connectedChannelStorageKey);
+  } else {
+    localStorage.setItem(connectedChannelStorageKey, String(channelId));
+  }
+}
+
+type ChannelAction =
+  | ["setChannels", ChannelResponse[]]
+  | ["upsertChannel", ChannelResponse]
+  | ["removeChannel", number]
+  | ["setConnected", number | undefined];
+
 function channelReducer(
   state: ChannelState,
-  [type, payload]:
-    | ["setChannels", ChannelResponse[]]
-    | ["upsertChannel", ChannelResponse]
-    | ["removeChannel", number]
-    | ["setConnected", number | undefined],
+  [type, payload]: ChannelAction,
 ): ChannelState {
   switch (type) {
     case "setChannels":
@@ -101,6 +118,18 @@ function soundReducer(
   }
 }
 
+async function refreshChannel(
+  dispatchChannelState: (action: ChannelAction) => void,
+  channelId: number,
+) {
+  try {
+    const channel = await API_CLIENT.getChannel(channelId);
+    dispatchChannelState(["upsertChannel", channel]);
+  } catch (e) {
+    console.error("failed refreshing channel", channelId, e);
+  }
+}
+
 export default function Main() {
   const [channelState, dispatchChannelState] = useReducer(channelReducer, {
     channels: [],
@@ -117,16 +146,8 @@ export default function Main() {
 
   const setConnected = (channelId: number | undefined) => {
     connectedChannelId.current = channelId;
+    storeConnectedChannel(channelId);
     dispatchChannelState(["setConnected", channelId]);
-  };
-
-  const refreshChannel = async (channelId: number) => {
-    try {
-      const channel = await API_CLIENT.getChannel(channelId);
-      dispatchChannelState(["upsertChannel", channel]);
-    } catch (e) {
-      console.error("failed refreshing channel", channelId, e);
-    }
   };
 
   const channelActions: ChannelActions = {
@@ -138,7 +159,7 @@ export default function Main() {
         // The update of the previous channel is only sent to the users
         // remaining in it, so it needs to be fetched explicitly.
         if (disconnected_channel_id) {
-          refreshChannel(disconnected_channel_id);
+          refreshChannel(dispatchChannelState, disconnected_channel_id);
         }
       } catch (e) {
         if (!(e instanceof ApiError && e.code == "already_connected")) {
@@ -173,6 +194,36 @@ export default function Main() {
       .then((sounds) => dispatchSoundState(["setSounds", sounds]))
       .catch((e) => console.error("failed listing sounds", e));
 
+    const restoreConnection = (channelId: number) =>
+      API_CLIENT.connectChannel(channelId)
+        .then(({ disconnected_channel_id, ...channel }) => {
+          dispatchChannelState(["upsertChannel", channel]);
+          if (disconnected_channel_id) {
+            refreshChannel(dispatchChannelState, disconnected_channel_id);
+          }
+          // The user might have switched channels in the meantime.
+          if (connectedChannelId.current != channelId) return;
+          dispatchChannelState(["setConnected", channelId]);
+        })
+        .catch((e) => {
+          if (connectedChannelId.current != channelId) return;
+          if (e instanceof ApiError && e.code == "already_connected") {
+            dispatchChannelState(["setConnected", channelId]);
+            return;
+          }
+          console.error("failed restoring channel connection", channelId, e);
+          connectedChannelId.current = undefined;
+          storeConnectedChannel(undefined);
+          dispatchChannelState(["setConnected", undefined]);
+        });
+
+    // Connect to the channel the user was connected to on their last visit.
+    const storedChannelId = loadConnectedChannel();
+    if (storedChannelId !== undefined) {
+      connectedChannelId.current = storedChannelId;
+      restoreConnection(storedChannelId);
+    }
+
     const eventStream = API_CLIENT.connectEvents();
 
     // The server drops the channel connection when the last event stream of
@@ -187,14 +238,7 @@ export default function Main() {
       loadChannels();
       const channelId = connectedChannelId.current;
       if (channelId === undefined) return;
-      API_CLIENT.connectChannel(channelId)
-        .then((channel) => dispatchChannelState(["upsertChannel", channel]))
-        .catch((e) => {
-          if (e instanceof ApiError && e.code == "already_connected") return;
-          console.error("failed reconnecting to channel", channelId, e);
-          connectedChannelId.current = undefined;
-          dispatchChannelState(["setConnected", undefined]);
-        });
+      restoreConnection(channelId);
     });
 
     eventStream.on("channel-update", (event) =>
@@ -203,6 +247,7 @@ export default function Main() {
     eventStream.on("channel-delete", (event) => {
       if (connectedChannelId.current == event.channel_id) {
         connectedChannelId.current = undefined;
+        storeConnectedChannel(undefined);
       }
       dispatchChannelState(["removeChannel", event.channel_id]);
     });

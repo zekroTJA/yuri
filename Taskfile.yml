@@ -3,7 +3,7 @@
 version: "3"
 
 env:
-  YURI_API_ADDRESS: 127.0.0.1:8081
+  YURI_API_ADDRESS: 127.0.0.1:8080
   YURI_DATABASE_DSN: data/db.sqlite3
   YURI_LOGGING_LEVEL: debug
   YURI_API_WEBAPPPATH: web/dist
