@@ -106,6 +106,8 @@ func Run(
 	authenticated.POST("/auth/password", t.authChangePassword)
 	authenticated.DELETE("/auth/account", t.authDeleteAccount)
 
+	authenticated.GET("/info", t.info)
+
 	authenticated.GET("/apikeys", t.apiKeysList)
 	authenticated.POST("/apikeys", t.apiKeysCreate)
 	authenticated.POST("/apikeys/:id", t.apiKeysUpdate)
