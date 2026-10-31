@@ -1,6 +1,6 @@
 ![](.github/media/banner.webp)
 
-Yuri is a self-hostable soundboard server. Upload your sounds, join a channel together with your friends and play sounds back to everyone connected to that channel in real time.
+Yuri is a self-hostable, fully web based soundboard. Upload your sounds, join a channel together with your friends and play sounds back to everyone connected to that channel in real time.
 
 ## Features
 
@@ -41,18 +41,18 @@ docker run -d \
 
 ```yaml
 services:
-    yuri:
-        image: ghcr.io/zekrotja/yuri:latest
-        restart: unless-stopped
-        ports:
-            - "8080:8080"
-        environment:
-            YURI_API_SIGNINGSECRET: "<some-long-random-string>"
-        volumes:
-            - yuri-data:/data
+  yuri:
+    image: ghcr.io/zekrotja/yuri:latest
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      YURI_API_SIGNINGSECRET: "<some-long-random-string>"
+    volumes:
+      - yuri-data:/data
 
 volumes:
-    yuri-data:
+  yuri-data:
 ```
 
 After starting the container, open `http://localhost:8080` in your browser and register an account.
@@ -61,7 +61,7 @@ After starting the container, open `http://localhost:8080` in your browser and r
 > The container runs as user `yuri` with UID `1000`. When you bind-mount a host directory to `/data` instead of using a named volume, make sure it is writable by this user (e.g. `chown -R 1000:1000 ./data`).
 
 > [!IMPORTANT]
-> By default, registration is open to everyone who can reach the instance. If you expose Yuri to the internet, consider disabling registration via `YURI_API_DISABLEREGISTRATION` once all users have signed up, or putting it behind a reverse proxy with TLS and access restrictions.
+> By default, registration is open to everyone who can reach the instance. If you expose Yuri to the internet, consider disabling registration via `YURI_API_DISABLEREGISTRATION` once all users have signed up, or manage users inside the container using the `mgmt` CLI.
 
 ### Configuration
 
@@ -110,16 +110,16 @@ Or with Docker Compose:
 
 ```yaml
 services:
-    ytdlpd:
-        image: ghcr.io/zekrotja/yuri-ytdlpd:latest
-        restart: unless-stopped
-        ports:
-            - "8080:8080"
-        volumes:
-            - ytdlpd-data:/data
+  ytdlpd:
+    image: ghcr.io/zekrotja/yuri-ytdlpd:latest
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ytdlpd-data:/data
 
 volumes:
-    ytdlpd-data:
+  ytdlpd-data:
 ```
 
 On its first startup, ytdlpd generates an access token and prints it to the log. Look it up with:
@@ -142,18 +142,18 @@ Add the following to your Yuri config:
 > [!IMPORTANT]
 > The token is shown **only once**. Only a hash of it is persisted in `/data/storage.json`, so it cannot be recovered later. If you lose it, stop the container, delete `storage.json` from the data volume (or recreate the volume) and start it again to generate a new token.
 
-#### Configuring Yuri
+#### Configuring ytdlpd in Yuri
 
 Set the following environment variables on your Yuri instance and restart it:
 
 ```yaml
 services:
-    yuri:
-        image: ghcr.io/zekrotja/yuri:latest
-        environment:
-            # ...
-            YURI_YTDLPD_URL: "https://ytdlpd.example.com"
-            YURI_YTDLPD_TOKEN: "<token>"
+  yuri:
+    image: ghcr.io/zekrotja/yuri:latest
+    environment:
+      # ...
+      YURI_YTDLPD_URL: "https://ytdlpd.example.com"
+      YURI_YTDLPD_TOKEN: "<token>"
 ```
 
 `YURI_YTDLPD_URL` is the base URL under which Yuri can reach ytdlpd — without the `/api/v1/...` path. As long as it is set, the local yt-dlp installation of Yuri is not used.
