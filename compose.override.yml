@@ -1,0 +1,9 @@
+services:
+  yuri:
+    build:
+      context: .
+      dockerfile: yuri.Dockerfile
+  ytdlpd:
+    build:
+      context: .
+      dockerfile: ytdlpd.Dockerfile

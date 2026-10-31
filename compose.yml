@@ -1,0 +1,38 @@
+volumes:
+  yuri-data:
+  ytdlpd-data:
+
+services:
+  yuri:
+    image: ghcr.io/zekrotja/yuri:latest
+    restart: unless-stopped
+    container_name: yuri
+    ports:
+      - 8080:8080
+    environment:
+      # Define a consistent signing secret to keep sessions
+      # over restarts. When omitted, a random secret is
+      # generated on each restart.
+      YURI_API_SIGNINGSECRET: ${YURI_API_SIGNINGSECRET}
+      # Disable registration via API. You can still create
+      # users via the mgmt cli available in the container.
+      YURI_API_DISABLEREGISTRATION: false
+      # Storage directory for sounds and the SQLite3 database.
+      YURI_STORAGE_DIR: /data/storage
+      # Log level (debug, info, warn, error)
+      YURI_LOGGING_LEVEL: info
+      # If downloading soudns does not work out of the box,
+      # you can set up a proxy service for downloading sounds.
+      # See for more info:
+      # https://github.com/zekroTJA/yuri#external-download-proxy-ytdlpd
+      YURI_YTDLPD_URL: http://ytdlpd:8080
+      YURI_YTDLPD_TOKEN: ${YURI_YTDLPD_TOKEN}
+    volumes:
+      - yuri-data:/data/storage
+
+  ytdlpd:
+    image: ghcr.io/zekrotja/yuri-ytdlpd:latest
+    restart: unless-stopped
+    container_name: ytdlpd
+    volumes:
+      - ytdlpd-data:/data
