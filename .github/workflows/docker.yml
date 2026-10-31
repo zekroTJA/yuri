@@ -48,6 +48,9 @@ jobs:
             type=ref,event=tag
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
+      - name: Embed Build Metadata
+        run: ./scripts/embed-build-meta.sh
+
       - name: Build and push
         uses: docker/build-push-action@v7
         with:
