@@ -10,6 +10,7 @@ import SoundEdit from "./routes/SoundEdit/SoundEdit";
 import ChannelEdit from "./routes/ChannelEdit/ChannelEdit";
 import SoundUpload from "./routes/SoundUpload/SoundUpload";
 import Stats from "./routes/Stats/Stats";
+import Info from "./routes/Info/Info";
 import { API_CLIENT } from "./services/apiclient";
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
       <Route element={<Main />}>
         <Route index element={<SoundBoard />} />
         <Route path="stats" element={<Stats />} />
+        <Route path="info" element={<Info />} />
         <Route path="settings" element={<Settings />} />
         <Route path="settings/api-docs" element={<ApiDocs />} />
         <Route path="sounds/upload" element={<SoundUpload />} />

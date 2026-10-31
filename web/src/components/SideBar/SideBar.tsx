@@ -9,7 +9,7 @@ import {
   type MouseEvent,
   type PointerEvent,
 } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import styles from "./SideBar.module.css";
 import { ChannelActionsContext, ChannelContext } from "../../contexts";
 import {
@@ -197,54 +197,56 @@ export default function SideBar() {
       className={styles.container}
       style={width !== undefined ? { width } : undefined}
     >
-      <header className={styles.header}>
-        <img
-          className={styles.logo}
-          src={yuriIcon}
-          alt="Yuri"
-          onClick={() => navigate("/")}
-        />
-        <span className={styles.title}>Channels</span>
-        <IconButton
-          title={isAddingChannel ? "Cancel" : "Add channel"}
-          onClick={() => setIsAddingChannel(!isAddingChannel)}
-        >
-          {isAddingChannel ? <CloseIcon /> : <PlusIcon />}
-        </IconButton>
-      </header>
-
-      {isAddingChannel && (
-        <AddChannelForm
-          onAdded={(channel) => {
-            channelActions.addChannel(channel);
-            setIsAddingChannel(false);
-          }}
-        />
-      )}
-
-      {!!error && <ErrorTile message={error} />}
-
-      <ul className={styles.channels}>
-        {channelState.channels.map((c) => (
-          <Channel
-            key={c.id}
-            channel={c}
-            isConnected={c.id == channelState.connected}
-            invite={invite?.channelId == c.id ? invite.code : undefined}
-            onConnect={() => onConnect(c.id)}
-            onCreateInvite={() => onCreateInvite(c.id)}
-            onCloseInvite={() => setInvite(undefined)}
-            onContextMenu={(e) => onOpenContextMenu(c, e)}
+      <div className={styles.content}>
+        <header className={styles.header}>
+          <img
+            className={styles.logo}
+            src={yuriIcon}
+            alt="Yuri"
+            onClick={() => navigate("/")}
           />
-        ))}
-        {channelState.channels.length == 0 && !isAddingChannel && (
-          <li className={styles.empty}>
-            No channels yet. Create one or join one with an invite code.
-          </li>
-        )}
-      </ul>
+          <span className={styles.title}>Channels</span>
+          <IconButton
+            title={isAddingChannel ? "Cancel" : "Add channel"}
+            onClick={() => setIsAddingChannel(!isAddingChannel)}
+          >
+            {isAddingChannel ? <CloseIcon /> : <PlusIcon />}
+          </IconButton>
+        </header>
 
-      <VolumeSlider />
+        {isAddingChannel && (
+          <AddChannelForm
+            onAdded={(channel) => {
+              channelActions.addChannel(channel);
+              setIsAddingChannel(false);
+            }}
+          />
+        )}
+
+        {!!error && <ErrorTile message={error} />}
+
+        <ul className={styles.channels}>
+          {channelState.channels.map((c) => (
+            <Channel
+              key={c.id}
+              channel={c}
+              isConnected={c.id == channelState.connected}
+              invite={invite?.channelId == c.id ? invite.code : undefined}
+              onConnect={() => onConnect(c.id)}
+              onCreateInvite={() => onCreateInvite(c.id)}
+              onCloseInvite={() => setInvite(undefined)}
+              onContextMenu={(e) => onOpenContextMenu(c, e)}
+            />
+          ))}
+          {channelState.channels.length == 0 && !isAddingChannel && (
+            <li className={styles.empty}>
+              No channels yet. Create one or join one with an invite code.
+            </li>
+          )}
+        </ul>
+
+        <VolumeSlider />
+      </div>
 
       <footer className={styles.footer}>
         <div className={styles.status}>
@@ -271,6 +273,8 @@ export default function SideBar() {
           <SettingsIcon />
         </IconButton>
       </footer>
+
+      <VersionFooter />
 
       {!!contextMenu && (
         <ContextMenu
@@ -318,6 +322,32 @@ export default function SideBar() {
         onPointerCancel={onResizeEnd}
       />
     </nav>
+  );
+}
+
+function VersionFooter() {
+  const [version, setVersion] = useState<string | undefined>();
+
+  useEffect(() => {
+    API_CLIENT.getInfo()
+      .then((info) => setVersion(info.version))
+      .catch(() => setVersion(undefined));
+  }, []);
+
+  return (
+    <footer className={styles.versionFooter}>
+      <Link className={styles.versionLink} to="/info">
+        Yuri {version}
+      </Link>
+      <span> | </span>
+      <a
+        className={styles.versionLink}
+        target="_blank"
+        href="https://github.com/zekrotja/yuri"
+      >
+        sources
+      </a>
+    </footer>
   );
 }
 

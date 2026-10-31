@@ -1,0 +1,48 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5em;
+    max-width: 50rem;
+    padding: 1em;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.title {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.muted {
+    font-size: 0.9rem;
+    opacity: 0.6;
+}
+
+.info {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.4em 1.5em;
+    margin: 0;
+    padding: 1em;
+    border-radius: 8px;
+    background-color: rgba(0 0 0 / 20%);
+    box-shadow: var(--shadow);
+    font-size: 0.9rem;
+
+    dt {
+        opacity: 0.6;
+    }
+
+    dd {
+        margin: 0;
+    }
+
+    code {
+        font-family: var(--mono);
+        font-size: 0.85rem;
+    }
+}

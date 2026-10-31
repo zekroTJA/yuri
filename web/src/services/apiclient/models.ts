@@ -180,6 +180,14 @@ export interface ChannelInviteResponse {
   creator_id: number;
 }
 
+// -- Info ----------------------------------------------------------------
+
+export interface InfoResponse {
+  version: string;
+  build_date: string;
+  go_version: string;
+}
+
 // -- SSE events --------------------------------------------------------------
 
 export const EventType = {

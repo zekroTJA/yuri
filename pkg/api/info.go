@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 	"runtime"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zekrotja/yuri/pkg/api/models"
@@ -21,8 +22,8 @@ import (
 //	@Router			/info [get]
 func (t *api) info(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, models.InfoResponse{
-		Version:   static.Version,
-		BuildDate: static.BuildDate,
+		Version:   strings.TrimSpace(static.Version),
+		BuildDate: strings.TrimSpace(static.BuildDate),
 		GoVersion: runtime.Version(),
 	})
 }

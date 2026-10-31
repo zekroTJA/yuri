@@ -13,6 +13,7 @@ import type {
   ChannelInviteResponse,
   ChannelRequest,
   ChannelResponse,
+  InfoResponse,
   RegisterResponse,
   ScoreboardResponse,
   SoundCopyRequest,
@@ -330,6 +331,13 @@ export class ApiClient {
     return this.request<ChannelResponse>(`/invites/${code}`, {
       method: "POST",
     });
+  }
+
+  // -- Info ----------------------------------------------------------------
+
+  // Returns build information about the running service.
+  async getInfo(): Promise<InfoResponse> {
+    return this.request<InfoResponse>("/info");
   }
 
   // -- Events (SSE) ------------------------------------------------------
