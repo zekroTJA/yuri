@@ -22,10 +22,25 @@
     opacity: 0.6;
 }
 
-.form {
+.section {
     display: flex;
     flex-direction: column;
     gap: 0.8em;
+}
+
+.sectionTitle {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.6;
+}
+
+.description {
+    margin: 0;
+    font-size: 0.9rem;
+    opacity: 0.8;
 }
 
 .field {
@@ -49,6 +64,87 @@
 }
 
 .hint {
+    font-size: 0.8rem;
+    opacity: 0.6;
+}
+
+.inviteForm {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8em;
+}
+
+.maxActivations {
+    max-width: 12rem;
+}
+
+.toggles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4em;
+}
+
+.toggle {
+    padding: 0.5em 0.8em;
+    border: solid 2px rgba(255 255 255 / 15%);
+    border-radius: 5px;
+    background-color: transparent;
+    color: var(--text);
+    font-size: 0.9rem;
+    cursor: pointer;
+    opacity: 0.7;
+    transition:
+        background-color 0.15s ease,
+        border-color 0.15s ease,
+        opacity 0.15s ease;
+
+    &.selected {
+        border-color: var(--accent-border);
+        background-color: var(--accent-bg);
+        opacity: 1;
+    }
+}
+
+.invites {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.invite {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.6em 0.8em;
+    border-radius: 8px;
+    background-color: rgba(0 0 0 / 20%);
+    box-shadow: var(--shadow);
+
+    &.inactive .inviteInfo {
+        opacity: 0.5;
+    }
+}
+
+.inviteInfo {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-width: 0;
+    line-height: 1.3;
+}
+
+.inviteCode {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--mono);
+    font-size: 0.9rem;
+}
+
+.inviteMeta {
     font-size: 0.8rem;
     opacity: 0.6;
 }
