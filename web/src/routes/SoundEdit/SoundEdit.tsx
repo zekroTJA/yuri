@@ -5,11 +5,11 @@ import { SoundContext } from "../../contexts";
 import { API_CLIENT, type SoundResponse } from "../../services/apiclient";
 import { errorMessage } from "../../utils/errors";
 import { onSoundHandleInput } from "../../utils/handle";
-import { onTagsInput, parseTags } from "../../utils/tags";
 import Input from "../../components/Input/Input";
 import Button from "../../components/Button/Button";
 import IconButton from "../../components/IconButton/IconButton";
 import ErrorTile from "../../components/ErrorTile/ErrorTile";
+import TagInput from "../../components/TagInput/TagInput";
 import SoundTrimmer, {
   type TrimRange,
 } from "../../components/SoundTrimmer/SoundTrimmer";
@@ -53,7 +53,7 @@ function SoundEditForm({
   onSaved: () => void;
 }) {
   const [handle, setHandle] = useState(sound.handle);
-  const [tags, setTags] = useState(sound.tags?.join(", ") ?? "");
+  const [tags, setTags] = useState(sound.tags ?? []);
   const [trimRange, setTrimRange] = useState<TrimRange | undefined>();
   const [pendingAction, setPendingAction] = useState<
     "save" | "saveAsNew" | undefined
@@ -70,7 +70,7 @@ function SoundEditForm({
     try {
       await API_CLIENT.updateSound(sound.id, {
         handle,
-        tags: parseTags(tags),
+        tags,
       });
       if (trimRange) {
         await API_CLIENT.trimSound(sound.id, trimRange);
@@ -92,7 +92,7 @@ function SoundEditForm({
     try {
       const created = await API_CLIENT.copySound(sound.id, {
         handle,
-        tags: parseTags(tags),
+        tags,
       });
       if (trimRange) {
         await API_CLIENT.trimSound(created.id, trimRange);
@@ -120,14 +120,10 @@ function SoundEditForm({
           onKeyUp={onKeyUp}
         />
       </label>
-      <label className={styles.field}>
-        <span className={styles.label}>Tags (comma separated)</span>
-        <Input
-          value={tags}
-          onInput={(e) => onTagsInput(e, setTags)}
-          onKeyUp={onKeyUp}
-        />
-      </label>
+      <div className={styles.field}>
+        <span className={styles.label}>Tags</span>
+        <TagInput tags={tags} onChange={setTags} onKeyUp={onKeyUp} />
+      </div>
       <div className={styles.field}>
         <span className={styles.label}>Trim</span>
         <SoundTrimmer soundId={sound.id} onChange={setTrimRange} />

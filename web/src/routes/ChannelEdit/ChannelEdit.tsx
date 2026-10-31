@@ -8,11 +8,11 @@ import {
   type ChannelResponse,
 } from "../../services/apiclient";
 import { errorMessage } from "../../utils/errors";
-import { onTagsInput, parseTags } from "../../utils/tags";
 import Input from "../../components/Input/Input";
 import Button from "../../components/Button/Button";
 import IconButton from "../../components/IconButton/IconButton";
 import ErrorTile from "../../components/ErrorTile/ErrorTile";
+import TagInput from "../../components/TagInput/TagInput";
 import BackIcon from "../../assets/back.svg?react";
 import CopyIcon from "../../assets/copy.svg?react";
 import TrashIcon from "../../assets/trash.svg?react";
@@ -78,9 +78,7 @@ function ChannelEditForm({
   onSaved: () => void;
 }) {
   const [name, setName] = useState(channel.name);
-  const [tagBlocklist, setTagBlocklist] = useState(
-    channel.tag_blocklist?.join(", ") ?? "",
-  );
+  const [tagBlocklist, setTagBlocklist] = useState(channel.tag_blocklist ?? []);
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | undefined>();
 
@@ -95,7 +93,7 @@ function ChannelEditForm({
       // event.
       await API_CLIENT.updateChannel(channel.id, {
         name: trimmedName,
-        tag_blocklist: parseTags(tagBlocklist),
+        tag_blocklist: tagBlocklist,
       });
       onSaved();
     } catch (e) {
@@ -121,17 +119,17 @@ function ChannelEditForm({
           onKeyUp={onKeyUp}
         />
       </label>
-      <label className={styles.field}>
-        <span className={styles.label}>Blocked tags (comma separated)</span>
-        <Input
-          value={tagBlocklist}
-          onInput={(e) => onTagsInput(e, setTagBlocklist)}
+      <div className={styles.field}>
+        <span className={styles.label}>Blocked tags</span>
+        <TagInput
+          tags={tagBlocklist}
+          onChange={setTagBlocklist}
           onKeyUp={onKeyUp}
         />
         <span className={styles.hint}>
           Sounds with any of these tags can not be played in this channel.
         </span>
-      </label>
+      </div>
       <div className={styles.actions}>
         <Button
           variant="primary"
@@ -298,8 +296,7 @@ function Invite({
     invite.expires_at !== undefined &&
     Date.parse(invite.expires_at) <= mountedAt;
   const isExhausted =
-    invite.max_activations > 0 &&
-    invite.activations >= invite.max_activations;
+    invite.max_activations > 0 && invite.activations >= invite.max_activations;
 
   const uses =
     invite.max_activations > 0

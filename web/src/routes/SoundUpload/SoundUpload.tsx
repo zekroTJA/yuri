@@ -4,11 +4,11 @@ import styles from "./SoundUpload.module.css";
 import { API_CLIENT } from "../../services/apiclient";
 import { errorMessage } from "../../utils/errors";
 import { onSoundHandleInput } from "../../utils/handle";
-import { onTagsInput, parseTags } from "../../utils/tags";
 import Input from "../../components/Input/Input";
 import Button from "../../components/Button/Button";
 import IconButton from "../../components/IconButton/IconButton";
 import ErrorTile from "../../components/ErrorTile/ErrorTile";
+import TagInput from "../../components/TagInput/TagInput";
 import TabBar from "../../components/TabBar/TabBar";
 import BackIcon from "../../assets/back.svg?react";
 
@@ -46,7 +46,7 @@ function SoundUploadForm({ onUploaded }: { onUploaded: () => void }) {
   const [file, setFile] = useState<File | undefined>();
   const [url, setUrl] = useState("");
   const [handle, setHandle] = useState("");
-  const [tags, setTags] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
   const [normalize, setNormalize] = useState(true);
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | undefined>();
@@ -70,7 +70,7 @@ function SoundUploadForm({ onUploaded }: { onUploaded: () => void }) {
         handle,
         file: sourceType === "file" ? file : undefined,
         url: sourceType === "url" ? url.trim() : undefined,
-        tags: parseTags(tags),
+        tags,
         filters: normalize ? ["normalize"] : [],
       });
       onUploaded();
@@ -134,14 +134,10 @@ function SoundUploadForm({ onUploaded }: { onUploaded: () => void }) {
           onKeyUp={onKeyUp}
         />
       </label>
-      <label className={styles.field}>
-        <span className={styles.label}>Tags (comma separated)</span>
-        <Input
-          value={tags}
-          onInput={(e) => onTagsInput(e, setTags)}
-          onKeyUp={onKeyUp}
-        />
-      </label>
+      <div className={styles.field}>
+        <span className={styles.label}>Tags</span>
+        <TagInput tags={tags} onChange={setTags} onKeyUp={onKeyUp} />
+      </div>
       <label className={styles.checkbox}>
         <input
           type="checkbox"
