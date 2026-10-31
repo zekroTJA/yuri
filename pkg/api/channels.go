@@ -35,7 +35,13 @@ func (t *api) channelsCreate(ctx *gin.Context) {
 		return
 	}
 
-	channel, err := t.db.CreateChannel(req.Name, req.TagBlocklist, user.ID)
+	tagBlocklist, ok := normalizeTags(req.TagBlocklist)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, ErrInvalidTag)
+		return
+	}
+
+	channel, err := t.db.CreateChannel(req.Name, tagBlocklist, user.ID)
 	if err != nil {
 		slog.Error("failed creating channel in database", "err", err)
 		ctx.JSON(http.StatusInternalServerError, ErrInternal)
@@ -163,6 +169,12 @@ func (t *api) channelsUpdate(ctx *gin.Context) {
 		return
 	}
 
+	tagBlocklist, ok := normalizeTags(req.TagBlocklist)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, ErrInvalidTag)
+		return
+	}
+
 	channel, err := t.db.GetChannelByID(uint(id))
 	if err == database.ErrNotFound {
 		ctx.JSON(http.StatusNotFound, ErrChannelNotFound)
@@ -179,7 +191,7 @@ func (t *api) channelsUpdate(ctx *gin.Context) {
 		return
 	}
 
-	channel, err = t.db.UpdateChannel(uint(id), req.Name, req.TagBlocklist)
+	channel, err = t.db.UpdateChannel(uint(id), req.Name, tagBlocklist)
 	if err != nil {
 		slog.Error("failed updating channel in database", "id", id, "err", err)
 		ctx.JSON(http.StatusInternalServerError, ErrInternal)

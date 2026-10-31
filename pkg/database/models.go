@@ -62,7 +62,7 @@ type Channel struct {
 
 	Name string
 	// TagBlocklist contains tags of sounds which can not be played in the
-	// channel. Tags are matched case-insensitively.
+	// channel.
 	TagBlocklist []string `gorm:"serializer:json"`
 
 	CreatorID uint

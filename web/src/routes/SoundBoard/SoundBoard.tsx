@@ -66,7 +66,7 @@ export default function SoundBoard() {
       (s) =>
         !normalizedFilter ||
         s.handle.toLowerCase().includes(normalizedFilter) ||
-        s.tags?.some((t) => t.toLowerCase().includes(normalizedFilter)),
+        s.tags?.some((t) => t.includes(normalizedFilter)),
     )
     .map((s) => ({ sound: s, isBlocked: isSoundBlocked(s, connectedChannel) }))
     // Sounds blocked in the connected channel are always listed last.

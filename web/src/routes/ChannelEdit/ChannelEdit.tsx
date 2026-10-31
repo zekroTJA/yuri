@@ -4,7 +4,7 @@ import styles from "./ChannelEdit.module.css";
 import { ChannelContext } from "../../contexts";
 import { API_CLIENT, type ChannelResponse } from "../../services/apiclient";
 import { errorMessage } from "../../utils/errors";
-import { parseTags } from "../../utils/tags";
+import { onTagsInput, parseTags } from "../../utils/tags";
 import Input from "../../components/Input/Input";
 import Button from "../../components/Button/Button";
 import IconButton from "../../components/IconButton/IconButton";
@@ -99,7 +99,7 @@ function ChannelEditForm({
         <span className={styles.label}>Blocked tags (comma separated)</span>
         <Input
           value={tagBlocklist}
-          onInput={(e) => setTagBlocklist(e.currentTarget.value)}
+          onInput={(e) => onTagsInput(e, setTagBlocklist)}
           onKeyUp={onKeyUp}
         />
         <span className={styles.hint}>

@@ -24,6 +24,10 @@ func New(dsn string) (*Database, error) {
 		return nil, err
 	}
 
+	if err = lowercaseTags(db); err != nil {
+		return nil, err
+	}
+
 	t := &Database{
 		db: db,
 	}
@@ -51,4 +55,16 @@ func (t *Database) Ping(ctx context.Context) error {
 
 func (t *Database) Db() *gorm.DB {
 	return t.db
+}
+
+// lowercaseTags converts all stored sound tags and channel tag blocklists to
+// lowercase, because tags are expected to be lowercase everywhere. Tags are
+// stored as JSON arrays of strings, so lowercasing the serialized value only
+// affects the tags themselves.
+func lowercaseTags(db *gorm.DB) error {
+	err := db.Exec("UPDATE sounds SET tags = LOWER(tags) WHERE tags <> LOWER(tags)").Error
+	if err != nil {
+		return err
+	}
+	return db.Exec("UPDATE channels SET tag_blocklist = LOWER(tag_blocklist) WHERE tag_blocklist <> LOWER(tag_blocklist)").Error
 }

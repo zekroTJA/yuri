@@ -160,6 +160,15 @@ func (t *api) soundsImport(ctx *gin.Context) {
 			})
 			continue
 		}
+		tags, ok := normalizeTags(meta.Tags)
+		if !ok {
+			resp.Skipped = append(resp.Skipped, models.SoundImportSkipped{
+				Name:   meta.Name,
+				Reason: "invalid tags",
+			})
+			continue
+		}
+		meta.Tags = tags
 		pending[meta.Name] = meta
 	}
 

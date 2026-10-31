@@ -9,7 +9,8 @@ import (
 type ChannelRequest struct {
 	Name string `json:"name" binding:"required"`
 	// TagBlocklist contains tags of sounds which can not be played in the
-	// channel. Tags are matched case-insensitively.
+	// channel. Tags are converted to lowercase and must only contain
+	// letters, digits, underscores and dashes.
 	TagBlocklist []string `json:"tag_blocklist"`
 }
 

@@ -5,6 +5,7 @@ import { SoundContext } from "../../contexts";
 import { API_CLIENT, type SoundResponse } from "../../services/apiclient";
 import { errorMessage } from "../../utils/errors";
 import { onSoundHandleInput } from "../../utils/handle";
+import { onTagsInput, parseTags } from "../../utils/tags";
 import Input from "../../components/Input/Input";
 import Button from "../../components/Button/Button";
 import IconButton from "../../components/IconButton/IconButton";
@@ -62,12 +63,6 @@ function SoundEditForm({
   const isPending = pendingAction !== undefined;
   const isHandleChanged = handle != sound.handle;
 
-  const parsedTags = () =>
-    tags
-      .split(",")
-      .map((t) => t.trim())
-      .filter((t) => !!t);
-
   const onSave = async () => {
     if (!handle) return;
     setError(undefined);
@@ -75,7 +70,7 @@ function SoundEditForm({
     try {
       await API_CLIENT.updateSound(sound.id, {
         handle,
-        tags: parsedTags(),
+        tags: parseTags(tags),
       });
       if (trimRange) {
         await API_CLIENT.trimSound(sound.id, trimRange);
@@ -97,7 +92,7 @@ function SoundEditForm({
     try {
       const created = await API_CLIENT.copySound(sound.id, {
         handle,
-        tags: parsedTags(),
+        tags: parseTags(tags),
       });
       if (trimRange) {
         await API_CLIENT.trimSound(created.id, trimRange);
@@ -129,7 +124,7 @@ function SoundEditForm({
         <span className={styles.label}>Tags (comma separated)</span>
         <Input
           value={tags}
-          onInput={(e) => setTags(e.currentTarget.value)}
+          onInput={(e) => onTagsInput(e, setTags)}
           onKeyUp={onKeyUp}
         />
       </label>

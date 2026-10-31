@@ -2299,7 +2299,7 @@
                     "type": "string"
                 },
                 "tag_blocklist": {
-                    "description": "TagBlocklist contains tags of sounds which can not be played in the\nchannel. Tags are matched case-insensitively.",
+                    "description": "TagBlocklist contains tags of sounds which can not be played in the\nchannel. Tags are converted to lowercase and must only contain\nletters, digits, underscores and dashes.",
                     "type": "array",
                     "items": {
                         "type": "string"

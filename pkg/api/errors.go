@@ -48,6 +48,7 @@ var (
 	ErrSoundNotFound     = ErrorResponse{Code: "sound_not_found", Message: "Sound not found"}
 	ErrSoundBlocked      = ErrorResponse{Code: "sound_blocked", Message: "Sound has a tag which is blocked in this channel"}
 	ErrInvalidHandle     = ErrorResponse{Code: "invalid_handle", Message: "Handle must only contain letters, digits, underscores and dashes"}
+	ErrInvalidTag        = ErrorResponse{Code: "invalid_tag", Message: "Tags must only contain letters, digits, underscores and dashes"}
 	ErrInvalidArchive    = ErrorResponse{Code: "invalid_archive", Message: "Invalid sound archive"}
 
 	ErrAlreadyConnected = ErrorResponse{Code: "already_connected", Message: "Already connected"}

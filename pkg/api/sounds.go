@@ -66,6 +66,12 @@ func (t *api) soundsUpload(ctx *gin.Context) {
 		return
 	}
 
+	tags, ok := normalizeTags(ctx.PostFormArray("tags"))
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, ErrInvalidTag)
+		return
+	}
+
 	var filters []ffmpeg.Filter
 	for _, name := range ctx.PostFormArray("filters") {
 		f, ok := filterMap[name]
@@ -114,8 +120,6 @@ func (t *api) soundsUpload(ctx *gin.Context) {
 		}
 		source = &downloaded
 	}
-
-	tags := ctx.PostFormArray("tags")
 
 	storageID := newStorageID(handle)
 
@@ -257,6 +261,12 @@ func (t *api) soundsUpdate(ctx *gin.Context) {
 		return
 	}
 
+	tags, ok := normalizeTags(req.Tags)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, ErrInvalidTag)
+		return
+	}
+
 	if req.Handle != sound.Handle {
 		_, err = t.db.GetSoundByHandle(req.Handle)
 		if err == nil {
@@ -271,7 +281,7 @@ func (t *api) soundsUpdate(ctx *gin.Context) {
 	}
 
 	soundID := sound.ID
-	if _, err = t.db.UpdateSound(soundID, req.Handle, req.Tags); err != nil {
+	if _, err = t.db.UpdateSound(soundID, req.Handle, tags); err != nil {
 		slog.Error("failed updating sound in database", "id", soundID, "err", err)
 		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
@@ -551,6 +561,12 @@ func (t *api) soundsCopy(ctx *gin.Context) {
 		return
 	}
 
+	tags, ok := normalizeTags(req.Tags)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, ErrInvalidTag)
+		return
+	}
+
 	_, err = t.db.GetSoundByHandle(req.Handle)
 	if err == nil {
 		ctx.JSON(http.StatusConflict, ErrHandleConflict)
@@ -580,7 +596,7 @@ func (t *api) soundsCopy(ctx *gin.Context) {
 		return
 	}
 
-	created, err := t.db.CreateSound(req.Handle, storageID, req.Tags, user.ID)
+	created, err := t.db.CreateSound(req.Handle, storageID, tags, user.ID)
 	if err != nil {
 		_ = t.storage.Delete(storageID)
 		slog.Error("failed creating sound in database", "handle", req.Handle, "err", err)

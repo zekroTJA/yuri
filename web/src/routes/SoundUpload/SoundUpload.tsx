@@ -4,6 +4,7 @@ import styles from "./SoundUpload.module.css";
 import { API_CLIENT } from "../../services/apiclient";
 import { errorMessage } from "../../utils/errors";
 import { onSoundHandleInput } from "../../utils/handle";
+import { onTagsInput, parseTags } from "../../utils/tags";
 import Input from "../../components/Input/Input";
 import Button from "../../components/Button/Button";
 import IconButton from "../../components/IconButton/IconButton";
@@ -69,10 +70,7 @@ function SoundUploadForm({ onUploaded }: { onUploaded: () => void }) {
         handle,
         file: sourceType === "file" ? file : undefined,
         url: sourceType === "url" ? url.trim() : undefined,
-        tags: tags
-          .split(",")
-          .map((t) => t.trim())
-          .filter((t) => !!t),
+        tags: parseTags(tags),
         filters: normalize ? ["normalize"] : [],
       });
       onUploaded();
@@ -140,7 +138,7 @@ function SoundUploadForm({ onUploaded }: { onUploaded: () => void }) {
         <span className={styles.label}>Tags (comma separated)</span>
         <Input
           value={tags}
-          onInput={(e) => setTags(e.currentTarget.value)}
+          onInput={(e) => onTagsInput(e, setTags)}
           onKeyUp={onKeyUp}
         />
       </label>
