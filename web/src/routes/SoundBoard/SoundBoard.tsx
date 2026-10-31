@@ -5,6 +5,7 @@ import { ChannelContext, SoundContext } from "../../contexts";
 import { API_CLIENT, type SoundResponse } from "../../services/apiclient";
 import { errorMessage } from "../../utils/errors";
 import { downloadBlob } from "../../utils/download";
+import { isSoundBlocked } from "../../utils/tags";
 import Input from "../../components/Input/Input";
 import Button from "../../components/Button/Button";
 import ErrorTile from "../../components/ErrorTile/ErrorTile";
@@ -55,6 +56,9 @@ export default function SoundBoard() {
   >();
 
   const isConnected = channelState.connected !== undefined;
+  const connectedChannel = channelState.channels.find(
+    (c) => c.id == channelState.connected,
+  );
 
   const normalizedFilter = filter.trim().toLowerCase();
   const sounds = soundState.sounds
@@ -64,7 +68,13 @@ export default function SoundBoard() {
         s.handle.toLowerCase().includes(normalizedFilter) ||
         s.tags?.some((t) => t.toLowerCase().includes(normalizedFilter)),
     )
-    .toSorted((a, b) => compareSounds(a, b, sortOrder));
+    .map((s) => ({ sound: s, isBlocked: isSoundBlocked(s, connectedChannel) }))
+    // Sounds blocked in the connected channel are always listed last.
+    .toSorted(
+      (a, b) =>
+        Number(a.isBlocked) - Number(b.isBlocked) ||
+        compareSounds(a.sound, b.sound, sortOrder),
+    );
 
   const onToggleSortOrder = () => {
     const newSortOrder =
@@ -153,14 +163,15 @@ export default function SoundBoard() {
 
       {sounds.length > 0 ? (
         <div className={styles.sounds}>
-          {sounds.map((s) => (
+          {sounds.map(({ sound, isBlocked }) => (
             <SoundButton
-              key={s.id}
-              sound={s}
-              isPlaying={!!soundState.playing[s.id]}
-              disabled={!isConnected}
-              onPlay={() => onPlay(s)}
-              onContextMenu={(e) => onOpenContextMenu(s, e)}
+              key={sound.id}
+              sound={sound}
+              isPlaying={!!soundState.playing[sound.id]}
+              isBlocked={isBlocked}
+              disabled={!isConnected || isBlocked}
+              onPlay={() => onPlay(sound)}
+              onContextMenu={(e) => onOpenContextMenu(sound, e)}
             />
           ))}
         </div>
@@ -204,6 +215,7 @@ export default function SoundBoard() {
 type SoundButtonProps = {
   sound: SoundResponse;
   isPlaying: boolean;
+  isBlocked: boolean;
   disabled: boolean;
   onPlay: () => void;
   onContextMenu: (e: React.MouseEvent) => void;
@@ -212,20 +224,25 @@ type SoundButtonProps = {
 function SoundButton({
   sound,
   isPlaying,
+  isBlocked,
   disabled,
   onPlay,
   onContextMenu,
 }: SoundButtonProps) {
+  const uploadedBy = sound.creator.handle
+    ? ` (uploaded by ${sound.creator.handle})`
+    : "";
+
   return (
     <button
-      className={`${styles.sound} ${isPlaying ? styles.playing : ""}`}
+      className={`${styles.sound} ${isPlaying ? styles.playing : ""} ${isBlocked ? styles.blocked : ""}`}
       // aria-disabled is used instead of disabled because disabled buttons do
       // not receive the contextmenu event in all browsers.
       aria-disabled={disabled}
       title={
-        sound.creator.handle
-          ? `${sound.handle} (uploaded by ${sound.creator.handle})`
-          : sound.handle
+        isBlocked
+          ? `${sound.handle}${uploadedBy} – blocked in this channel`
+          : `${sound.handle}${uploadedBy}`
       }
       onClick={() => !disabled && onPlay()}
       onContextMenu={onContextMenu}

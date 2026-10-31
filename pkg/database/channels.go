@@ -2,10 +2,11 @@ package database
 
 import "gorm.io/gorm"
 
-func (t *Database) CreateChannel(name string, creatorID uint) (*Channel, error) {
+func (t *Database) CreateChannel(name string, tagBlocklist []string, creatorID uint) (*Channel, error) {
 	channel := &Channel{
-		Name:      name,
-		CreatorID: creatorID,
+		Name:         name,
+		TagBlocklist: tagBlocklist,
+		CreatorID:    creatorID,
 	}
 	res := t.db.Create(channel)
 	return channel, mapError(res.Error)
@@ -27,12 +28,13 @@ func (t *Database) ListChannelsByUser(userID uint) ([]*Channel, error) {
 	return channels, mapError(res.Error)
 }
 
-func (t *Database) UpdateChannel(id uint, name string) (*Channel, error) {
+func (t *Database) UpdateChannel(id uint, name string, tagBlocklist []string) (*Channel, error) {
 	var channel Channel
 	if res := t.db.First(&channel, id); res.Error != nil {
 		return nil, mapError(res.Error)
 	}
 	channel.Name = name
+	channel.TagBlocklist = tagBlocklist
 	res := t.db.Save(&channel)
 	return &channel, mapError(res.Error)
 }

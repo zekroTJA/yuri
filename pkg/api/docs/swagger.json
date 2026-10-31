@@ -695,7 +695,7 @@
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Updates the name of a channel. Only allowed for the channel owner. Requires the \"write\" scope when using an API key.",
+                "description": "Updates the name and the tag blocklist of a channel. Sounds with a tag contained in the blocklist can not be played in the channel. Only allowed for the channel owner. Requires the \"write\" scope when using an API key.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1795,7 +1795,7 @@
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Plays a sound in the channel the authenticated user is currently connected to. When \":random\" is passed as ID, a random sound is played. Requires the \"write\" scope when using an API key.",
+                "description": "Plays a sound in the channel the authenticated user is currently connected to. When \":random\" is passed as ID, a random sound is played. Sounds with a tag contained in the channel's tag blocklist can not be played and are excluded from random selection. Requires the \"write\" scope when using an API key.",
                 "produces": [
                     "application/json"
                 ],
@@ -1824,6 +1824,12 @@
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/api.ErrorResponse"
                         }
@@ -2291,6 +2297,13 @@
             "properties": {
                 "name": {
                     "type": "string"
+                },
+                "tag_blocklist": {
+                    "description": "TagBlocklist contains tags of sounds which can not be played in the\nchannel. Tags are matched case-insensitively.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -2326,6 +2339,12 @@
                 },
                 "owner": {
                     "$ref": "#/definitions/models.ChannelUserResponse"
+                },
+                "tag_blocklist": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "updated_at": {
                     "type": "string"

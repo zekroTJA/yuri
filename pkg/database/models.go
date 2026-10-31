@@ -1,6 +1,7 @@
 package database
 
 import (
+	"slices"
 	"time"
 
 	"gorm.io/gorm"
@@ -60,6 +61,9 @@ type Channel struct {
 	gorm.Model
 
 	Name string
+	// TagBlocklist contains tags of sounds which can not be played in the
+	// channel. Tags are matched case-insensitively.
+	TagBlocklist []string `gorm:"serializer:json"`
 
 	CreatorID uint
 	Creator   *User
@@ -73,6 +77,17 @@ func (t *Channel) AssociatedUserIds() []uint {
 		res = append(res, m.ID)
 	}
 	return res
+}
+
+// IsSoundBlocked returns true when the sound has at least one tag which is
+// contained in the channel's tag blocklist.
+func (t *Channel) IsSoundBlocked(sound *Sound) bool {
+	for _, blockedTag := range t.TagBlocklist {
+		if slices.Contains(sound.Tags, blockedTag) {
+			return true
+		}
+	}
+	return false
 }
 
 type ChannelInvite struct {

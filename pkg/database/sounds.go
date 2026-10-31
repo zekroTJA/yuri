@@ -1,6 +1,10 @@
 package database
 
-import "gorm.io/gorm"
+import (
+	"strings"
+
+	"gorm.io/gorm"
+)
 
 func (t *Database) GetSoundByHandle(handle string) (*Sound, error) {
 	var sound Sound
@@ -14,9 +18,21 @@ func (t *Database) GetSoundByID(id uint) (*Sound, error) {
 	return &sound, mapError(res.Error)
 }
 
-func (t *Database) GetRandomSound() (*Sound, error) {
+// GetRandomSound returns a random sound which has none of the given tags.
+// Tags are matched case-insensitively.
+func (t *Database) GetRandomSound(excludedTags []string) (*Sound, error) {
 	var sound Sound
-	res := t.db.Order("RANDOM()").Take(&sound)
+	query := t.db.Order("RANDOM()")
+	if len(excludedTags) > 0 {
+		lowerExcludedTags := make([]string, len(excludedTags))
+		for i, tag := range excludedTags {
+			lowerExcludedTags[i] = strings.ToLower(tag)
+		}
+		query = query.Where(
+			"NOT EXISTS (SELECT 1 FROM json_each(sounds.tags) WHERE LOWER(json_each.value) IN ?)",
+			lowerExcludedTags)
+	}
+	res := query.Take(&sound)
 	return &sound, mapError(res.Error)
 }
 

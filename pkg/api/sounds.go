@@ -339,7 +339,7 @@ func (t *api) soundsDelete(ctx *gin.Context) {
 // soundsPlay godoc
 //
 //	@Summary		Play sound
-//	@Description	Plays a sound in the channel the authenticated user is currently connected to. When ":random" is passed as ID, a random sound is played. Requires the "write" scope when using an API key.
+//	@Description	Plays a sound in the channel the authenticated user is currently connected to. When ":random" is passed as ID, a random sound is played. Sounds with a tag contained in the channel's tag blocklist can not be played and are excluded from random selection. Requires the "write" scope when using an API key.
 //	@Tags			Sounds
 //	@Produce		json
 //	@Security		ApiKeyAuth
@@ -347,6 +347,7 @@ func (t *api) soundsDelete(ctx *gin.Context) {
 //	@Success		204
 //	@Failure		400	{object}	api.ErrorResponse
 //	@Failure		401	{object}	api.ErrorResponse
+//	@Failure		403	{object}	api.ErrorResponse
 //	@Failure		404	{object}	api.ErrorResponse
 //	@Failure		500	{object}	api.ErrorResponse
 //	@Router			/sounds/{id}/play [post]
@@ -375,7 +376,7 @@ func (t *api) soundsPlay(ctx *gin.Context) {
 
 	var sound *database.Sound
 	if ctx.Param("id") == randomSoundHandle {
-		sound, err = t.db.GetRandomSound()
+		sound, err = t.db.GetRandomSound(channel.TagBlocklist)
 	} else {
 		sound, err = t.getSoundByIDOrHandle(ctx.Param("id"))
 	}
@@ -386,6 +387,11 @@ func (t *api) soundsPlay(ctx *gin.Context) {
 	if err != nil {
 		slog.Error("failed getting sound from database", "id", ctx.Param("id"), "err", err)
 		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return
+	}
+
+	if channel.IsSoundBlocked(sound) {
+		ctx.JSON(http.StatusForbidden, ErrSoundBlocked)
 		return
 	}
 

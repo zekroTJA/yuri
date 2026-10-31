@@ -83,9 +83,6 @@ export default function SideBar() {
   const [contextMenu, setContextMenu] = useState<
     ChannelContextMenu | undefined
   >();
-  const [editingChannelId, setEditingChannelId] = useState<
-    number | undefined
-  >();
   const [error, setError] = useState<string | undefined>();
   const container = useRef<HTMLElement>(null);
   // Undefined means that the default width from the stylesheet is used. The
@@ -125,22 +122,6 @@ export default function SideBar() {
         expires_at: inviteExpiresAt(),
       });
       setInvite({ channelId, code: created.code });
-    } catch (e) {
-      setError(errorMessage(e));
-    }
-  };
-
-  const onRename = async (channel: ChannelResponse, name: string) => {
-    if (!name || name == channel.name) {
-      setEditingChannelId(undefined);
-      return;
-    }
-    setError(undefined);
-    try {
-      // The channel is updated in the list by the resulting channel-update
-      // event.
-      await API_CLIENT.updateChannel(channel.id, { name });
-      setEditingChannelId(undefined);
     } catch (e) {
       setError(errorMessage(e));
     }
@@ -249,13 +230,10 @@ export default function SideBar() {
             key={c.id}
             channel={c}
             isConnected={c.id == channelState.connected}
-            isEditing={c.id == editingChannelId}
             invite={invite?.channelId == c.id ? invite.code : undefined}
             onConnect={() => onConnect(c.id)}
             onCreateInvite={() => onCreateInvite(c.id)}
             onCloseInvite={() => setInvite(undefined)}
-            onRename={(name) => onRename(c, name)}
-            onCancelEdit={() => setEditingChannelId(undefined)}
             onContextMenu={(e) => onOpenContextMenu(c, e)}
           />
         ))}
@@ -310,7 +288,8 @@ export default function SideBar() {
                   {
                     label: "Edit",
                     icon: <EditIcon />,
-                    onClick: () => setEditingChannelId(contextMenu.channel.id),
+                    onClick: () =>
+                      navigate(`/channels/${contextMenu.channel.id}/edit`),
                   },
                   {
                     label: "Delete",
@@ -417,40 +396,22 @@ function VolumeSlider() {
 type ChannelProps = {
   channel: ChannelResponse;
   isConnected: boolean;
-  isEditing: boolean;
   invite: string | undefined;
   onConnect: () => void;
   onCreateInvite: () => void;
   onCloseInvite: () => void;
-  onRename: (name: string) => void;
-  onCancelEdit: () => void;
   onContextMenu: (e: MouseEvent) => void;
 };
 
 function Channel({
   channel,
   isConnected,
-  isEditing,
   invite,
   onConnect,
   onCreateInvite,
   onCloseInvite,
-  onRename,
-  onCancelEdit,
   onContextMenu,
 }: ChannelProps) {
-  if (isEditing) {
-    return (
-      <li className={styles.channel}>
-        <ChannelNameInput
-          name={channel.name}
-          onSubmit={onRename}
-          onCancel={onCancelEdit}
-        />
-      </li>
-    );
-  }
-
   return (
     <li className={styles.channel}>
       <div
@@ -490,36 +451,6 @@ function Channel({
         </ul>
       )}
     </li>
-  );
-}
-
-function ChannelNameInput({
-  name,
-  onSubmit,
-  onCancel,
-}: {
-  name: string;
-  onSubmit: (name: string) => void;
-  onCancel: () => void;
-}) {
-  const [value, setValue] = useState(name);
-
-  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key == "Enter") onSubmit(value.trim());
-    if (e.key == "Escape") onCancel();
-  };
-
-  return (
-    <Input
-      className={styles.channelNameInput}
-      placeholder="Channel name"
-      aria-label="Channel name"
-      value={value}
-      onInput={(e) => setValue(e.currentTarget.value)}
-      onKeyDown={onKeyDown}
-      onBlur={onCancel}
-      autoFocus
-    />
   );
 }
 

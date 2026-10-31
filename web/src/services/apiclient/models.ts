@@ -135,6 +135,9 @@ export interface SoundPlayResponse {
 
 export interface ChannelRequest {
   name: string;
+  // Tags of sounds which can not be played in the channel. Tags are matched
+  // case-insensitively.
+  tag_blocklist?: string[];
 }
 
 export interface ChannelUserResponse {
@@ -147,6 +150,7 @@ export interface ChannelResponse {
   created_at: string;
   updated_at: string;
   name: string;
+  tag_blocklist: string[];
   owner: ChannelUserResponse;
   member_count: number;
   members: ChannelUserResponse[];

@@ -91,6 +91,10 @@
     }
 }
 
+.blocked[aria-disabled="true"] {
+    opacity: 0.3;
+}
+
 @keyframes pulse {
     0%,
     100% {

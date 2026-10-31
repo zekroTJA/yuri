@@ -8,6 +8,9 @@ import (
 
 type ChannelRequest struct {
 	Name string `json:"name" binding:"required"`
+	// TagBlocklist contains tags of sounds which can not be played in the
+	// channel. Tags are matched case-insensitively.
+	TagBlocklist []string `json:"tag_blocklist"`
 }
 
 type ChannelUserResponse struct {
@@ -20,6 +23,7 @@ type ChannelResponse struct {
 	CreatedAt      time.Time             `json:"created_at"`
 	UpdatedAt      time.Time             `json:"updated_at"`
 	Name           string                `json:"name"`
+	TagBlocklist   []string              `json:"tag_blocklist"`
 	Owner          ChannelUserResponse   `json:"owner"`
 	MemberCount    int                   `json:"member_count"`
 	Members        []ChannelUserResponse `json:"members"`
@@ -64,6 +68,7 @@ func ChannelToResponse(c *database.Channel, userID uint, connectedUserIDs []uint
 		CreatedAt:      c.CreatedAt,
 		UpdatedAt:      c.UpdatedAt,
 		Name:           c.Name,
+		TagBlocklist:   c.TagBlocklist,
 		Owner:          owner,
 		MemberCount:    len(c.Members),
 		Members:        members,

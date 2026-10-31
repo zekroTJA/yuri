@@ -35,7 +35,7 @@ func (t *api) channelsCreate(ctx *gin.Context) {
 		return
 	}
 
-	channel, err := t.db.CreateChannel(req.Name, user.ID)
+	channel, err := t.db.CreateChannel(req.Name, req.TagBlocklist, user.ID)
 	if err != nil {
 		slog.Error("failed creating channel in database", "err", err)
 		ctx.JSON(http.StatusInternalServerError, ErrInternal)
@@ -134,7 +134,7 @@ func (t *api) channelsGet(ctx *gin.Context) {
 // channelsUpdate godoc
 //
 //	@Summary		Update channel
-//	@Description	Updates the name of a channel. Only allowed for the channel owner. Requires the "write" scope when using an API key.
+//	@Description	Updates the name and the tag blocklist of a channel. Sounds with a tag contained in the blocklist can not be played in the channel. Only allowed for the channel owner. Requires the "write" scope when using an API key.
 //	@Tags			Channels
 //	@Accept			json
 //	@Produce		json
@@ -179,7 +179,7 @@ func (t *api) channelsUpdate(ctx *gin.Context) {
 		return
 	}
 
-	channel, err = t.db.UpdateChannel(uint(id), req.Name)
+	channel, err = t.db.UpdateChannel(uint(id), req.Name, req.TagBlocklist)
 	if err != nil {
 		slog.Error("failed updating channel in database", "id", id, "err", err)
 		ctx.JSON(http.StatusInternalServerError, ErrInternal)

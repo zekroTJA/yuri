@@ -46,6 +46,7 @@ var (
 	ErrInvalidTrimRange  = ErrorResponse{Code: "invalid_trim_range", Message: "Trim start must not be negative and must be before the end"}
 	ErrSoundTrimFailed   = ErrorResponse{Code: "sound_trim_failed", Message: "Failed to trim sound"}
 	ErrSoundNotFound     = ErrorResponse{Code: "sound_not_found", Message: "Sound not found"}
+	ErrSoundBlocked      = ErrorResponse{Code: "sound_blocked", Message: "Sound has a tag which is blocked in this channel"}
 	ErrInvalidHandle     = ErrorResponse{Code: "invalid_handle", Message: "Handle must only contain letters, digits, underscores and dashes"}
 	ErrInvalidArchive    = ErrorResponse{Code: "invalid_archive", Message: "Invalid sound archive"}
 
