@@ -12,7 +12,6 @@ env:
   YURI_API_SIGNINGSECRET: foobarbaz
   YURI_YTDLPD_URL: http://localhost:8080
   YURI_YTDLPD_TOKEN: EzpgPJF3hNlPTiaZxTF3MiYWeDh4KBCz
-  # VITE_API_URL: http://localhost:8080
 
 tasks:
   default:
@@ -54,5 +53,7 @@ tasks:
     aliases:
       - web:run
     dir: web
+    env:
+      VITE_API_URL: "http://{{ .YURI_API_ADDRESS }}"
     cmds:
       - bun run dev
