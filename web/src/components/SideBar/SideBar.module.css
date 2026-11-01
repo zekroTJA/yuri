@@ -236,25 +236,28 @@
 }
 
 .versionFooter {
-    padding: 0.2em 0.8em 0.6em 1em;
+    padding: 0.2rem 0.8rem 0.6rem 1rem;
     background-color: rgba(0 0 0 / 35%);
     line-height: 1;
+    font-size: 0.7rem;
+    color: color-mix(in srgb, var(--text) 50%, transparent);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 
     > * {
-        font-size: 0.7rem;
-        color: var(--text);
+        color: inherit;
         text-decoration: none;
-        opacity: 0.5;
     }
 }
 
 .versionLink {
     cursor: pointer;
-    transition: opacity 0.15s ease;
+    transition: color 0.15s ease;
 
     &:hover {
         text-decoration: underline;
-        opacity: 0.8;
+        color: color-mix(in srgb, var(--text) 80%, transparent);
     }
 }
 
