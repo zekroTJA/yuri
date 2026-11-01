@@ -30,6 +30,10 @@ const untrimmedTolerance = 0.001;
 
 const waveformWidth = 800;
 const waveformHeight = 120;
+// Maximum number of samples inspected per waveform column and channel. Longer
+// sounds are sampled with a larger stride so that drawing time stays constant
+// regardless of the sound's length.
+const maxSamplesPerColumn = 256;
 
 export default function SoundTrimmer({ soundId, onChange }: Props) {
   const [buffer, setBuffer] = useState<AudioBuffer | undefined>();
@@ -262,6 +266,10 @@ function drawWaveform(canvas: HTMLCanvasElement, buffer: AudioBuffer) {
     buffer.getChannelData(i),
   );
   const samplesPerColumn = buffer.length / width;
+  const sampleStride = Math.max(
+    1,
+    Math.floor(samplesPerColumn / maxSamplesPerColumn),
+  );
 
   context.clearRect(0, 0, width, height);
   context.fillStyle = getComputedStyle(canvas).color;
@@ -271,8 +279,9 @@ function drawWaveform(canvas: HTMLCanvasElement, buffer: AudioBuffer) {
     const to = Math.max(from + 1, Math.floor((x + 1) * samplesPerColumn));
     let peak = 0;
     for (const data of channels) {
-      for (let i = from; i < to && i < data.length; i++) {
-        peak = Math.max(peak, Math.abs(data[i]));
+      for (let i = from; i < to && i < data.length; i += sampleStride) {
+        const amplitude = Math.abs(data[i]);
+        if (amplitude > peak) peak = amplitude;
       }
     }
     const barHeight = Math.max(1, Math.min(peak, 1) * height);
