@@ -1756,7 +1756,7 @@
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Creates a copy of a sound with a new handle and tags. Requires the \"write\" scope when using an API key.",
+                "description": "Creates a copy of a sound with a new handle and tags. The audio of the copy is loudness normalized. Requires the \"write\" scope when using an API key.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1812,6 +1812,12 @@
                     },
                     "409": {
                         "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
                         "schema": {
                             "$ref": "#/definitions/api.ErrorResponse"
                         }
