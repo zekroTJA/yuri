@@ -22,7 +22,9 @@ export type Props = Omit<
 
 // Input showing each entered tag as a removable element in front of a text
 // input for new tags. A new tag is added when a comma or space is entered or
-// when the text input loses focus.
+// when the text input loses focus. Pressing Enter is captured (it is neither
+// passed to the key handlers of the caller nor bubbles up) and removes the
+// focus from the input, which submits the entered text as tag.
 //
 // Must not be wrapped in a <label>, because clicking the label would activate
 // the first tag's remove button.
@@ -31,6 +33,7 @@ export default function TagInput({
   onChange,
   className,
   onKeyDown,
+  onKeyUp,
   onBlur,
   ...props
 }: Props) {
@@ -69,11 +72,25 @@ export default function TagInput({
 
   const onInputKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      commitDraft();
-    } else if (e.key === "Backspace" && !draft && tags.length) {
+      e.preventDefault();
+      e.stopPropagation();
+      // Blurring commits the draft via onInputBlur.
+      input.current?.blur();
+      return;
+    }
+    if (e.key === "Backspace" && !draft && tags.length) {
       removeTag(tags[tags.length - 1]);
     }
     onKeyDown?.(e);
+  };
+
+  const onInputKeyUp = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    onKeyUp?.(e);
   };
 
   const onInputBlur = (e: FocusEvent<HTMLInputElement>) => {
@@ -108,6 +125,7 @@ export default function TagInput({
         value={draft}
         onInput={onInput}
         onKeyDown={onInputKeyDown}
+        onKeyUp={onInputKeyUp}
         onBlur={onInputBlur}
         {...props}
       />
