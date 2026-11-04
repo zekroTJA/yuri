@@ -1,15 +1,16 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/zekrotja/yuri/pkg/api"
 	"github.com/zekrotja/yuri/pkg/config"
 	"github.com/zekrotja/yuri/pkg/database"
 	"github.com/zekrotja/yuri/pkg/ffmpeg"
+	"github.com/zekrotja/yuri/pkg/static"
 	"github.com/zekrotja/yuri/pkg/storage"
 	"github.com/zekrotja/yuri/pkg/ytdlp"
 	"github.com/zekrotja/yuri/pkg/ytdlpd"
@@ -23,6 +24,20 @@ func main() {
 
 func run() error {
 	stared := time.Now()
+
+	fmt.Printf(`
+
+  __  ____  ______  ____
+  \ \/ / / / / __ \/  _/
+   \  / / / / /_/ // /
+   / / /_/ / _, _// /
+  /_/\____/_/ |_/___/
+
+  version:     %s
+  build date:  %s
+
+`, static.Version(), static.BuildDate())
+
 	slog.Info("Starting up ...")
 
 	slog.Info("Parsing config from env ...")
@@ -31,7 +46,7 @@ func run() error {
 		slog.Error("Failed parsing config", "err", err)
 		return err
 	}
-	spew.Dump(cfg)
+
 	slog.SetLogLoggerLevel(cfg.Logging.Level)
 	slog.Info("Config parsed")
 
