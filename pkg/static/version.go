@@ -2,11 +2,20 @@ package static
 
 import (
 	_ "embed"
+	"strings"
 )
 
 var (
 	//go:embed version.txt
-	Version string
+	version string
 	//go:embed builddate.txt
-	BuildDate string
+	buildDate string
 )
+
+func Version() string {
+	return strings.TrimSpace(version)
+}
+
+func BuildDate() string {
+	return strings.TrimSpace(buildDate)
+}

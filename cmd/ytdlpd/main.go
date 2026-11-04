@@ -11,6 +11,7 @@ import (
 
 	"github.com/alexedwards/argon2id"
 	"github.com/alexflint/go-arg"
+	"github.com/zekrotja/yuri/pkg/static"
 	"github.com/zekrotja/yuri/pkg/ytdlp"
 	"github.com/zekrotja/yuri/pkg/ytdlpd"
 )
@@ -38,15 +39,19 @@ func main() {
 	var args Args
 	arg.MustParse(&args)
 
-	fmt.Println(`
+	fmt.Printf(`
           __     ____        __
     __ __/ /____/ / /__  ___/ /
    / // / __/ _  / / _ \/ _  /
    \_, /\__/\_,_/_/ .__/\_,_/
   /___/          /_/
 
-  yt-dlp deamon proxy
-	`)
+    ~ yt-dlp deamon proxy ~
+
+  verion:      %s
+  build date:  %s
+
+`, static.Version(), static.BuildDate())
 
 	slog.SetLogLoggerLevel(args.LogLevel)
 
