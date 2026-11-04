@@ -16,9 +16,10 @@ import (
 )
 
 type Args struct {
-	BindAddress string `àrg:"--bind-address,env:BIND_ADDRESS" default:"0.0.0.0:8080" help:"Bind address for API server"`
-	YtdlpPath   string `arg:"--ytdlp-path,env:YTDLP_PATH" help:"Path to yt-dlp executable"`
-	StoragePath string `arg:"--storage-path,env:STORAGE_PATH" default:"storage.json" help:"Path to the persistent storage"`
+	BindAddress string     `àrg:"--bind-address,env:BIND_ADDRESS" default:"0.0.0.0:8080" help:"Bind address for API server"`
+	LogLevel    slog.Level `arg:"--log-level,env:LOG_LEVEL" default:"info" help:"slog log level"`
+	YtdlpPath   string     `arg:"--ytdlp-path,env:YTDLP_PATH" help:"Path to yt-dlp executable"`
+	StoragePath string     `arg:"--storage-path,env:STORAGE_PATH" default:"storage.json" help:"Path to the persistent storage"`
 }
 
 type Storage struct {
@@ -46,6 +47,8 @@ func main() {
 
   yt-dlp deamon proxy
 	`)
+
+	slog.SetLogLoggerLevel(args.LogLevel)
 
 	downloader, err := ytdlp.New(args.YtdlpPath)
 	if err != nil {
@@ -97,16 +100,19 @@ func downloadHandler(downloader *ytdlp.YtDlp, tokenHash string) http.HandlerFunc
 
 		authHeader := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
 		if len(authHeader) < 2 || !strings.EqualFold(authHeader[0], "bearer") {
+			slog.Debug("received unauthorized request", "authHeader", authHeader)
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 		match, err := checkToken(authHeader[1], tokenHash)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
+			slog.Error("error checking auth token (invalid token header format)", "err", err.Error())
 			fmt.Fprintf(w, "error checking auth token: %s", err.Error())
 			return
 		}
 		if !match {
+			slog.Debug("received unauthorized request (missmatch)", "authHeader", authHeader)
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -114,12 +120,14 @@ func downloadHandler(downloader *ytdlp.YtDlp, tokenHash string) http.HandlerFunc
 		var payload ytdlpd.RequestModel
 		if err = json.NewDecoder(r.Body).Decode(&payload); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
+			slog.Debug("received invalid payload", "err", err.Error())
 			fmt.Fprintf(w, "invalid payload: %s", err.Error())
 			return
 		}
 
 		if strings.TrimSpace(payload.Url) == "" {
 			w.WriteHeader(http.StatusBadRequest)
+			slog.Debug("received missing url")
 			fmt.Fprint(w, "missing url")
 			return
 		}
@@ -127,6 +135,7 @@ func downloadHandler(downloader *ytdlp.YtDlp, tokenHash string) http.HandlerFunc
 		err = downloader.Download(r.Context(), payload.Url, w)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
+			slog.Error("failed downloading", "err", err.Error(), "url", payload.Url)
 			fmt.Fprintf(w, "error downloading url: %s", err.Error())
 			return
 		}
