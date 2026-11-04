@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/rand"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -105,8 +106,11 @@ func downloadHandler(downloader *ytdlp.YtDlp, tokenHash string) http.HandlerFunc
 
 		authHeader := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
 		if len(authHeader) < 2 || !strings.EqualFold(authHeader[0], "bearer") {
-			slog.Debug("received unauthorized request", "authHeader", authHeader)
-			w.WriteHeader(http.StatusUnauthorized)
+			slog.Debug("received unauthorized request (missing or malformed auth header)")
+			respondJson(w, http.StatusUnauthorized, ytdlpd.ErrorModel{
+				Code:    ytdlpd.ErrorUnauthorized,
+				Message: "missing or malformed authorization header",
+			})
 			return
 		}
 		match, err := checkToken(authHeader[1], tokenHash)
@@ -119,8 +123,11 @@ func downloadHandler(downloader *ytdlp.YtDlp, tokenHash string) http.HandlerFunc
 			return
 		}
 		if !match {
-			slog.Debug("received unauthorized request (missmatch)", "authHeader", authHeader)
-			w.WriteHeader(http.StatusUnauthorized)
+			slog.Debug("received unauthorized request (token mismatch)")
+			respondJson(w, http.StatusUnauthorized, ytdlpd.ErrorModel{
+				Code:    ytdlpd.ErrorUnauthorized,
+				Message: "invalid auth token",
+			})
 			return
 		}
 
@@ -145,11 +152,13 @@ func downloadHandler(downloader *ytdlp.YtDlp, tokenHash string) http.HandlerFunc
 
 		err = downloader.Download(r.Context(), payload.Url, w)
 		if err != nil {
-			if strings.Contains(err.Error(), "Sign in to confirm your age") {
+			if errors.Is(err, ytdlp.ErrAgeVerificationRequired) {
+				slog.Debug("download requires age verification", "url", payload.Url)
 				respondJson(w, http.StatusBadRequest, ytdlpd.ErrorModel{
 					Code:    ytdlpd.ErrorAgeVerificationRequired,
-					Message: "age verification is required to download this content",
+					Message: ytdlp.ErrAgeVerificationRequired.Error(),
 				})
+				return
 			}
 
 			slog.Error("failed downloading", "err", err.Error(), "url", payload.Url)
@@ -163,6 +172,7 @@ func downloadHandler(downloader *ytdlp.YtDlp, tokenHash string) http.HandlerFunc
 }
 
 func respondJson(w http.ResponseWriter, status int, v any) {
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "  ")

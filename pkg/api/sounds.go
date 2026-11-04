@@ -17,6 +17,7 @@ import (
 	"github.com/zekrotja/yuri/pkg/database"
 	"github.com/zekrotja/yuri/pkg/ffmpeg"
 	"github.com/zekrotja/yuri/pkg/ytdlp"
+	"github.com/zekrotja/yuri/pkg/ytdlpd"
 )
 
 const downloadTimeout = 5 * time.Minute
@@ -41,6 +42,7 @@ const downloadTimeout = 5 * time.Minute
 //	@Failure		422		{object}	api.ErrorResponse
 //	@Failure		500		{object}	api.ErrorResponse
 //	@Failure		501		{object}	api.ErrorResponse
+//	@Failure		502		{object}	api.ErrorResponse
 //	@Router			/sounds [post]
 func (t *api) soundsUpload(ctx *gin.Context) {
 	user := ctx.MustGet(userKey).(*database.User)
@@ -109,13 +111,10 @@ func (t *api) soundsUpload(ctx *gin.Context) {
 
 		var downloaded bytes.Buffer
 		err = t.downloader.Download(downloadCtx, mediaURL, &downloaded)
-		if errors.Is(err, ytdlp.ErrNotInstalled) {
-			ctx.JSON(http.StatusNotImplemented, ErrYtdlpNotInstalled)
-			return
-		}
 		if err != nil {
+			status, errResp := downloadErrorResponse(downloadCtx, err)
 			slog.Error("failed downloading media", "url", mediaURL, "err", err)
-			ctx.JSON(http.StatusUnprocessableEntity, ErrDownloadFailed)
+			ctx.JSON(status, errResp)
 			return
 		}
 		source = &downloaded
@@ -618,4 +617,36 @@ func (t *api) soundsCopy(ctx *gin.Context) {
 	})
 
 	ctx.JSON(http.StatusCreated, soundResponse)
+}
+
+// downloadErrorResponse maps an error returned by the downloader to the
+// status code and error response which is sent to the client.
+func downloadErrorResponse(
+	downloadCtx context.Context,
+	err error,
+) (status int, errResp ErrorResponse) {
+	// Checked first because a timeout surfaces differently depending on the
+	// downloader (killed process or failed HTTP request).
+	if errors.Is(downloadCtx.Err(), context.DeadlineExceeded) {
+		return http.StatusUnprocessableEntity, ErrDownloadTimeout
+	}
+	if errors.Is(err, ytdlp.ErrNotInstalled) {
+		return http.StatusNotImplemented, ErrYtdlpNotInstalled
+	}
+	if errors.Is(err, ytdlp.ErrAgeVerificationRequired) {
+		return http.StatusUnprocessableEntity, ErrDownloadAgeRestricted
+	}
+	if errors.Is(err, ytdlpd.ErrServiceUnreachable) {
+		return http.StatusBadGateway, ErrDownloadServiceFailed
+	}
+
+	// Any response error of the ytdlpd service other than a failed download
+	// (i.e. auth or payload errors) indicates a misconfiguration and not an
+	// issue with the requested media.
+	var respErr *ytdlpd.ResponseError
+	if errors.As(err, &respErr) && respErr.Code != ytdlpd.ErrorDownloadFailed {
+		return http.StatusBadGateway, ErrDownloadServiceFailed
+	}
+
+	return http.StatusUnprocessableEntity, ErrDownloadFailed
 }

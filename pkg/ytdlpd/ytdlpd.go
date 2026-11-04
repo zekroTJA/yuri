@@ -48,17 +48,16 @@ func (t *Ytdlpd) Download(ctx context.Context, url string, out io.Writer) error 
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return errors.Wrap(err, "request failed")
+		return fmt.Errorf("%w: %w", ErrServiceUnreachable, err)
 	}
+	defer resp.Body.Close()
 
-	if resp.StatusCode != 200 {
-		var errResp ErrorModel
-		err := json.NewDecoder(resp.Body).Decode(&errResp)
-		var msg string
-		if err == nil {
-			msg = fmt.Sprintf(": <%s> %s", errResp.Code, errResp.Message)
-		}
-		return fmt.Errorf("request failed with status %d%s", resp.StatusCode, msg)
+	if resp.StatusCode != http.StatusOK {
+		respErr := &ResponseError{StatusCode: resp.StatusCode}
+		// The body might be empty or not JSON, so decoding errors are ignored
+		// and only the status code is reported in that case.
+		_ = json.NewDecoder(resp.Body).Decode(&respErr.ErrorModel)
+		return respErr
 	}
 
 	_, err = io.Copy(out, resp.Body)
