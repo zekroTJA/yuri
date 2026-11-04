@@ -111,9 +111,11 @@ func downloadHandler(downloader *ytdlp.YtDlp, tokenHash string) http.HandlerFunc
 		}
 		match, err := checkToken(authHeader[1], tokenHash)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			slog.Error("error checking auth token (invalid token header format)", "err", err.Error())
-			fmt.Fprintf(w, "error checking auth token: %s", err.Error())
+			slog.Error("error checking auth token", "err", err.Error())
+			respondJson(w, http.StatusInternalServerError, ytdlpd.ErrorModel{
+				Code:    ytdlpd.ErrorCheckingAuthToken,
+				Message: "failed checking auth token",
+			})
 			return
 		}
 		if !match {
@@ -124,26 +126,48 @@ func downloadHandler(downloader *ytdlp.YtDlp, tokenHash string) http.HandlerFunc
 
 		var payload ytdlpd.RequestModel
 		if err = json.NewDecoder(r.Body).Decode(&payload); err != nil {
-			w.WriteHeader(http.StatusBadRequest)
 			slog.Debug("received invalid payload", "err", err.Error())
-			fmt.Fprintf(w, "invalid payload: %s", err.Error())
+			respondJson(w, http.StatusUnprocessableEntity, ytdlpd.ErrorModel{
+				Code:    ytdlpd.ErrorDecodingRequestPayload,
+				Message: "failed decoding request payload: " + err.Error(),
+			})
 			return
 		}
 
 		if strings.TrimSpace(payload.Url) == "" {
-			w.WriteHeader(http.StatusBadRequest)
 			slog.Debug("received missing url")
-			fmt.Fprint(w, "missing url")
+			respondJson(w, http.StatusBadRequest, ytdlpd.ErrorModel{
+				Code:    ytdlpd.ErrorMissingUrl,
+				Message: "missing url in payload",
+			})
 			return
 		}
 
 		err = downloader.Download(r.Context(), payload.Url, w)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			if strings.Contains(err.Error(), "Sign in to confirm your age") {
+				respondJson(w, http.StatusBadRequest, ytdlpd.ErrorModel{
+					Code:    ytdlpd.ErrorAgeVerificationRequired,
+					Message: "age verification is required to download this content",
+				})
+			}
+
 			slog.Error("failed downloading", "err", err.Error(), "url", payload.Url)
-			fmt.Fprintf(w, "error downloading url: %s", err.Error())
+			respondJson(w, http.StatusInternalServerError, ytdlpd.ErrorModel{
+				Code:    ytdlpd.ErrorDownloadFailed,
+				Message: "download failed",
+			})
 			return
 		}
+	}
+}
+
+func respondJson(w http.ResponseWriter, status int, v any) {
+	w.WriteHeader(status)
+	enc := json.NewEncoder(w)
+	enc.SetIndent("", "  ")
+	if err := enc.Encode(v); err != nil {
+		panic(fmt.Sprintf("failed encoding json response body: %s", err.Error()))
 	}
 }
 

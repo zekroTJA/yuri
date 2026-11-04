@@ -52,7 +52,13 @@ func (t *Ytdlpd) Download(ctx context.Context, url string, out io.Writer) error 
 	}
 
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("request failed with status %d", resp.StatusCode)
+		var errResp ErrorModel
+		err := json.NewDecoder(resp.Body).Decode(&errResp)
+		var msg string
+		if err == nil {
+			msg = fmt.Sprintf(": <%s> %s", errResp.Code, errResp.Message)
+		}
+		return fmt.Errorf("request failed with status %d%s", resp.StatusCode, msg)
 	}
 
 	_, err = io.Copy(out, resp.Body)
