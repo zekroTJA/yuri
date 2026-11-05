@@ -10,6 +10,7 @@ import IconButton from "../../components/IconButton/IconButton";
 import ErrorTile from "../../components/ErrorTile/ErrorTile";
 import TagInput from "../../components/TagInput/TagInput";
 import TabBar from "../../components/TabBar/TabBar";
+import FileDropZone from "../../components/FileDropZone/FileDropZone";
 import BackIcon from "../../assets/back.svg?react";
 
 // Derives a sound handle from the given file name by dropping the extension
@@ -23,6 +24,8 @@ function handleFromFileName(fileName: string): string {
 }
 
 type SourceType = "file" | "url";
+
+const acceptedFileTypes = "audio/*,video/*";
 
 export default function SoundUpload() {
   const navigate = useNavigate();
@@ -51,12 +54,24 @@ function SoundUploadForm({ onUploaded }: { onUploaded: () => void }) {
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | undefined>();
 
-  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = e.currentTarget.files?.[0];
+  const selectFile = (selected: File | undefined) => {
     setFile(selected);
     if (selected && !handle) {
       setHandle(handleFromFileName(selected.name));
     }
+  };
+
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    selectFile(e.currentTarget.files?.[0]);
+  };
+
+  const onFileDrop = (dropped: File) => {
+    setError(undefined);
+    selectFile(dropped);
+  };
+
+  const onRejectedFileDrop = (dropped: File) => {
+    setError(`"${dropped.name}" is not an audio or video file.`);
   };
 
   const hasSource = sourceType === "file" ? !!file : !!url.trim();
@@ -109,21 +124,25 @@ function SoundUploadForm({ onUploaded }: { onUploaded: () => void }) {
       ) : (
         <div className={styles.field}>
           <span className={styles.label}>File</span>
-          <div className={styles.fileRow}>
+          <FileDropZone
+            accept={acceptedFileTypes}
+            onFileDrop={onFileDrop}
+            onRejectedFileDrop={onRejectedFileDrop}
+          >
             <input
               ref={fileInput}
               className={styles.fileInput}
               type="file"
-              accept="audio/*,video/*"
+              accept={acceptedFileTypes}
               onChange={onFileChange}
             />
             <Button onClick={() => fileInput.current?.click()}>
               Choose file
             </Button>
             <span className={styles.fileName}>
-              {file ? file.name : "No file selected"}
+              {file ? file.name : "No file selected – or drop one here"}
             </span>
-          </div>
+          </FileDropZone>
         </div>
       )}
       <label className={styles.field}>

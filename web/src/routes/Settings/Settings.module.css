@@ -179,7 +179,17 @@
 
 .archiveActions {
     display: flex;
+    align-items: center;
     gap: 0.8em;
+}
+
+.importDropZone {
+    flex-grow: 1;
+}
+
+.dropHint {
+    font-size: 0.9rem;
+    opacity: 0.6;
 }
 
 .fileInput {

@@ -22,6 +22,7 @@ import Input from "../../components/Input/Input";
 import Button from "../../components/Button/Button";
 import IconButton from "../../components/IconButton/IconButton";
 import ErrorTile from "../../components/ErrorTile/ErrorTile";
+import FileDropZone from "../../components/FileDropZone/FileDropZone";
 import BackIcon from "../../assets/back.svg?react";
 import TrashIcon from "../../assets/trash.svg?react";
 import CopyIcon from "../../assets/copy.svg?react";
@@ -30,6 +31,8 @@ import DownloadIcon from "../../assets/download.svg?react";
 import PackageIcon from "../../assets/package.svg?react";
 
 const allScopes: Scope[] = ["read", "write", "delete"];
+
+const acceptedArchiveTypes = ".tar.gz,.tgz,application/gzip";
 
 function exportFileName(): string {
   return `yuri-sounds-${new Date().toISOString().slice(0, 10)}.tar.gz`;
@@ -76,11 +79,8 @@ function SoundArchive() {
     }
   };
 
-  const onImport = async (e: ChangeEvent<HTMLInputElement>) => {
-    const archive = e.currentTarget.files?.[0];
-    // Reset the input so that the same file can be selected again.
-    e.currentTarget.value = "";
-    if (!archive) return;
+  const importArchive = async (archive: File) => {
+    if (isImporting) return;
     setError(undefined);
     setImportResult(undefined);
     setIsImporting(true);
@@ -91,6 +91,17 @@ function SoundArchive() {
     } finally {
       setIsImporting(false);
     }
+  };
+
+  const onImportFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const archive = e.currentTarget.files?.[0];
+    // Reset the input so that the same file can be selected again.
+    e.currentTarget.value = "";
+    if (archive) importArchive(archive);
+  };
+
+  const onRejectedArchiveDrop = (dropped: File) => {
+    setError(`"${dropped.name}" is not a .tar.gz archive.`);
   };
 
   return (
@@ -105,23 +116,32 @@ function SoundArchive() {
       {!!error && <ErrorTile message={error} />}
 
       <div className={styles.archiveActions}>
-        <input
-          ref={importInput}
-          className={styles.fileInput}
-          type="file"
-          accept=".tar.gz,.tgz,application/gzip"
-          onChange={onImport}
-        />
-        <Button
+        <FileDropZone
+          className={styles.importDropZone}
+          accept={acceptedArchiveTypes}
           disabled={isImporting}
-          title="Import sounds from a .tar.gz archive"
-          onClick={() => importInput.current?.click()}
+          onFileDrop={importArchive}
+          onRejectedFileDrop={onRejectedArchiveDrop}
         >
-          <span className={styles.buttonContent}>
-            <PackageIcon />
-            {isImporting ? "Importing..." : "Import"}
-          </span>
-        </Button>
+          <input
+            ref={importInput}
+            className={styles.fileInput}
+            type="file"
+            accept={acceptedArchiveTypes}
+            onChange={onImportFileChange}
+          />
+          <Button
+            disabled={isImporting}
+            title="Import sounds from a .tar.gz archive"
+            onClick={() => importInput.current?.click()}
+          >
+            <span className={styles.buttonContent}>
+              <PackageIcon />
+              {isImporting ? "Importing..." : "Import"}
+            </span>
+          </Button>
+          <span className={styles.dropHint}>or drop an archive here</span>
+        </FileDropZone>
         <Button
           disabled={isExporting || soundState.sounds.length == 0}
           title="Export all sounds as a .tar.gz archive"

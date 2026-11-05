@@ -1,0 +1,21 @@
+.zone {
+    display: flex;
+    align-items: center;
+    gap: 0.8em;
+    padding: 0.6em;
+    border: dashed 2px rgba(255 255 255 / 15%);
+    border-radius: 5px;
+    transition:
+        background-color 0.15s ease,
+        border-color 0.15s ease;
+}
+
+.dragOver {
+    border-color: var(--accent);
+    background-color: var(--accent-bg);
+}
+
+.disabled {
+    opacity: 0.6;
+}
+

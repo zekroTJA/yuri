@@ -37,17 +37,12 @@
     opacity: 0.6;
 }
 
-.fileRow {
-    display: flex;
-    align-items: center;
-    gap: 0.8em;
-}
-
 .fileInput {
     display: none;
 }
 
 .fileName {
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
