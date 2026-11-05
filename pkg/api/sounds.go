@@ -421,7 +421,7 @@ func (t *api) soundsPlay(ctx *gin.Context) {
 // soundsTrim godoc
 //
 //	@Summary		Trim sound
-//	@Description	Trims a sound to the given range. The original audio file is replaced. Requires the "write" scope when using an API key.
+//	@Description	Trims a sound to the given range. The trimmed audio is loudness normalized and replaces the original audio file. Requires the "write" scope when using an API key.
 //	@Tags			Sounds
 //	@Accept			json
 //	@Produce		json
@@ -453,6 +453,8 @@ func (t *api) soundsTrim(ctx *gin.Context) {
 		return
 	}
 
+	fmt.Printf("%#v\n", req)
+
 	if req.Start < 0 || req.End <= req.Start {
 		ctx.JSON(http.StatusBadRequest, ErrInvalidTrimRange)
 		return
@@ -481,11 +483,18 @@ func (t *api) soundsTrim(ctx *gin.Context) {
 		return
 	}
 
+	var normalized bytes.Buffer
+	if err = t.encoder.Format(&trimmed, &normalized, ffmpeg.FilterNormalize); err != nil {
+		slog.Error("failed normalizing sound file", "storage_id", sound.StorageId, "err", err)
+		ctx.JSON(http.StatusUnprocessableEntity, ErrSoundEncodeFailed)
+		return
+	}
+
 	// The trimmed sound is stored under a new storage ID so that the
 	// original file stays intact until the database points to the new one.
 	storageID := newStorageID(sound.Handle)
 
-	if err = t.storage.Store(storageID, &trimmed); err != nil {
+	if err = t.storage.Store(storageID, &normalized); err != nil {
 		slog.Error("failed storing sound file", "storage_id", storageID, "err", err)
 		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
@@ -521,7 +530,7 @@ func (t *api) soundsTrim(ctx *gin.Context) {
 // soundsCopy godoc
 //
 //	@Summary		Copy sound
-//	@Description	Creates a copy of a sound with a new handle and tags. The audio of the copy is loudness normalized. Requires the "write" scope when using an API key.
+//	@Description	Creates a copy of a sound with a new handle and tags. Requires the "write" scope when using an API key.
 //	@Tags			Sounds
 //	@Accept			json
 //	@Produce		json
@@ -533,7 +542,6 @@ func (t *api) soundsTrim(ctx *gin.Context) {
 //	@Failure		401		{object}	api.ErrorResponse
 //	@Failure		404		{object}	api.ErrorResponse
 //	@Failure		409		{object}	api.ErrorResponse
-//	@Failure		422		{object}	api.ErrorResponse
 //	@Failure		500		{object}	api.ErrorResponse
 //	@Router			/sounds/{id}/copy [post]
 func (t *api) soundsCopy(ctx *gin.Context) {
@@ -586,16 +594,9 @@ func (t *api) soundsCopy(ctx *gin.Context) {
 	}
 	defer file.Close()
 
-	var normalized bytes.Buffer
-	if err = t.encoder.Format(file, &normalized, ffmpeg.FilterNormalize); err != nil {
-		slog.Error("failed normalizing sound file", "storage_id", sound.StorageId, "err", err)
-		ctx.JSON(http.StatusUnprocessableEntity, ErrSoundEncodeFailed)
-		return
-	}
-
 	storageID := newStorageID(req.Handle)
 
-	if err = t.storage.Store(storageID, &normalized); err != nil {
+	if err = t.storage.Store(storageID, file); err != nil {
 		_ = t.storage.Delete(storageID)
 		slog.Error("failed storing sound file", "storage_id", storageID, "err", err)
 		ctx.JSON(http.StatusInternalServerError, ErrInternal)
