@@ -6,6 +6,7 @@ type EventType string
 
 const (
 	EventTypePlay          = EventType("play")
+	EventTypeStop          = EventType("stop")
 	EventTypeChannelUpdate = EventType("channel-update")
 	EventTypeChannelDelete = EventType("channel-delete")
 	EventTypeSoundCreate   = EventType("sound-create")
@@ -16,6 +17,8 @@ const (
 type EventDataPlay struct {
 	Sound uint `json:"sound"`
 }
+
+type EventDataStop struct{}
 
 type EventDataChannelUpdate struct {
 	Channel *models.ChannelResponse

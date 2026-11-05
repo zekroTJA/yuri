@@ -454,6 +454,37 @@ func (t *api) channelsConnect(ctx *gin.Context) {
 	})
 }
 
+// channelsStop godoc
+//
+//	@Summary		Stop playback
+//	@Description	Stops the sound which is currently playing in the channel the authenticated user is connected to for all connected users. Requires the "write" scope when using an API key.
+//	@Tags			Channels
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Success		204
+//	@Failure		400	{object}	api.ErrorResponse
+//	@Failure		401	{object}	api.ErrorResponse
+//	@Router			/channels/stop [post]
+func (t *api) channelsStop(ctx *gin.Context) {
+	user := ctx.MustGet(userKey).(*database.User)
+
+	t.connectionsMtx.RLock()
+	defer t.connectionsMtx.RUnlock()
+
+	chanId, ok := t.findUserInChannel(user.ID)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, ErrNotConnected)
+		return
+	}
+
+	t.sseManager.Send(sse.Event{
+		Event: sse.EventTypeStop,
+		Data:  sse.EventDataStop{},
+	}, t.connections[chanId].Collect())
+
+	ctx.Status(http.StatusNoContent)
+}
+
 // channelsDisconnect godoc
 //
 //	@Summary		Disconnect from channel
