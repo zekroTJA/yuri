@@ -1,14 +1,21 @@
 .outer {
     display: flex;
+    flex-direction: column;
+    align-items: center;
     width: 100%;
-    padding: 0 1rem;
+    padding: 5rem 0 0 0;
+    gap: 5rem;
+}
+
+.icon {
+    width: 100%;
+    max-width: 13rem;
 }
 
 .container {
-    margin: 8rem auto;
     display: flex;
     flex-direction: column;
     gap: 1em;
-    max-width: 20rem;
     width: 100%;
+    max-width: 20rem;
 }

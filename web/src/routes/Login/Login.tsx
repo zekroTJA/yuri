@@ -7,6 +7,7 @@ import { API_CLIENT } from "../../services/apiclient";
 import { useNavigate } from "react-router";
 import ErrorTile from "../../components/ErrorTile/ErrorTile";
 import { errorMessage } from "../../utils/errors";
+import yuriIcon from "../../assets/yuri-login-icon.webp";
 
 const tabs = [
   { id: "login", element: "Login" },
@@ -51,6 +52,7 @@ export default function Login() {
 
   return (
     <div className={styles.outer}>
+      <img src={yuriIcon} className={styles.icon} />
       <section className={styles.container}>
         {isRegistrationEnabled && (
           <TabBar options={tabs} onSelect={(id) => setSelectedTab(id)} />
