@@ -291,6 +291,12 @@ export class ApiClient {
     await this.request<void>("/channels/disconnect", { method: "POST" });
   }
 
+  // Stops the currently playing sound for all users connected to the same
+  // channel as the authenticated user.
+  async stopPlayback(): Promise<void> {
+    await this.request<void>("/channels/stop", { method: "POST" });
+  }
+
   async leaveChannel(id: number): Promise<void> {
     await this.request<void>(`/channels/${id}/leave`, { method: "POST" });
   }

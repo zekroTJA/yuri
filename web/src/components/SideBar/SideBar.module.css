@@ -289,6 +289,74 @@
     opacity: 0.6;
 }
 
+.nowPlaying {
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 0 0.4em;
+    margin-bottom: 0.4em;
+}
+
+.nowPlayingInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3em;
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.nowPlayingName {
+    font-size: 0.8rem;
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
+
+    .idle & {
+        opacity: 0.4;
+    }
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.nowPlayingTrack {
+    height: 4px;
+    border-radius: 2px;
+    background-color: rgba(255 255 255 / 10%);
+    overflow: hidden;
+}
+
+.nowPlayingProgress {
+    height: 100%;
+    background-color: var(--accent);
+    opacity: 0.8;
+    transform: scaleX(0);
+    transform-origin: left;
+
+    /* Shown while the sound file is still being downloaded. */
+    &.loading {
+        width: 30%;
+        transform: none;
+        opacity: 0.4;
+        animation: nowPlayingLoading 1.2s ease-in-out infinite;
+    }
+}
+
+@keyframes nowPlayingLoading {
+    from {
+        translate: -100%;
+    }
+    to {
+        translate: 340%;
+    }
+}
+
+.nowPlayingStop {
+    flex-shrink: 0;
+    /* Compensates the button padding so that the icon stays aligned. */
+    margin: -0.35em -0.35em -0.35em 0;
+}
+
 .volume {
     display: flex;
     align-items: center;

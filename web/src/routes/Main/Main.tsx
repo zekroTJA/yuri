@@ -7,7 +7,7 @@ import {
   type ChannelResponse,
   type SoundResponse,
 } from "../../services/apiclient";
-import { evictSound, playSound } from "../../services/soundplayer";
+import { evictSound, playSound, stopSound } from "../../services/soundplayer";
 import styles from "./Main.module.css";
 import {
   ChannelActionsContext,
@@ -271,6 +271,7 @@ export default function Main() {
         .catch((e) => console.error("failed playing sound", event.sound, e))
         .finally(() => dispatchSoundState(["stopPlaying", event.sound]));
     });
+    eventStream.on("stop", () => stopSound());
 
     return () => eventStream.close();
   }, []);

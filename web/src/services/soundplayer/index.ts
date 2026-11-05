@@ -5,14 +5,50 @@ import { API_CLIENT } from "../apiclient";
 const objectUrls = new Map<number, Promise<string>>();
 
 type Playback = {
+  soundId: number;
   audio?: HTMLAudioElement;
   stop: () => void;
 };
+
+// Publicly exposed state of the currently playing sound. The audio element
+// is only set once the sound file has been downloaded and the playback has
+// actually started.
+export type PlaybackState = {
+  soundId: number;
+  audio?: HTMLAudioElement;
+};
+
+export type PlaybackListener = (playback: PlaybackState | undefined) => void;
+
+const playbackListeners = new Set<PlaybackListener>();
 
 // The currently active playback. Only one sound is played at a time, so
 // starting a new sound stops the current one. It is also used to apply volume
 // changes to the sound which is already playing.
 let currentPlayback: Playback | undefined;
+
+function notifyPlaybackListeners() {
+  const state = getPlayback();
+  playbackListeners.forEach((listener) => listener(state));
+}
+
+// Returns the currently active playback, if any.
+export function getPlayback(): PlaybackState | undefined {
+  if (!currentPlayback) return undefined;
+  return { soundId: currentPlayback.soundId, audio: currentPlayback.audio };
+}
+
+// Registers a listener which is called whenever a playback starts or ends.
+// The returned function removes the listener again.
+export function onPlaybackChange(listener: PlaybackListener): () => void {
+  playbackListeners.add(listener);
+  return () => playbackListeners.delete(listener);
+}
+
+// Stops the currently playing sound, if any.
+export function stopSound(): void {
+  currentPlayback?.stop();
+}
 
 const volumeStorageKey = "volume-level";
 // Previously, the volume was stored as linear gain under this key. It is
@@ -99,6 +135,7 @@ export async function playSound(soundId: number): Promise<void> {
   let stopped = false;
   let resolvePlayback: () => void = () => {};
   const playback: Playback = {
+    soundId,
     stop: () => {
       stopped = true;
       playback.audio?.pause();
@@ -108,6 +145,7 @@ export async function playSound(soundId: number): Promise<void> {
 
   currentPlayback?.stop();
   currentPlayback = playback;
+  notifyPlaybackListeners();
 
   try {
     const objectUrl = await getObjectUrl(soundId);
@@ -119,6 +157,9 @@ export async function playSound(soundId: number): Promise<void> {
     playback.audio = audio;
     await new Promise<void>((resolve) => {
       resolvePlayback = resolve;
+      audio.addEventListener("playing", () => {
+        if (currentPlayback === playback) notifyPlaybackListeners();
+      });
       audio.addEventListener("ended", () => resolve());
       audio.addEventListener("error", () => resolve());
       audio.play().catch((e) => {
@@ -127,7 +168,10 @@ export async function playSound(soundId: number): Promise<void> {
       });
     });
   } finally {
-    if (currentPlayback === playback) currentPlayback = undefined;
+    if (currentPlayback === playback) {
+      currentPlayback = undefined;
+      notifyPlaybackListeners();
+    }
   }
 }
 

@@ -192,6 +192,7 @@ export interface InfoResponse {
 
 export const EventType = {
   Play: "play",
+  Stop: "stop",
   ChannelUpdate: "channel-update",
   ChannelDelete: "channel-delete",
   SoundCreate: "sound-create",
@@ -204,6 +205,8 @@ export type EventType = (typeof EventType)[keyof typeof EventType];
 export interface PlayEventData {
   sound: number;
 }
+
+export type StopEventData = Record<string, never>;
 
 // The backend does not set a json tag on this field, so it is
 // serialized using the exported Go field name "Channel".
@@ -231,6 +234,7 @@ export interface SoundDeleteEventData {
 
 export interface EventPayloadMap {
   [EventType.Play]: PlayEventData;
+  [EventType.Stop]: StopEventData;
   [EventType.ChannelUpdate]: ChannelUpdateEventData;
   [EventType.ChannelDelete]: ChannelDeleteEventData;
   [EventType.SoundCreate]: SoundCreateEventData;

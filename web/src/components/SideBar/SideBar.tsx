@@ -11,13 +11,23 @@ import {
 } from "react";
 import { Link, useNavigate } from "react-router";
 import styles from "./SideBar.module.css";
-import { ChannelActionsContext, ChannelContext } from "../../contexts";
+import {
+  ChannelActionsContext,
+  ChannelContext,
+  SoundContext,
+} from "../../contexts";
 import {
   API_CLIENT,
   type ChannelResponse,
   type ChannelUserResponse,
 } from "../../services/apiclient";
-import { getVolume, setVolume } from "../../services/soundplayer";
+import {
+  getPlayback,
+  getVolume,
+  onPlaybackChange,
+  setVolume,
+  stopSound,
+} from "../../services/soundplayer";
 import { errorMessage } from "../../utils/errors";
 import IconButton from "../IconButton/IconButton";
 import ErrorTile from "../ErrorTile/ErrorTile";
@@ -245,6 +255,7 @@ export default function SideBar() {
           )}
         </ul>
 
+        <NowPlaying />
         <VolumeSlider />
       </div>
 
@@ -348,6 +359,84 @@ function VersionFooter() {
         sources
       </a>
     </footer>
+  );
+}
+
+function NowPlaying() {
+  const soundState = useContext(SoundContext);
+  const [playback, setPlayback] = useState(getPlayback);
+  const progressBar = useRef<HTMLDivElement>(null);
+
+  useEffect(() => onPlaybackChange(setPlayback), []);
+
+  // The progress is written directly to the element on every frame instead of
+  // going through the component state to avoid re-rendering at frame rate.
+  const audio = playback?.audio;
+  useEffect(() => {
+    if (!audio) return;
+
+    let frame: number;
+    const update = () => {
+      const bar = progressBar.current;
+      if (bar && audio.duration > 0 && Number.isFinite(audio.duration)) {
+        const progress = Math.min(audio.currentTime / audio.duration, 1);
+        bar.style.transform = `scaleX(${progress})`;
+      }
+      frame = requestAnimationFrame(update);
+    };
+    update();
+
+    return () => cancelAnimationFrame(frame);
+  }, [audio]);
+
+  // The progress of a previous playback is reset when nothing is playing,
+  // since the frame loop above is not running in that case.
+  useEffect(() => {
+    if (!playback && progressBar.current) {
+      progressBar.current.style.transform = "";
+    }
+  }, [playback]);
+
+  const sound = playback
+    ? soundState.sounds.find((s) => s.id == playback.soundId)
+    : undefined;
+  const soundName = playback
+    ? (sound?.handle ?? `Sound #${playback.soundId}`)
+    : "Nothing playing";
+
+  const onStop = async () => {
+    try {
+      // The playback is stopped by the resulting stop event for all users in
+      // the channel.
+      await API_CLIENT.stopPlayback();
+    } catch (e) {
+      console.error("failed stopping playback", e);
+      stopSound();
+    }
+  };
+
+  return (
+    <div className={`${styles.nowPlaying} ${!playback ? styles.idle : ""}`}>
+      <div className={styles.nowPlayingInfo}>
+        <span className={styles.nowPlayingName} title={soundName}>
+          {soundName}
+        </span>
+        <div className={styles.nowPlayingTrack}>
+          <div
+            ref={progressBar}
+            className={`${styles.nowPlayingProgress} ${playback && !audio ? styles.loading : ""}`}
+          />
+        </div>
+      </div>
+      <IconButton
+        className={styles.nowPlayingStop}
+        title="Stop sound"
+        disabled={!playback}
+        onClick={onStop}
+      >
+        <CloseIcon />
+      </IconButton>
+    </div>
   );
 }
 
