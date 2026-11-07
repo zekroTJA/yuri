@@ -5,6 +5,7 @@ import {
   API_CLIENT,
   type ScoreboardResponse,
   type SoundPlayResponse,
+  type SoundStatsResponse,
 } from "../../services/apiclient";
 import { errorMessage } from "../../utils/errors";
 import IconButton from "../../components/IconButton/IconButton";
@@ -35,6 +36,21 @@ function timeRangeStart(range: TimeRange): Date | undefined {
   return start;
 }
 
+const byteUnits = ["B", "KiB", "MiB", "GiB", "TiB"];
+
+// Formats the given number of bytes as a human readable size using binary
+// units, e.g. 1536 -> "1.5 KiB".
+function formatBytes(bytes: number): string {
+  let value = bytes;
+  let unitIndex = 0;
+  while (value >= 1024 && unitIndex < byteUnits.length - 1) {
+    value /= 1024;
+    unitIndex++;
+  }
+  const maximumFractionDigits = unitIndex == 0 ? 0 : 1;
+  return `${value.toLocaleString(undefined, { maximumFractionDigits })} ${byteUnits[unitIndex]}`;
+}
+
 export default function Stats() {
   const navigate = useNavigate();
 
@@ -47,9 +63,52 @@ export default function Stats() {
         <h1 className={styles.title}>Statistics</h1>
       </header>
 
+      <SoundStats />
       <Scoreboard />
       <LatestPlays />
     </div>
+  );
+}
+
+function SoundStats() {
+  const [stats, setStats] = useState<SoundStatsResponse | undefined>();
+  const [error, setError] = useState<string | undefined>();
+
+  useEffect(() => {
+    API_CLIENT.getSoundStats()
+      .then(setStats)
+      .catch((e) => setError(errorMessage(e)));
+  }, []);
+
+  return (
+    <section className={styles.section}>
+      <h2 className={styles.sectionTitle}>Sound library</h2>
+
+      {!!error && <ErrorTile message={error} />}
+      {!stats && !error && <span className={styles.empty}>Loading...</span>}
+
+      {!!stats && (
+        <div className={styles.overview}>
+          <div className={styles.overviewTile}>
+            <span className={styles.totalValue}>
+              {stats.count.toLocaleString()}
+            </span>
+            <span className={styles.totalLabel}>
+              {stats.count == 1 ? "sound available" : "sounds available"}
+            </span>
+          </div>
+          <div
+            className={styles.overviewTile}
+            title={`${stats.total_size.toLocaleString()} bytes`}
+          >
+            <span className={styles.totalValue}>
+              {formatBytes(stats.total_size)}
+            </span>
+            <span className={styles.totalLabel}>total storage size</span>
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
 

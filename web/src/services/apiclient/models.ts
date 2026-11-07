@@ -118,6 +118,13 @@ export interface ScoreboardResponse {
   sounds: SoundPlayCountResponse[];
 }
 
+export interface SoundStatsResponse {
+  // Number of available sounds.
+  count: number;
+  // Summed up storage size of all sounds in bytes.
+  total_size: number;
+}
+
 export interface SoundPlaySoundResponse {
   id: number;
   handle: string;

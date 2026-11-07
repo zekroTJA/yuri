@@ -34,3 +34,11 @@ func (t *Storage) Load(name string) (io.ReadCloser, error) {
 func (t *Storage) Delete(name string) error {
 	return os.Remove(filepath.Join(t.dir, name))
 }
+
+func (t *Storage) Size(name string) (int64, error) {
+	info, err := os.Stat(filepath.Join(t.dir, name))
+	if err != nil {
+		return 0, err
+	}
+	return info.Size(), nil
+}

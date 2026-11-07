@@ -20,6 +20,7 @@ import type {
   SoundImportResponse,
   SoundPlayResponse,
   SoundResponse,
+  SoundStatsResponse,
   SoundTrimRequest,
   SoundUpdateRequest,
   UploadSoundRequest,
@@ -248,6 +249,11 @@ export class ApiClient {
     const query = new URLSearchParams();
     if (limit !== undefined) query.set("limit", String(limit));
     return this.request<SoundPlayResponse[]>(`/stats/plays?${query}`);
+  }
+
+  // Returns the number of available sounds and their summed up storage size.
+  async getSoundStats(): Promise<SoundStatsResponse> {
+    return this.request<SoundStatsResponse>(`/stats/sounds`);
   }
 
   // -- Channels --------------------------------------------------------------

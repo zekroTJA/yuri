@@ -2108,6 +2108,43 @@
                     }
                 }
             }
+        },
+        "/stats/sounds": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns the number of available sounds and the summed up storage size of all their files in bytes. Deleted sounds are not included. Requires the \"read\" scope when using an API key.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stats"
+                ],
+                "summary": "Get sound library statistics",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.SoundStatsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -2587,6 +2624,19 @@
                 },
                 "updated_at": {
                     "type": "string"
+                }
+            }
+        },
+        "models.SoundStatsResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "description": "Count is the number of available sounds.",
+                    "type": "integer"
+                },
+                "total_size": {
+                    "description": "TotalSize is the summed up storage size of all sounds in bytes.",
+                    "type": "integer"
                 }
             }
         },

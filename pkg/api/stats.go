@@ -107,6 +107,43 @@ func (t *api) statsPlays(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
+// statsSounds godoc
+//
+//	@Summary		Get sound library statistics
+//	@Description	Returns the number of available sounds and the summed up storage size of all their files in bytes. Deleted sounds are not included. Requires the "read" scope when using an API key.
+//	@Tags			Stats
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Success		200	{object}	models.SoundStatsResponse
+//	@Failure		401	{object}	api.ErrorResponse
+//	@Failure		500	{object}	api.ErrorResponse
+//	@Router			/stats/sounds [get]
+func (t *api) statsSounds(ctx *gin.Context) {
+	storageIDs, err := t.db.ListSoundStorageIDs()
+	if err != nil {
+		slog.Error("failed listing sound storage IDs from database", "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return
+	}
+
+	var totalSize int64
+	for _, storageID := range storageIDs {
+		size, err := t.storage.Size(storageID)
+		if err != nil {
+			// A missing or unreadable file should not prevent the statistics
+			// from being shown, so it is only logged and not counted.
+			slog.Warn("failed getting size of sound file", "storage_id", storageID, "err", err)
+			continue
+		}
+		totalSize += size
+	}
+
+	ctx.JSON(http.StatusOK, models.SoundStatsResponse{
+		Count:     int64(len(storageIDs)),
+		TotalSize: totalSize,
+	})
+}
+
 // parseLimitQuery parses the "limit" query parameter. When it is not set,
 // statsDefaultLimit is returned. ok is false when the value is not a number
 // between 1 and statsMaxLimit.

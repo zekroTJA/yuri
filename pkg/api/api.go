@@ -128,6 +128,7 @@ func Run(
 
 	authenticated.GET("/stats/scoreboard", t.statsScoreboard)
 	authenticated.GET("/stats/plays", t.statsPlays)
+	authenticated.GET("/stats/sounds", t.statsSounds)
 
 	authenticated.GET("/channels", t.channelsList)
 	authenticated.GET("/channels/:id", t.channelsGet)

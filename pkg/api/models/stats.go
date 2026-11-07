@@ -17,6 +17,11 @@ type ScoreboardResponse struct {
 	Sounds     []*SoundPlayCountResponse `json:"sounds"`
 }
 
+type SoundStatsResponse struct {
+	Count     int64 `json:"count"`
+	TotalSize int64 `json:"total_size"`
+}
+
 type SoundPlaySoundResponse struct {
 	ID      uint   `json:"id"`
 	Handle  string `json:"handle"`
