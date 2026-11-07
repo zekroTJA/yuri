@@ -61,6 +61,10 @@ func main() {
 		slog.Error("failed initializing downloader", "err", err)
 		os.Exit(1)
 	}
+	if !downloader.IsInstalled() {
+		slog.Error("failed initializing downloader", "err", ytdlp.ErrNotInstalled)
+		os.Exit(1)
+	}
 
 	storage, err := loadStorage(args.StoragePath)
 	if err != nil {

@@ -43,16 +43,21 @@ func New(ytdlpExec string) (*YtDlp, error) {
 		ytdlpExec, _ = exec.LookPath("yt-dlp")
 	}
 
-	if ytdlpExec == "" {
-		return nil, ErrNotInstalled
-	}
-
 	return &YtDlp{ytdlpExec: ytdlpExec}, nil
+}
+
+// IsInstalled reports whether a yt-dlp executable has been found.
+func (t *YtDlp) IsInstalled() bool {
+	return t.ytdlpExec != ""
 }
 
 // Download downloads the audio of the media behind the given URL and writes
 // it to out.
 func (t *YtDlp) Download(ctx context.Context, url string, out io.Writer) error {
+	if !t.IsInstalled() {
+		return ErrNotInstalled
+	}
+
 	cmdArgs := []string{
 		"--quiet",
 		"--no-warnings",
