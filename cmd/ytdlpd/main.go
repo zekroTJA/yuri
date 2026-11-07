@@ -29,10 +29,11 @@ type Storage struct {
 }
 
 func (t *Storage) Store(storagePath string) error {
-	f, err := os.Create(storagePath)
+	f, err := os.OpenFile(storagePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 	return json.NewEncoder(f).Encode(t)
 }
 
