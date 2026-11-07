@@ -79,7 +79,7 @@ func (t *Manager) Send(event Event, userIds []uint) {
 			continue
 		}
 		for _, session := range sessions {
-			session.ch <- event
+			session.trySend(event)
 		}
 	}
 }
@@ -90,7 +90,19 @@ func (t *Manager) Broadcast(event Event) {
 
 	for _, sessions := range t.sessions {
 		for _, session := range sessions {
-			session.ch <- event
+			session.trySend(event)
 		}
+	}
+}
+
+// trySend passes the event to the session without blocking. If the event
+// buffer of the session is full, the event is dropped. Blocking here would
+// stall all senders while holding the manager lock and would deadlock with
+// Close when the receiving side of the session has already stopped reading.
+func (t *Session) trySend(event Event) {
+	select {
+	case t.ch <- event:
+	default:
+		slog.Warn("SSE: event buffer full, dropping event", "userId", t.userId, "event", event.Event)
 	}
 }
