@@ -18,7 +18,7 @@ import (
 )
 
 type Args struct {
-	BindAddress string     `àrg:"--bind-address,env:BIND_ADDRESS" default:"0.0.0.0:8080" help:"Bind address for API server"`
+	BindAddress string     `arg:"--bind-address,env:BIND_ADDRESS" default:"0.0.0.0:8080" help:"Bind address for API server"`
 	LogLevel    slog.Level `arg:"--log-level,env:LOG_LEVEL" default:"info" help:"slog log level"`
 	YtdlpPath   string     `arg:"--ytdlp-path,env:YTDLP_PATH" help:"Path to yt-dlp executable"`
 	StoragePath string     `arg:"--storage-path,env:STORAGE_PATH" default:"storage.json" help:"Path to the persistent storage"`
