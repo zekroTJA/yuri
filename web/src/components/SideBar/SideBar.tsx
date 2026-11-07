@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type DragEvent,
   type KeyboardEvent,
   type MouseEvent,
   type PointerEvent,
@@ -29,6 +30,7 @@ import {
   stopSound,
 } from "../../services/soundplayer";
 import { errorMessage } from "../../utils/errors";
+import { channelDropTarget, moveChannelId } from "../../utils/channels";
 import IconButton from "../IconButton/IconButton";
 import ErrorTile from "../ErrorTile/ErrorTile";
 import TabBar from "../TabBar/TabBar";
@@ -78,6 +80,21 @@ type Invite = {
   code: string;
 };
 
+type ChannelDrag = {
+  channelId: number;
+  // The position the dragged channel is placed at when it is dropped. It is
+  // undefined when dropping would not change the order.
+  dropTarget: ChannelDropTarget | undefined;
+};
+
+type ChannelDropTarget = {
+  channelId: number;
+  // Whether the dragged channel is placed after or before the target
+  // channel. Placing before is only used for the first channel, so that the
+  // indicator is always shown under the same channel for the same position.
+  placeAfter: boolean;
+};
+
 type ChannelContextMenu = {
   channel: ChannelResponse;
   x: number;
@@ -99,6 +116,7 @@ export default function SideBar() {
   // minimum and maximum width are enforced by the stylesheet as well.
   const [width, setWidth] = useState(loadWidth);
   const [isResizing, setIsResizing] = useState(false);
+  const [drag, setDrag] = useState<ChannelDrag | undefined>();
 
   const connectedChannel = channelState.channels.find(
     (c) => c.id == channelState.connected,
@@ -180,6 +198,57 @@ export default function SideBar() {
 
   const onCloseContextMenu = useCallback(() => setContextMenu(undefined), []);
 
+  const onChannelDragStart = (channelId: number, e: DragEvent) => {
+    e.dataTransfer.effectAllowed = "move";
+    // Some browsers do not start dragging without any data being set.
+    e.dataTransfer.setData("text/plain", String(channelId));
+    setDrag({ channelId, dropTarget: undefined });
+  };
+
+  const onChannelDragOver = (
+    targetChannelId: number,
+    e: DragEvent<HTMLElement>,
+  ) => {
+    if (!drag) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const dropTarget = channelDropTarget(
+      channelState.channels.map((c) => c.id),
+      drag.channelId,
+      targetChannelId,
+      e.clientY > rect.top + rect.height / 2,
+    );
+    if (
+      dropTarget?.channelId != drag.dropTarget?.channelId ||
+      dropTarget?.placeAfter != drag.dropTarget?.placeAfter
+    ) {
+      setDrag({ ...drag, dropTarget });
+    }
+  };
+
+  const onChannelDrop = async (e: DragEvent) => {
+    if (!drag) return;
+    e.preventDefault();
+    const { channelId, dropTarget } = drag;
+    setDrag(undefined);
+    if (!dropTarget) return;
+
+    const channelIds = moveChannelId(
+      channelState.channels.map((c) => c.id),
+      channelId,
+      dropTarget.channelId,
+      dropTarget.placeAfter,
+    );
+    setError(undefined);
+    try {
+      await channelActions.reorderChannels(channelIds);
+    } catch (e) {
+      setError(errorMessage(e));
+    }
+  };
+
   const onResizeStart = (e: PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -235,17 +304,43 @@ export default function SideBar() {
 
         {!!error && <ErrorTile message={error} />}
 
-        <ul className={styles.channels}>
+        <ul
+          className={styles.channels}
+          onDragOver={(e) => {
+            // Allows dropping in the gaps between the channels.
+            if (drag) e.preventDefault();
+          }}
+          onDragLeave={(e) => {
+            // Dropping outside of the list does not change the order, so the
+            // drop indicator is hidden when the pointer leaves it.
+            const enteredElement = e.relatedTarget as Node | null;
+            if (drag && !e.currentTarget.contains(enteredElement)) {
+              setDrag({ ...drag, dropTarget: undefined });
+            }
+          }}
+          onDrop={onChannelDrop}
+        >
           {channelState.channels.map((c) => (
             <Channel
               key={c.id}
               channel={c}
               isConnected={c.id == channelState.connected}
+              isDragged={c.id == drag?.channelId}
+              dropIndicator={
+                drag?.dropTarget?.channelId == c.id
+                  ? drag.dropTarget.placeAfter
+                    ? "after"
+                    : "before"
+                  : undefined
+              }
               invite={invite?.channelId == c.id ? invite.code : undefined}
               onConnect={() => onConnect(c.id)}
               onCreateInvite={() => onCreateInvite(c.id)}
               onCloseInvite={() => setInvite(undefined)}
               onContextMenu={(e) => onOpenContextMenu(c, e)}
+              onDragStart={(e) => onChannelDragStart(c.id, e)}
+              onDragOver={(e) => onChannelDragOver(c.id, e)}
+              onDragEnd={() => setDrag(undefined)}
             />
           ))}
           {channelState.channels.length == 0 && !isAddingChannel && (
@@ -515,27 +610,49 @@ function VolumeSlider() {
 type ChannelProps = {
   channel: ChannelResponse;
   isConnected: boolean;
+  isDragged: boolean;
+  // Where a line indicating the drop position of a dragged channel is shown.
+  dropIndicator: "before" | "after" | undefined;
   invite: string | undefined;
   onConnect: () => void;
   onCreateInvite: () => void;
   onCloseInvite: () => void;
   onContextMenu: (e: MouseEvent) => void;
+  onDragStart: (e: DragEvent) => void;
+  onDragOver: (e: DragEvent<HTMLElement>) => void;
+  onDragEnd: () => void;
 };
 
 function Channel({
   channel,
   isConnected,
+  isDragged,
+  dropIndicator,
   invite,
   onConnect,
   onCreateInvite,
   onCloseInvite,
   onContextMenu,
+  onDragStart,
+  onDragOver,
+  onDragEnd,
 }: ChannelProps) {
   return (
-    <li className={styles.channel}>
+    <li
+      className={[
+        styles.channel,
+        isDragged ? styles.dragged : "",
+        dropIndicator == "before" ? styles.dropBefore : "",
+        dropIndicator == "after" ? styles.dropAfter : "",
+      ].join(" ")}
+      onDragOver={onDragOver}
+    >
       <div
         className={`${styles.channelRow} ${isConnected ? styles.connected : ""}`}
+        draggable
         onContextMenu={onContextMenu}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
       >
         <button
           className={styles.channelButton}

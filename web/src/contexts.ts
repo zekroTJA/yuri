@@ -15,12 +15,14 @@ export type ChannelActions = {
   connect: (channelId: number) => Promise<void>;
   disconnect: () => Promise<void>;
   addChannel: (channel: ChannelResponse) => void;
+  reorderChannels: (channelIds: number[]) => Promise<void>;
 };
 
 export const ChannelActionsContext = createContext<ChannelActions>({
   connect: async () => {},
   disconnect: async () => {},
   addChannel: () => {},
+  reorderChannels: async () => {},
 });
 
 export type SoundState = {

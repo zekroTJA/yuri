@@ -96,9 +96,36 @@
 }
 
 .channel {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 0.2em;
+
+    &.dragged {
+        opacity: 0.4;
+    }
+
+    /* Line indicating where a dragged channel is placed when dropped. It is
+       centered in the gap between the channels. */
+    &.dropBefore::before,
+    &.dropAfter::after {
+        content: "";
+        position: absolute;
+        left: 0.3em;
+        right: 0.3em;
+        height: 2px;
+        border-radius: 1px;
+        background-color: var(--accent);
+        pointer-events: none;
+    }
+
+    &.dropBefore::before {
+        top: calc(-0.1em - 1px);
+    }
+
+    &.dropAfter::after {
+        bottom: calc(-0.1em - 1px);
+    }
 }
 
 .channelRow {

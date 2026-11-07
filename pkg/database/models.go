@@ -31,6 +31,9 @@ type User struct {
 
 	Handle       string
 	PasswordHash []byte
+	// ChannelOrder contains the IDs of the channels of the user in the order
+	// in which they are displayed to the user.
+	ChannelOrder []uint `gorm:"serializer:json"`
 }
 
 type APIKey struct {

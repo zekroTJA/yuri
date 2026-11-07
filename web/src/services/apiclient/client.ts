@@ -11,6 +11,7 @@ import type {
   ChannelConnectionResponse,
   ChannelInviteCreateRequest,
   ChannelInviteResponse,
+  ChannelOrderRequest,
   ChannelRequest,
   ChannelResponse,
   InfoResponse,
@@ -260,6 +261,15 @@ export class ApiClient {
 
   async listChannels(): Promise<ChannelResponse[]> {
     return this.request<ChannelResponse[]>("/channels");
+  }
+
+  // Stores the order in which the channels are listed for the authenticated
+  // user and returns all channels of the user in the new order.
+  async setChannelOrder(req: ChannelOrderRequest): Promise<ChannelResponse[]> {
+    return this.request<ChannelResponse[]>("/channels/order", {
+      method: "POST",
+      body: JSON.stringify(req),
+    });
   }
 
   async getChannel(id: number): Promise<ChannelResponse> {

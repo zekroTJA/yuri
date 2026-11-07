@@ -40,6 +40,12 @@ func (t *Database) UpdateUserPassword(id uint, passwordHash []byte) error {
 	return res.Error
 }
 
+func (t *Database) UpdateUserChannelOrder(id uint, channelOrder []uint) error {
+	user := &User{ChannelOrder: channelOrder}
+	res := t.db.Model(&User{}).Where("id = ?", id).Select("channel_order").Updates(user)
+	return res.Error
+}
+
 // DeleteUser permanently deletes the user with all of their API keys and
 // channel memberships. Channels created by the user are deleted together with
 // their invites. Sounds and sound plays of the user are kept, because they are

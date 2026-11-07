@@ -147,6 +147,12 @@ export interface ChannelRequest {
   tag_blocklist?: string[];
 }
 
+export interface ChannelOrderRequest {
+  // IDs of the channels in the order in which they should be listed.
+  // Channels which are not contained are listed after them.
+  channel_ids: number[];
+}
+
 export interface ChannelUserResponse {
   id: number;
   handle: string;

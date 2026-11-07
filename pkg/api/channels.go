@@ -3,6 +3,7 @@ package api
 import (
 	"log/slog"
 	"net/http"
+	"slices"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -61,7 +62,7 @@ func (t *api) channelsCreate(ctx *gin.Context) {
 // channelsList godoc
 //
 //	@Summary		List channels
-//	@Description	Lists all channels the authenticated user owns or is a member of. Requires the "read" scope when using an API key.
+//	@Description	Lists all channels the authenticated user owns or is a member of in the order stored for the user. Channels without a stored position are listed after the others ordered by their creation. Requires the "read" scope when using an API key.
 //	@Tags			Channels
 //	@Produce		json
 //	@Security		ApiKeyAuth
@@ -79,15 +80,95 @@ func (t *api) channelsList(ctx *gin.Context) {
 		return
 	}
 
+	sortChannelsByOrder(channels, user.ChannelOrder)
+
+	ctx.JSON(http.StatusOK, t.channelsToResponse(channels, user.ID))
+}
+
+// channelsOrder godoc
+//
+//	@Summary		Set channel order
+//	@Description	Stores the order in which the channels are listed for the authenticated user. IDs of channels the user neither owns nor is a member of as well as duplicate IDs are ignored. Channels which are not contained are listed after the others. Returns all channels of the user in the new order. Requires the "write" scope when using an API key.
+//	@Tags			Channels
+//	@Accept			json
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Param			body	body		models.ChannelOrderRequest	true	"Channel order"
+//	@Success		200		{array}		models.ChannelResponse
+//	@Failure		400		{object}	api.ErrorResponse
+//	@Failure		401		{object}	api.ErrorResponse
+//	@Failure		500		{object}	api.ErrorResponse
+//	@Router			/channels/order [post]
+func (t *api) channelsOrder(ctx *gin.Context) {
+	user := ctx.MustGet(userKey).(*database.User)
+
+	var req models.ChannelOrderRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, ErrInvalidRequestBody)
+		return
+	}
+
+	channels, err := t.db.ListChannelsByUser(user.ID)
+	if err != nil {
+		slog.Error("failed listing channels from database", "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return
+	}
+
+	accessibleChannelIDs := util.NewSet[uint]()
+	for _, c := range channels {
+		accessibleChannelIDs.Insert(c.ID)
+	}
+
+	channelOrder := make([]uint, 0, len(req.ChannelIDs))
+	seenChannelIDs := util.NewSet[uint]()
+	for _, id := range req.ChannelIDs {
+		if accessibleChannelIDs.Exists(id) && seenChannelIDs.Insert(id) {
+			channelOrder = append(channelOrder, id)
+		}
+	}
+
+	if err = t.db.UpdateUserChannelOrder(user.ID, channelOrder); err != nil {
+		slog.Error("failed updating channel order in database", "user", user.ID, "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return
+	}
+
+	sortChannelsByOrder(channels, channelOrder)
+
+	ctx.JSON(http.StatusOK, t.channelsToResponse(channels, user.ID))
+}
+
+// channelsToResponse converts the given channels to responses including
+// the users currently connected to them.
+func (t *api) channelsToResponse(channels []*database.Channel, userID uint) []*models.ChannelResponse {
 	t.connectionsMtx.RLock()
 	defer t.connectionsMtx.RUnlock()
 
 	resp := make([]*models.ChannelResponse, len(channels))
 	for i, c := range channels {
-		resp[i] = models.ChannelToResponse(c, user.ID, t.connections[c.ID].Collect())
+		resp[i] = models.ChannelToResponse(c, userID, t.connections[c.ID].Collect())
 	}
+	return resp
+}
 
-	ctx.JSON(http.StatusOK, resp)
+// sortChannelsByOrder sorts the given channels by the position of their IDs
+// in channelOrder. Channels which are not contained in channelOrder are moved
+// behind all others while keeping their relative order.
+func sortChannelsByOrder(channels []*database.Channel, channelOrder []uint) {
+	positions := make(map[uint]int, len(channelOrder))
+	for i, id := range channelOrder {
+		positions[id] = i
+	}
+	position := func(channel *database.Channel) int {
+		if p, ok := positions[channel.ID]; ok {
+			return p
+		}
+		return len(channelOrder)
+	}
+	slices.SortStableFunc(channels, func(a *database.Channel, b *database.Channel) int {
+		return position(a) - position(b)
+	})
 }
 
 // channelsGet godoc

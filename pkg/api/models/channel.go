@@ -14,6 +14,13 @@ type ChannelRequest struct {
 	TagBlocklist []string `json:"tag_blocklist"`
 }
 
+type ChannelOrderRequest struct {
+	// ChannelIDs contains the IDs of the channels in the order in which they
+	// should be listed. Channels which are not contained are listed after
+	// them.
+	ChannelIDs []uint `json:"channel_ids" binding:"required"`
+}
+
 type ChannelUserResponse struct {
 	ID     uint   `json:"id"`
 	Handle string `json:"handle"`

@@ -9,6 +9,7 @@ import {
 } from "../../services/apiclient";
 import { evictSound, playSound, stopSound } from "../../services/soundplayer";
 import styles from "./Main.module.css";
+import { orderChannels } from "../../utils/channels";
 import {
   ChannelActionsContext,
   ChannelContext,
@@ -37,6 +38,7 @@ type ChannelAction =
   | ["setChannels", ChannelResponse[]]
   | ["upsertChannel", ChannelResponse]
   | ["removeChannel", number]
+  | ["orderChannels", number[]]
   | ["setConnected", number | undefined];
 
 function channelReducer(
@@ -66,6 +68,8 @@ function channelReducer(
         channels: state.channels.filter((c) => c.id != payload),
         connected: state.connected == payload ? undefined : state.connected,
       };
+    case "orderChannels":
+      return { ...state, channels: orderChannels(state.channels, payload) };
     case "setConnected":
       return { ...state, connected: payload };
     default:
@@ -180,6 +184,20 @@ export default function Main() {
     },
     addChannel: (channel) => {
       dispatchChannelState(["upsertChannel", channel]);
+    },
+    reorderChannels: async (channelIds) => {
+      // The order is applied before it is stored so that the list does not
+      // jump back to the previous order while the request is pending.
+      dispatchChannelState(["orderChannels", channelIds]);
+      try {
+        await API_CLIENT.setChannelOrder({ channel_ids: channelIds });
+      } catch (e) {
+        // The previously stored order is restored when storing failed.
+        API_CLIENT.listChannels()
+          .then((chans) => dispatchChannelState(["setChannels", chans]))
+          .catch((e) => console.error("failed listing channels", e));
+        throw e;
+      }
     },
   };
 

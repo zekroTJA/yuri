@@ -136,6 +136,7 @@ func Run(
 	authenticated.POST("/channels/:id", t.channelsUpdate)
 	authenticated.DELETE("/channels/:id", t.channelsDelete)
 	authenticated.POST("/channels/:id/connect", t.channelsConnect)
+	authenticated.POST("/channels/order", t.channelsOrder)
 	authenticated.POST("/channels/disconnect", t.channelsDisconnect)
 	authenticated.POST("/channels/stop", t.channelsStop)
 	authenticated.POST("/channels/:id/leave", t.channelsLeave)

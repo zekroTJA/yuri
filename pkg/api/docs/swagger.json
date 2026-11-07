@@ -492,7 +492,7 @@
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Lists all channels the authenticated user owns or is a member of. Requires the \"read\" scope when using an API key.",
+                "description": "Lists all channels the authenticated user owns or is a member of in the order stored for the user. Channels without a stored position are listed after the others ordered by their creation. Requires the \"read\" scope when using an API key.",
                 "produces": [
                     "application/json"
                 ],
@@ -613,6 +613,66 @@
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/channels/order": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Stores the order in which the channels are listed for the authenticated user. IDs of channels the user neither owns nor is a member of as well as duplicate IDs are ignored. Channels which are not contained are listed after the others. Returns all channels of the user in the new order. Requires the \"write\" scope when using an API key.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Channels"
+                ],
+                "summary": "Set channel order",
+                "parameters": [
+                    {
+                        "description": "Channel order",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ChannelOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.ChannelResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/api.ErrorResponse"
                         }
@@ -2403,6 +2463,21 @@
                 }
             }
         },
+        "models.ChannelOrderRequest": {
+            "type": "object",
+            "required": [
+                "channel_ids"
+            ],
+            "properties": {
+                "channel_ids": {
+                    "description": "ChannelIDs contains the IDs of the channels in the order in which they\nshould be listed. Channels which are not contained are listed after\nthem.",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
         "models.ChannelRequest": {
             "type": "object",
             "required": [
@@ -2631,11 +2706,9 @@
             "type": "object",
             "properties": {
                 "count": {
-                    "description": "Count is the number of available sounds.",
                     "type": "integer"
                 },
                 "total_size": {
-                    "description": "TotalSize is the summed up storage size of all sounds in bytes.",
                     "type": "integer"
                 }
             }

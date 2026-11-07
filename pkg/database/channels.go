@@ -24,6 +24,7 @@ func (t *Database) ListChannelsByUser(userID uint) ([]*Channel, error) {
 		Joins("LEFT JOIN channel_members cm ON cm.channel_id = channels.id").
 		Where("channels.creator_id = ? OR cm.user_id = ?", userID, userID).
 		Group("channels.id").
+		Order("channels.id ASC").
 		Find(&channels)
 	return channels, mapError(res.Error)
 }
