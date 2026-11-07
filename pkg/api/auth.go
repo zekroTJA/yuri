@@ -111,9 +111,13 @@ func (t *api) authLogin(ctx *gin.Context) {
 		return
 	}
 
-	user, err := t.db.GetUserByHandle(req.Handle)
+	// Handles are stored in lowercase on registration.
+	handle := strings.ToLower(req.Handle)
+
+	user, err := t.db.GetUserByHandle(handle)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, ErrInvalidCredentials)
+		slog.Error("failed getting user from database", "handle", handle, "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
 		return
 	}
 	if user == nil {
