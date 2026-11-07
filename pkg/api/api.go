@@ -33,7 +33,7 @@ type api struct {
 	db         *database.Database
 	storage    *storage.Storage
 	encoder    *ffmpeg.FFMpeg
-	downloader Downlaoder
+	downloader Downloader
 	jwtHandler jwt.Handler[sessionClaims]
 	sseManager *sse.Manager
 
@@ -58,7 +58,7 @@ func Run(
 	cfg *config.Api,
 	storage *storage.Storage,
 	encoder *ffmpeg.FFMpeg,
-	downloader Downlaoder,
+	downloader Downloader,
 	db *database.Database,
 ) error {
 	gin.SetMode(gin.ReleaseMode)

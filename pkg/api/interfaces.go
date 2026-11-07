@@ -5,6 +5,6 @@ import (
 	"io"
 )
 
-type Downlaoder interface {
+type Downloader interface {
 	Download(ctx context.Context, url string, out io.Writer) error
 }

@@ -56,7 +56,7 @@ func run() error {
 		return err
 	}
 
-	var downloader api.Downlaoder
+	var downloader api.Downloader
 	if cfg.Ytdlpd != nil && cfg.Ytdlpd.Url != "" {
 		downloader = ytdlpd.New(cfg.Ytdlpd.Url, cfg.Ytdlpd.Token)
 	} else {
