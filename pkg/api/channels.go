@@ -411,18 +411,17 @@ func (t *api) channelsConnect(ctx *gin.Context) {
 		if chanId != channel.ID && conns.Exists(user.ID) {
 			prevChan, err := t.db.GetChannelByID(chanId)
 			if err != nil {
-				slog.Error("failed getting channel from database", "id", id, "err", err)
+				slog.Error("failed getting channel from database", "id", chanId, "err", err)
 				ctx.JSON(http.StatusInternalServerError, ErrInternal)
 				return
 			}
 			_ = conns.Remove(user.ID)
-			channelConnections := conns.Collect()
 			t.sseManager.Send(sse.Event{
 				Event: sse.EventTypeChannelUpdate,
 				Data: sse.EventDataChannelUpdate{
-					Channel: models.ChannelToResponse(prevChan, user.ID, channelConnections),
+					Channel: models.ChannelToResponse(prevChan, user.ID, conns.Collect()),
 				},
-			}, channelConnections)
+			}, prevChan.AssociatedUserIds())
 			disconnectedId = chanId
 			break
 		}
