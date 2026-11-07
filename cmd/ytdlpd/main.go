@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,6 +13,7 @@ import (
 	"github.com/alexedwards/argon2id"
 	"github.com/alexflint/go-arg"
 	"github.com/zekrotja/yuri/pkg/static"
+	"github.com/zekrotja/yuri/pkg/util"
 	"github.com/zekrotja/yuri/pkg/ytdlp"
 	"github.com/zekrotja/yuri/pkg/ytdlpd"
 )
@@ -83,7 +83,7 @@ func main() {
 		}
 
 		fmt.Println("A new token has been initialized. It is only shown on this startup and not again!")
-		fmt.Println("Add the following to your Yuri config:\n")
+		fmt.Print("Add the following to your Yuri config:\n\n")
 		fmt.Println("  YURI_YTDLPD_URL: <PUBLIC_URL_OF_THIS_SERVICE>")
 		fmt.Printf("  YURI_YTDLPD_TOKEN: %s\n\n", token)
 
@@ -218,7 +218,7 @@ func loadStorage(storagePath string) (*Storage, error) {
 }
 
 func generateToken() (token string, hash string, err error) {
-	token = randString(32)
+	token = util.GenerateRandomString(32, util.DefaultCharset)
 	hash, err = argon2id.CreateHash(token, argon2id.DefaultParams)
 	if err != nil {
 		return "", "", err
@@ -226,16 +226,6 @@ func generateToken() (token string, hash string, err error) {
 	return token, hash, nil
 }
 
-func randString(ln int) string {
-	const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-	src := make([]byte, ln)
-	_, _ = rand.Read(src)
-	for i := range src {
-		src[i] = chars[src[i]%byte(len(chars))]
-	}
-	return string(src)
-}
-
-func checkToken(token string, hash string) (bool, error) {
+func checkToken(token string, hash string) (match bool, err error) {
 	return argon2id.ComparePasswordAndHash(token, hash)
 }
