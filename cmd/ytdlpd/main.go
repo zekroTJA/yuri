@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/json"
 	"errors"
@@ -155,7 +156,8 @@ func downloadHandler(downloader *ytdlp.YtDlp, tokenHash string) http.HandlerFunc
 			return
 		}
 
-		err = downloader.Download(r.Context(), payload.Url, w)
+		var downloaded bytes.Buffer
+		err = downloader.Download(r.Context(), payload.Url, &downloaded)
 		if err != nil {
 			if errors.Is(err, ytdlp.ErrAgeVerificationRequired) {
 				slog.Debug("download requires age verification", "url", payload.Url)
@@ -172,6 +174,11 @@ func downloadHandler(downloader *ytdlp.YtDlp, tokenHash string) http.HandlerFunc
 				Message: "download failed",
 			})
 			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		if _, err = downloaded.WriteTo(w); err != nil {
+			slog.Error("failed writing download response", "err", err.Error(), "url", payload.Url)
 		}
 	}
 }
