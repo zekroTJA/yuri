@@ -35,10 +35,14 @@ func New(dsn string) (*Database, error) {
 	return t, nil
 }
 
+// TransactionCallback is executed within a database transaction and gets
+// passed a Database instance scoped to that transaction.
+type TransactionCallback func(tx *Database) error
+
 // Transaction runs fn within a database transaction, passing it a
 // Database instance scoped to that transaction. If fn returns an
 // error, the transaction is rolled back.
-func (t *Database) Transaction(fn func(tx *Database) error) error {
+func (t *Database) Transaction(fn TransactionCallback) error {
 	return t.db.Transaction(func(gormTx *gorm.DB) error {
 		return fn(&Database{db: gormTx})
 	})

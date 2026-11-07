@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func Confirm(prompt string) (bool, error) {
+func Confirm(prompt string) (confirmed bool, err error) {
 	fmt.Printf("%s [y/N]: ", prompt)
 	answer, err := bufio.NewReader(os.Stdin).ReadString('\n')
 	if err != nil && answer == "" {
