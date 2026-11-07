@@ -23,7 +23,7 @@ func main() {
 }
 
 func run() error {
-	stared := time.Now()
+	started := time.Now()
 
 	fmt.Printf(`
 
@@ -57,7 +57,7 @@ func run() error {
 	}
 
 	var downloader api.Downlaoder
-	if cfg.Ytdlp != nil && cfg.Ytdlpd.Url != "" {
+	if cfg.Ytdlpd != nil && cfg.Ytdlpd.Url != "" {
 		downloader = ytdlpd.New(cfg.Ytdlpd.Url, cfg.Ytdlpd.Token)
 	} else {
 		downloader, err = ytdlp.New(cfg.Ytdlp.Path)
@@ -75,15 +75,13 @@ func run() error {
 	}
 	slog.Info("Database initialized")
 
-	_ = db
-
-	slog.Info("Initialization finished", "took", time.Since(stared))
-
 	st, err := storage.New(cfg.Storage.Dir)
 	if err != nil {
 		slog.Error("Failed initializing storage", "err", err)
 		return err
 	}
+
+	slog.Info("Initialization finished", "took", time.Since(started))
 
 	slog.Info("Web server running and accepting requests ...", "addr", cfg.Api.Address)
 	err = api.Run(cfg.Api, st, enc, downloader, db)
