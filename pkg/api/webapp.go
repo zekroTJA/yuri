@@ -13,18 +13,34 @@ func registerWebApp(router *gin.Engine, webAppPath string) {
 	fileServer := http.FileServer(root)
 	indexFile := filepath.Join(webAppPath, "index.html")
 
-	router.NoRoute(func(c *gin.Context) {
-		if strings.HasPrefix(c.Request.URL.Path, "/api/") {
-			c.Status(http.StatusNotFound)
+	router.NoRoute(func(ctx *gin.Context) {
+		if strings.HasPrefix(ctx.Request.URL.Path, "/api/") {
+			ctx.Status(http.StatusNotFound)
 			return
 		}
 
-		if f, err := root.Open(c.Request.URL.Path); err == nil {
-			f.Close()
-			fileServer.ServeHTTP(c.Writer, c.Request)
+		// Only regular files are served by the file server. Directories fall
+		// back to the index file so that no directory listings are exposed.
+		if isFile(root, ctx.Request.URL.Path) {
+			fileServer.ServeHTTP(ctx.Writer, ctx.Request)
 			return
 		}
 
-		c.File(indexFile)
+		ctx.File(indexFile)
 	})
+}
+
+func isFile(root http.FileSystem, name string) bool {
+	file, err := root.Open(name)
+	if err != nil {
+		return false
+	}
+	defer file.Close()
+
+	info, err := file.Stat()
+	if err != nil {
+		return false
+	}
+
+	return !info.IsDir()
 }
