@@ -453,8 +453,6 @@ func (t *api) soundsTrim(ctx *gin.Context) {
 		return
 	}
 
-	fmt.Printf("%#v\n", req)
-
 	if req.Start < 0 || req.End <= req.Start {
 		ctx.JSON(http.StatusBadRequest, ErrInvalidTrimRange)
 		return
