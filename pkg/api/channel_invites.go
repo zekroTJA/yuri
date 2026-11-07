@@ -306,7 +306,7 @@ func (t *api) channelInvitesRedeem(ctx *gin.Context) {
 		Data: sse.EventDataChannelUpdate{
 			Channel: channelResponse,
 		},
-	}, connectedUserIds)
+	}, channel.AssociatedUserIds())
 
 	ctx.JSON(http.StatusOK, channelResponse)
 }
