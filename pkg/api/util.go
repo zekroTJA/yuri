@@ -21,6 +21,19 @@ var filterMap = map[string]ffmpeg.Filter{
 	"overdrive": ffmpeg.FilterOverdrive,
 }
 
+// parseFilters maps the given filter names to their ffmpeg filters. ok is
+// false if any of the names is not a known filter.
+func parseFilters(names []string) (filters []ffmpeg.Filter, ok bool) {
+	for _, name := range names {
+		filter, ok := filterMap[name]
+		if !ok {
+			return nil, false
+		}
+		filters = append(filters, filter)
+	}
+	return filters, true
+}
+
 // isValidSoundHandle reports whether the given handle only consists of
 // alphanumeric characters, underscores and dashes, so that it can safely be
 // used as part of file names, i.e. in the storage ID or in sound archives.

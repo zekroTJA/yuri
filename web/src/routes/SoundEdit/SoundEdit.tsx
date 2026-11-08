@@ -2,7 +2,11 @@ import { useContext, useState, type KeyboardEvent } from "react";
 import { useNavigate, useParams } from "react-router";
 import styles from "./SoundEdit.module.css";
 import { SoundContext } from "../../contexts";
-import { API_CLIENT, type SoundResponse } from "../../services/apiclient";
+import {
+  API_CLIENT,
+  type SoundFilter,
+  type SoundResponse,
+} from "../../services/apiclient";
 import { errorMessage } from "../../utils/errors";
 import { onSoundHandleInput } from "../../utils/handle";
 import Input from "../../components/Input/Input";
@@ -55,6 +59,7 @@ function SoundEditForm({
   const [handle, setHandle] = useState(sound.handle);
   const [tags, setTags] = useState(sound.tags ?? []);
   const [trimRange, setTrimRange] = useState<TrimRange | undefined>();
+  const [overdrive, setOverdrive] = useState(false);
   const [pendingAction, setPendingAction] = useState<
     "save" | "saveAsNew" | undefined
   >();
@@ -62,6 +67,13 @@ function SoundEditForm({
 
   const isPending = pendingAction !== undefined;
   const isHandleChanged = handle != sound.handle;
+
+  const filters: SoundFilter[] = overdrive ? ["overdrive"] : [];
+  // Trimming re-normalizes the loudness of the sound, which would undo
+  // filters applied beforehand. So, when the sound is trimmed, the filters
+  // are applied by the trim request instead.
+  const updateFilters = trimRange ? undefined : filters;
+  const trimFilters = trimRange ? filters : undefined;
 
   const onSave = async () => {
     if (!handle) return;
@@ -71,9 +83,13 @@ function SoundEditForm({
       await API_CLIENT.updateSound(sound.id, {
         handle,
         tags,
+        filters: updateFilters,
       });
       if (trimRange) {
-        await API_CLIENT.trimSound(sound.id, trimRange);
+        await API_CLIENT.trimSound(sound.id, {
+          ...trimRange,
+          filters: trimFilters,
+        });
       }
       onSaved();
     } catch (e) {
@@ -93,9 +109,13 @@ function SoundEditForm({
       const created = await API_CLIENT.copySound(sound.id, {
         handle,
         tags,
+        filters: updateFilters,
       });
       if (trimRange) {
-        await API_CLIENT.trimSound(created.id, trimRange);
+        await API_CLIENT.trimSound(created.id, {
+          ...trimRange,
+          filters: trimFilters,
+        });
       }
       onSaved();
     } catch (e) {
@@ -128,6 +148,14 @@ function SoundEditForm({
         <span className={styles.label}>Trim</span>
         <SoundTrimmer soundId={sound.id} onChange={setTrimRange} />
       </div>
+      <label className={styles.checkbox}>
+        <input
+          type="checkbox"
+          checked={overdrive}
+          onChange={(e) => setOverdrive(e.currentTarget.checked)}
+        />
+        Overdrive
+      </label>
       <div className={styles.actions}>
         {/* The hint is set on a wrapper because disabled buttons do not
             receive pointer events in all browsers. */}

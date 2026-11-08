@@ -6,12 +6,28 @@ import (
 	"io"
 	"os/exec"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gabriel-vasile/mimetype"
 )
 
 const outType = "ogg"
+
+const (
+	// filterLoudnessNormalization normalizes the integrated loudness to
+	// -16 LUFS with a true peak ceiling of -0.3 dBTP.
+	filterLoudnessNormalization = "loudnorm=I=-16:TP=-0.3:LRA=11"
+
+	// filterOverdriveGain boosts the loudness normalized audio well above
+	// the normalized loudness.
+	filterOverdriveGain = "volume=20dB"
+
+	// filterOverdriveClip flatly cuts every sample exceeding the peak
+	// ceiling of loudness normalized sounds (-0.3 dBFS ≈ 0.966), which
+	// results in the characteristic overdriven distortion.
+	filterOverdriveClip = "asoftclip=type=hard:threshold=0.966"
+)
 
 type Filter int
 
@@ -39,22 +55,50 @@ func (t *FFMpeg) Format(in io.Reader, out io.Writer, filter ...Filter) error {
 		return err
 	}
 
-	var args []string
+	audioFilters, err := buildAudioFilterChain(filter)
+	if err != nil {
+		return err
+	}
 
-	for _, f := range filter {
-		switch f {
-		case FilterNormalize:
-			args = append(args, "-af", "loudnorm=I=-16:TP=-0.3:LRA=11")
-		case FilterOverdrive:
-			return errors.New("not implemented yet")
-		default:
-			return errors.New("unknown filter")
-		}
+	var args []string
+	if len(audioFilters) != 0 {
+		// Multiple "-af" arguments would override each other, so all filters
+		// are passed as a single comma separated filter chain.
+		args = append(args, "-af", strings.Join(audioFilters, ","))
 	}
 
 	rdr := bytes.NewReader(buf)
 
 	return t.run(rdr, inType, out, outType, args)
+}
+
+// buildAudioFilterChain maps the given filters to an ordered list of ffmpeg
+// audio filter expressions. Overdrive builds upon the normalized loudness, so
+// normalization is always applied first and only once, even if both filters
+// are requested.
+func buildAudioFilterChain(filters []Filter) (audioFilters []string, err error) {
+	var normalize, overdrive bool
+
+	for _, f := range filters {
+		switch f {
+		case FilterNormalize:
+			normalize = true
+		case FilterOverdrive:
+			overdrive = true
+		default:
+			return nil, errors.New("unknown filter")
+		}
+	}
+
+	if normalize || overdrive {
+		audioFilters = append(audioFilters, filterLoudnessNormalization)
+	}
+
+	if overdrive {
+		audioFilters = append(audioFilters, filterOverdriveGain, filterOverdriveClip)
+	}
+
+	return audioFilters, nil
 }
 
 // Trim cuts the audio read from in to the range between start and end and

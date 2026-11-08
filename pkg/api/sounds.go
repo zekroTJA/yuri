@@ -74,14 +74,10 @@ func (t *api) soundsUpload(ctx *gin.Context) {
 		return
 	}
 
-	var filters []ffmpeg.Filter
-	for _, name := range ctx.PostFormArray("filters") {
-		f, ok := filterMap[name]
-		if !ok {
-			ctx.JSON(http.StatusBadRequest, ErrInvalidFilter)
-			return
-		}
-		filters = append(filters, f)
+	filters, ok := parseFilters(ctx.PostFormArray("filters"))
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, ErrInvalidFilter)
+		return
 	}
 
 	var source io.Reader
@@ -223,7 +219,7 @@ func (t *api) soundsGet(ctx *gin.Context) {
 // soundsUpdate godoc
 //
 //	@Summary		Update sound
-//	@Description	Updates the handle and tags of a sound. Requires the "write" scope when using an API key.
+//	@Description	Updates the handle and tags of a sound. If filters are given, they are applied to the stored audio of the sound. Requires the "write" scope when using an API key.
 //	@Tags			Sounds
 //	@Accept			json
 //	@Produce		json
@@ -266,6 +262,12 @@ func (t *api) soundsUpdate(ctx *gin.Context) {
 		return
 	}
 
+	filters, ok := parseFilters(req.Filters)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, ErrInvalidFilter)
+		return
+	}
+
 	if req.Handle != sound.Handle {
 		_, err = t.db.GetSoundByHandle(req.Handle)
 		if err == nil {
@@ -279,10 +281,24 @@ func (t *api) soundsUpdate(ctx *gin.Context) {
 		}
 	}
 
+	// Filters are encoded before any changes are persisted, so that a failed
+	// encoding does not leave the sound partially updated.
+	var filtered *bytes.Buffer
+	if len(filters) != 0 {
+		filtered, ok = t.encodeStoredSound(ctx, sound, filters)
+		if !ok {
+			return
+		}
+	}
+
 	soundID := sound.ID
 	if _, err = t.db.UpdateSound(soundID, req.Handle, tags); err != nil {
 		slog.Error("failed updating sound in database", "id", soundID, "err", err)
 		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return
+	}
+
+	if filtered != nil && !t.replaceSoundFile(ctx, sound, filtered) {
 		return
 	}
 
@@ -421,7 +437,7 @@ func (t *api) soundsPlay(ctx *gin.Context) {
 // soundsTrim godoc
 //
 //	@Summary		Trim sound
-//	@Description	Trims a sound to the given range. The trimmed audio is loudness normalized and replaces the original audio file. Requires the "write" scope when using an API key.
+//	@Description	Trims a sound to the given range. The trimmed audio is loudness normalized, the optionally given filters are applied and the result replaces the original audio file. Requires the "write" scope when using an API key.
 //	@Tags			Sounds
 //	@Accept			json
 //	@Produce		json
@@ -458,6 +474,13 @@ func (t *api) soundsTrim(ctx *gin.Context) {
 		return
 	}
 
+	filters, ok := parseFilters(req.Filters)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, ErrInvalidFilter)
+		return
+	}
+	filters = append(filters, ffmpeg.FilterNormalize)
+
 	file, err := t.storage.Load(sound.StorageId)
 	if err != nil {
 		slog.Error("failed loading sound file", "storage_id", sound.StorageId, "err", err)
@@ -481,34 +504,18 @@ func (t *api) soundsTrim(ctx *gin.Context) {
 		return
 	}
 
-	var normalized bytes.Buffer
-	if err = t.encoder.Format(&trimmed, &normalized, ffmpeg.FilterNormalize); err != nil {
-		slog.Error("failed normalizing sound file", "storage_id", sound.StorageId, "err", err)
+	var encoded bytes.Buffer
+	if err = t.encoder.Format(&trimmed, &encoded, filters...); err != nil {
+		slog.Error("failed encoding trimmed sound file", "storage_id", sound.StorageId, "err", err)
 		ctx.JSON(http.StatusUnprocessableEntity, ErrSoundEncodeFailed)
 		return
 	}
 
-	// The trimmed sound is stored under a new storage ID so that the
-	// original file stays intact until the database points to the new one.
-	storageID := newStorageID(sound.Handle)
-
-	if err = t.storage.Store(storageID, &normalized); err != nil {
-		slog.Error("failed storing sound file", "storage_id", storageID, "err", err)
-		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+	if !t.replaceSoundFile(ctx, sound, &encoded) {
 		return
 	}
 
 	soundID := sound.ID
-	oldStorageID := sound.StorageId
-	if err = t.db.UpdateSoundStorageID(soundID, storageID); err != nil {
-		_ = t.storage.Delete(storageID)
-		slog.Error("failed updating sound storage ID in database", "id", soundID, "err", err)
-		ctx.JSON(http.StatusInternalServerError, ErrInternal)
-		return
-	}
-
-	_ = t.storage.Delete(oldStorageID)
-
 	sound, err = t.db.GetSoundByID(soundID)
 	if err != nil {
 		slog.Error("failed getting sound from database", "id", soundID, "err", err)
@@ -528,7 +535,7 @@ func (t *api) soundsTrim(ctx *gin.Context) {
 // soundsCopy godoc
 //
 //	@Summary		Copy sound
-//	@Description	Creates a copy of a sound with a new handle and tags. Requires the "write" scope when using an API key.
+//	@Description	Creates a copy of a sound with a new handle and tags. If filters are given, they are applied to the audio of the copy. Requires the "write" scope when using an API key.
 //	@Tags			Sounds
 //	@Accept			json
 //	@Produce		json
@@ -573,6 +580,12 @@ func (t *api) soundsCopy(ctx *gin.Context) {
 		return
 	}
 
+	filters, ok := parseFilters(req.Filters)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, ErrInvalidFilter)
+		return
+	}
+
 	_, err = t.db.GetSoundByHandle(req.Handle)
 	if err == nil {
 		ctx.JSON(http.StatusConflict, ErrHandleConflict)
@@ -584,17 +597,27 @@ func (t *api) soundsCopy(ctx *gin.Context) {
 		return
 	}
 
-	file, err := t.storage.Load(sound.StorageId)
-	if err != nil {
-		slog.Error("failed loading sound file", "storage_id", sound.StorageId, "err", err)
-		ctx.JSON(http.StatusInternalServerError, ErrInternal)
-		return
+	var source io.Reader
+	if len(filters) != 0 {
+		filtered, ok := t.encodeStoredSound(ctx, sound, filters)
+		if !ok {
+			return
+		}
+		source = filtered
+	} else {
+		file, err := t.storage.Load(sound.StorageId)
+		if err != nil {
+			slog.Error("failed loading sound file", "storage_id", sound.StorageId, "err", err)
+			ctx.JSON(http.StatusInternalServerError, ErrInternal)
+			return
+		}
+		defer file.Close()
+		source = file
 	}
-	defer file.Close()
 
 	storageID := newStorageID(req.Handle)
 
-	if err = t.storage.Store(storageID, file); err != nil {
+	if err = t.storage.Store(storageID, source); err != nil {
 		_ = t.storage.Delete(storageID)
 		slog.Error("failed storing sound file", "storage_id", storageID, "err", err)
 		ctx.JSON(http.StatusInternalServerError, ErrInternal)
@@ -623,6 +646,62 @@ func (t *api) soundsCopy(ctx *gin.Context) {
 	})
 
 	ctx.JSON(http.StatusCreated, soundResponse)
+}
+
+// encodeStoredSound loads the stored audio file of the given sound and
+// applies the given filters to it. On failure, an error response is written
+// to ctx and ok is false.
+func (t *api) encodeStoredSound(
+	ctx *gin.Context,
+	sound *database.Sound,
+	filters []ffmpeg.Filter,
+) (encoded *bytes.Buffer, ok bool) {
+	file, err := t.storage.Load(sound.StorageId)
+	if err != nil {
+		slog.Error("failed loading sound file", "storage_id", sound.StorageId, "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return nil, false
+	}
+	defer file.Close()
+
+	encoded = new(bytes.Buffer)
+	if err = t.encoder.Format(file, encoded, filters...); err != nil {
+		slog.Error("failed encoding sound file", "storage_id", sound.StorageId, "err", err)
+		ctx.JSON(http.StatusUnprocessableEntity, ErrSoundEncodeFailed)
+		return nil, false
+	}
+
+	return encoded, true
+}
+
+// replaceSoundFile stores audio as the new audio file of the given sound and
+// deletes the previous one. The audio is stored under a new storage ID so that
+// the original file stays intact until the database points to the new one.
+// On failure, an error response is written to ctx and ok is false.
+func (t *api) replaceSoundFile(
+	ctx *gin.Context,
+	sound *database.Sound,
+	audio io.Reader,
+) (ok bool) {
+	storageID := newStorageID(sound.Handle)
+
+	if err := t.storage.Store(storageID, audio); err != nil {
+		_ = t.storage.Delete(storageID)
+		slog.Error("failed storing sound file", "storage_id", storageID, "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return false
+	}
+
+	if err := t.db.UpdateSoundStorageID(sound.ID, storageID); err != nil {
+		_ = t.storage.Delete(storageID)
+		slog.Error("failed updating sound storage ID in database", "id", sound.ID, "err", err)
+		ctx.JSON(http.StatusInternalServerError, ErrInternal)
+		return false
+	}
+
+	_ = t.storage.Delete(sound.StorageId)
+
+	return true
 }
 
 // downloadErrorResponse maps an error returned by the downloader to the

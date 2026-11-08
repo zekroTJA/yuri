@@ -42,6 +42,19 @@
     opacity: 0.6;
 }
 
+.checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    cursor: pointer;
+
+    input {
+        width: 1.1em;
+        height: 1.1em;
+        accent-color: var(--accent);
+    }
+}
+
 .actions {
     display: flex;
     justify-content: flex-end;

@@ -1727,7 +1727,7 @@
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Updates the handle and tags of a sound. Requires the \"write\" scope when using an API key.",
+                "description": "Updates the handle and tags of a sound. If filters are given, they are applied to the stored audio of the sound. Requires the \"write\" scope when using an API key.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1850,7 +1850,7 @@
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Creates a copy of a sound with a new handle and tags. Requires the \"write\" scope when using an API key.",
+                "description": "Creates a copy of a sound with a new handle and tags. If filters are given, they are applied to the audio of the copy. Requires the \"write\" scope when using an API key.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1987,7 +1987,7 @@
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Trims a sound to the given range. The trimmed audio is loudness normalized and replaces the original audio file. Requires the \"write\" scope when using an API key.",
+                "description": "Trims a sound to the given range. The trimmed audio is loudness normalized, the optionally given filters are applied and the result replaces the original audio file. Requires the \"write\" scope when using an API key.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2594,6 +2594,17 @@
                 "handle"
             ],
             "properties": {
+                "filters": {
+                    "description": "Filters are applied to the audio of the copy, if set.",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "normalize",
+                            "overdrive"
+                        ]
+                    }
+                },
                 "handle": {
                     "description": "Handle must only contain letters, digits, underscores and dashes.",
                     "type": "string"
@@ -2722,6 +2733,17 @@
                 "end": {
                     "type": "number"
                 },
+                "filters": {
+                    "description": "Filters are applied to the trimmed audio in addition to the loudness\nnormalization which is always applied.",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "normalize",
+                            "overdrive"
+                        ]
+                    }
+                },
                 "start": {
                     "type": "number"
                 }
@@ -2733,6 +2755,17 @@
                 "handle"
             ],
             "properties": {
+                "filters": {
+                    "description": "Filters are applied to the stored audio of the sound, if set.",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "normalize",
+                            "overdrive"
+                        ]
+                    }
+                },
                 "handle": {
                     "description": "Handle must only contain letters, digits, underscores and dashes.",
                     "type": "string"

@@ -72,17 +72,22 @@ export interface SoundResponse {
 export interface SoundUpdateRequest {
   handle: string;
   tags?: string[];
+  filters?: SoundFilter[];
 }
 
 export interface SoundCopyRequest {
   handle: string;
   tags?: string[];
+  filters?: SoundFilter[];
 }
 
 // Range of the sound to keep in seconds.
 export interface SoundTrimRequest {
   start: number;
   end: number;
+  // Applied in addition to the loudness normalization which is always
+  // applied to trimmed sounds.
+  filters?: SoundFilter[];
 }
 
 export interface UploadSoundRequest {

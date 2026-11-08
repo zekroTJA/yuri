@@ -5,7 +5,7 @@ Yuri is a self-hostable, fully web based soundboard. Upload your sounds, join a 
 ## Features
 
 - **Sound library** — Upload audio files of (almost) any format or import sounds directly from a media URL via [yt-dlp](https://github.com/yt-dlp/yt-dlp). Everything is transcoded to Ogg using ffmpeg.
-- **Audio filters** — Optionally normalize the loudness of sounds on upload.
+- **Audio filters** — Optionally normalize the loudness of sounds or overdrive them on upload.
 - **Sound editing** — Organize sounds with handles and tags, trim them and save edits either in place or as a new sound.
 - **Channels** — Create channels, invite others via invite codes (with optional expiration and activation limits) and play sounds to all connected members in real time via Server-Sent Events.
 - **Import & export** — Back up your whole sound library as a `.tar.gz` archive and import it again on another instance.

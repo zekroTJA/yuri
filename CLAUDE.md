@@ -64,7 +64,7 @@ Sets up a Gin router in release mode. All handlers are methods on the unexported
 
 **SSE (`pkg/sse`):** `Manager` keys per-channel event streams by channel ID (`channelsEvents` handler subscribes, `channelsPlay` broadcasts a play event to all subscribers of a channel).
 
-**Audio pipeline (`pkg/ffmpeg`):** Uploaded sounds are piped through `ffmpeg` via stdin/stdout (no temp files) and transcoded to Ogg. Input mimetype/container is sniffed from the uploaded bytes (`gabriel-vasile/mimetype`); optional filters (currently only loudness normalization — `FilterOverdrive` is a stub) are appended as extra `-af` args.
+**Audio pipeline (`pkg/ffmpeg`):** Uploaded sounds are piped through `ffmpeg` via stdin/stdout (no temp files) and transcoded to Ogg. Input mimetype/container is sniffed from the uploaded bytes (`gabriel-vasile/mimetype`); optional filters (loudness normalization and overdrive, which boosts the normalized audio and hard-clips it at the normalization peak ceiling) are combined into a single `-af` filter chain.
 
 **Storage (`pkg/storage`):** Flat-file store — sounds are saved on disk under the configured directory keyed by `Sound.StorageId`, not in the database.
 

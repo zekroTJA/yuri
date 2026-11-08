@@ -24,18 +24,25 @@ type SoundUpdateRequest struct {
 	// Handle must only contain letters, digits, underscores and dashes.
 	Handle string   `json:"handle" binding:"required"`
 	Tags   []string `json:"tags"`
+	// Filters are applied to the stored audio of the sound, if set.
+	Filters []string `json:"filters" enums:"normalize,overdrive"`
 }
 
 type SoundCopyRequest struct {
 	// Handle must only contain letters, digits, underscores and dashes.
 	Handle string   `json:"handle" binding:"required"`
 	Tags   []string `json:"tags"`
+	// Filters are applied to the audio of the copy, if set.
+	Filters []string `json:"filters" enums:"normalize,overdrive"`
 }
 
 // SoundTrimRequest defines the range of the sound to keep in seconds.
 type SoundTrimRequest struct {
 	Start float64 `json:"start"`
 	End   float64 `json:"end" binding:"required"`
+	// Filters are applied to the trimmed audio in addition to the loudness
+	// normalization which is always applied.
+	Filters []string `json:"filters" enums:"normalize,overdrive"`
 }
 
 func SoundToResponse(s *database.Sound) *SoundResponse {

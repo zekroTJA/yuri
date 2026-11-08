@@ -51,6 +51,7 @@ function SoundUploadForm({ onUploaded }: { onUploaded: () => void }) {
   const [handle, setHandle] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [normalize, setNormalize] = useState(true);
+  const [overdrive, setOverdrive] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | undefined>();
 
@@ -86,7 +87,10 @@ function SoundUploadForm({ onUploaded }: { onUploaded: () => void }) {
         file: sourceType === "file" ? file : undefined,
         url: sourceType === "url" ? url.trim() : undefined,
         tags,
-        filters: normalize ? ["normalize"] : [],
+        filters: [
+          ...(normalize ? (["normalize"] as const) : []),
+          ...(overdrive ? (["overdrive"] as const) : []),
+        ],
       });
       onUploaded();
     } catch (e) {
@@ -164,6 +168,14 @@ function SoundUploadForm({ onUploaded }: { onUploaded: () => void }) {
           onChange={(e) => setNormalize(e.currentTarget.checked)}
         />
         Normalize loudness
+      </label>
+      <label className={styles.checkbox}>
+        <input
+          type="checkbox"
+          checked={overdrive}
+          onChange={(e) => setOverdrive(e.currentTarget.checked)}
+        />
+        Overdrive
       </label>
       <div className={styles.actions}>
         <Button
