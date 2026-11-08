@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/zekrotja/yuri/pkg/cli/cliutil"
 	"github.com/zekrotja/yuri/pkg/database"
+	"github.com/zekrotja/yuri/pkg/mgmtcli/cliutil"
 	"gorm.io/gorm"
 )
 

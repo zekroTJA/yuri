@@ -1,13 +1,13 @@
-package cli
+package mgmtcli
 
 import (
 	"fmt"
 	"os"
 
 	"github.com/alexflint/go-arg"
-	"github.com/zekrotja/yuri/pkg/cli/danger"
-	"github.com/zekrotja/yuri/pkg/cli/users"
 	"github.com/zekrotja/yuri/pkg/database"
+	"github.com/zekrotja/yuri/pkg/mgmtcli/danger"
+	"github.com/zekrotja/yuri/pkg/mgmtcli/users"
 )
 
 type Args struct {

@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/alexedwards/argon2id"
-	"github.com/zekrotja/yuri/pkg/cli/cliutil"
 	"github.com/zekrotja/yuri/pkg/database"
+	"github.com/zekrotja/yuri/pkg/mgmtcli/cliutil"
 	"github.com/zekrotja/yuri/pkg/util"
 	"golang.org/x/term"
 )
