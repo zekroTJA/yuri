@@ -149,6 +149,9 @@ export default function Main() {
   const connectedChannelId = useRef<number | undefined>(undefined);
 
   const setConnected = (channelId: number | undefined) => {
+    // Sounds of a left channel are only stopped locally, so that the playback
+    // continues for the users remaining in it.
+    if (connectedChannelId.current != channelId) stopSound();
     connectedChannelId.current = channelId;
     storeConnectedChannel(channelId);
     dispatchChannelState(["setConnected", channelId]);
@@ -264,6 +267,7 @@ export default function Main() {
     );
     eventStream.on("channel-delete", (event) => {
       if (connectedChannelId.current == event.channel_id) {
+        stopSound();
         connectedChannelId.current = undefined;
         storeConnectedChannel(undefined);
       }
