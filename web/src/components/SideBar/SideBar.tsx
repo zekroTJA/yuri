@@ -90,8 +90,7 @@ type ChannelDrag = {
 type ChannelDropTarget = {
   channelId: number;
   // Whether the dragged channel is placed after or before the target
-  // channel. Placing before is only used for the first channel, so that the
-  // indicator is always shown under the same channel for the same position.
+  // channel, depending on which half of the target channel is hovered.
   placeAfter: boolean;
 };
 

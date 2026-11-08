@@ -14,32 +14,19 @@ export function orderChannels(
 }
 
 // Returns where movedId is placed when it is dropped on the half of the
-// channel targetId given by placeAfter. Drop positions are expressed as
-// "after the previous channel" when possible, so that every position has
-// exactly one representation. Undefined is returned when dropping would not
-// change the order.
+// channel targetId given by placeAfter. Undefined is returned when dropping
+// would not change the order.
 export function channelDropTarget(
   channelIds: number[],
   movedId: number,
   targetId: number,
   placeAfter: boolean,
 ): { channelId: number; placeAfter: boolean } | undefined {
-  const targetIndex = channelIds.indexOf(targetId);
-  if (targetIndex < 0) return undefined;
+  if (!channelIds.includes(targetId)) return undefined;
 
-  let dropTarget = { channelId: targetId, placeAfter };
-  if (!placeAfter && targetIndex > 0) {
-    dropTarget = { channelId: channelIds[targetIndex - 1], placeAfter: true };
-  }
-
-  const moved = moveChannelId(
-    channelIds,
-    movedId,
-    dropTarget.channelId,
-    dropTarget.placeAfter,
-  );
+  const moved = moveChannelId(channelIds, movedId, targetId, placeAfter);
   const isChanged = moved.some((id, i) => id != channelIds[i]);
-  return isChanged ? dropTarget : undefined;
+  return isChanged ? { channelId: targetId, placeAfter } : undefined;
 }
 
 // Returns channelIds with movedId moved before or after targetId.
