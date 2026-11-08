@@ -47,7 +47,7 @@ func (t *Command) pruneSounds(yes bool, storageDir string) (err error) {
 
 	fmt.Println("Deleting sound database entries and sound statistics ...")
 	err = t.db.Db().Transaction(func(tx *gorm.DB) error {
-		tx = tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Unscoped()
+		tx = tx.Unscoped().Session(&gorm.Session{AllowGlobalUpdate: true})
 
 		if err := tx.Delete(&database.SoundPlay{}).Error; err != nil {
 			return fmt.Errorf("failed deleting sound statistics: %w", err)
