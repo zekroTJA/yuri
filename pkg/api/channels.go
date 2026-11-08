@@ -36,7 +36,7 @@ func (t *api) channelsCreate(ctx *gin.Context) {
 		return
 	}
 
-	tagBlocklist, ok := normalizeTags(req.TagBlocklist)
+	tagBlocklist, ok := normalizeAndCheckTags(req.TagBlocklist)
 	if !ok {
 		ctx.JSON(http.StatusBadRequest, ErrInvalidTag)
 		return
@@ -250,7 +250,7 @@ func (t *api) channelsUpdate(ctx *gin.Context) {
 		return
 	}
 
-	tagBlocklist, ok := normalizeTags(req.TagBlocklist)
+	tagBlocklist, ok := normalizeAndCheckTags(req.TagBlocklist)
 	if !ok {
 		ctx.JSON(http.StatusBadRequest, ErrInvalidTag)
 		return

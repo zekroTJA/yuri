@@ -68,7 +68,7 @@ func (t *api) soundsUpload(ctx *gin.Context) {
 		return
 	}
 
-	tags, ok := normalizeTags(ctx.PostFormArray("tags"))
+	tags, ok := normalizeAndCheckTags(ctx.PostFormArray("tags"))
 	if !ok {
 		ctx.JSON(http.StatusBadRequest, ErrInvalidTag)
 		return
@@ -260,7 +260,7 @@ func (t *api) soundsUpdate(ctx *gin.Context) {
 		return
 	}
 
-	tags, ok := normalizeTags(req.Tags)
+	tags, ok := normalizeAndCheckTags(req.Tags)
 	if !ok {
 		ctx.JSON(http.StatusBadRequest, ErrInvalidTag)
 		return
@@ -567,7 +567,7 @@ func (t *api) soundsCopy(ctx *gin.Context) {
 		return
 	}
 
-	tags, ok := normalizeTags(req.Tags)
+	tags, ok := normalizeAndCheckTags(req.Tags)
 	if !ok {
 		ctx.JSON(http.StatusBadRequest, ErrInvalidTag)
 		return
