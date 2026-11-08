@@ -2,18 +2,27 @@ package api
 
 import (
 	"net/url"
-	"regexp"
 	"strconv"
 	"strings"
 
+	"github.com/zekrotja/yuri/pkg/charset"
 	"github.com/zekrotja/yuri/pkg/database"
 	"github.com/zekrotja/yuri/pkg/ffmpeg"
 	"github.com/zekrotja/yuri/pkg/util"
 )
 
 var (
-	soundHandlePattern = regexp.MustCompile(`^[a-zA-Z0-9_\-]+$`)
-	tagPattern         = regexp.MustCompile(`^[a-z0-9_\-]+$`)
+	soundHandleChars = charset.MustNew(`a-zA-Z0-9_\-`)
+	tagChars         = charset.MustNew(`a-z0-9_\-`)
+
+	importTagsReplacer = strings.NewReplacer(
+		" ", "_",
+		"\t", "_",
+		"ä", "ae",
+		"ö", "oe",
+		"ü", "ue",
+		"ß", "ss",
+	)
 )
 
 var filterMap = map[string]ffmpeg.Filter{
@@ -25,21 +34,31 @@ var filterMap = map[string]ffmpeg.Filter{
 // alphanumeric characters, underscores and dashes, so that it can safely be
 // used as part of file names, i.e. in the storage ID or in sound archives.
 func isValidSoundHandle(handle string) bool {
-	return soundHandlePattern.MatchString(handle)
+	return soundHandleChars.MatchString(handle)
 }
 
-// normalizeTags converts the given tags to lowercase and reports whether all
+// normalizeAndCheckTags converts the given tags to lowercase and reports whether all
 // of them only consist of lowercase alphanumeric characters, underscores and
 // dashes afterwards.
-func normalizeTags(tags []string) (normalized []string, ok bool) {
+func normalizeAndCheckTags(tags []string) (normalized []string, ok bool) {
 	normalized = make([]string, len(tags))
 	for i, tag := range tags {
 		normalized[i] = strings.ToLower(tag)
-		if !tagPattern.MatchString(normalized[i]) {
+		if !tagChars.MatchString(normalized[i]) {
 			return nil, false
 		}
 	}
 	return normalized, true
+}
+
+func normalizeImportTags(tags []string) (normalized []string) {
+	normalized = make([]string, len(tags))
+	for _, tag := range tags {
+		tag = strings.ToLower(tag)
+		tag = importTagsReplacer.Replace(tag)
+		tag = tagChars.ReplaceNotMatching(tag, "")
+	}
+	return normalized
 }
 
 // isValidMediaURL reports whether the given URL is an absolute http or https
