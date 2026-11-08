@@ -2,6 +2,7 @@
     display: flex;
     flex-direction: column;
     gap: 1em;
+    height: 100%;
     padding: 1em;
 }
 
@@ -41,7 +42,15 @@
 .sounds {
     display: flex;
     flex-wrap: wrap;
+    flex: 1 1 auto;
+    align-content: flex-start;
     gap: 0.8em;
+    min-height: 0;
+    overflow-y: auto;
+    /* Leave room for the pulse animation and the hover scale so they are not
+       clipped by the scroll container, without shifting the layout. */
+    margin: -0.5em;
+    padding: 0.5em;
 }
 
 .sound {
